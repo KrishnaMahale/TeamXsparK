@@ -1,0 +1,344 @@
+import React from 'react'
+import { PageContainer } from '../components/layout/PageContainer'
+import { Card, CardHeader, CardContent } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
+import { Button } from '../components/ui/Button'
+import { useCorrectiveActions } from '../hooks/useCorrectiveActions'
+import { CorrectiveAction, ActionComparisonRow } from '../types/action'
+import { mockActionComparisonRows } from '../mocks/actionMock'
+import {
+  Wrench,
+  CheckCircle2,
+  AlertTriangle,
+  Play,
+  RotateCcw,
+  BatteryMedium,
+  Network,
+  Sun,
+  ShieldCheck,
+  ArrowRight,
+  XCircle,
+} from 'lucide-react'
+
+export const ActionsPage: React.FC = () => {
+  const {
+    actions,
+    selectedAction,
+    isRunning,
+    executionResult,
+    selectAction,
+    executeAction,
+    resetSimulation,
+  } = useCorrectiveActions()
+
+  const comparisonRows = mockActionComparisonRows
+
+  const getActionIcon = (type: string) => {
+    switch (type) {
+      case 'battery_discharge':
+      case 'max_battery_discharge':
+        return <BatteryMedium className="w-5 h-5 text-emerald-400" />
+      case 'feeder_reconfiguration':
+        return <Network className="w-5 h-5 text-blue-400" />
+      case 'solar_curtailment':
+        return <Sun className="w-5 h-5 text-amber-400" />
+      default:
+        return <Wrench className="w-5 h-5 text-slate-400" />
+    }
+  }
+
+  return (
+    <PageContainer
+      title="Resolve Grid Violations"
+      subtitle="Test available corrective actions before applying them to the distribution grid"
+      actions={
+        <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+            onClick={resetSimulation}
+          >
+            Reset Test
+          </Button>
+        </div>
+      }
+    >
+      {/* 1. Action Cards Workspace (4 Action Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {actions.map((action) => {
+          const isSel = selectedAction?.id === action.id
+          const isFeasible = action.isFeasible
+
+          return (
+            <div
+              key={action.id}
+              onClick={() => selectAction(action)}
+              className={`p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between ${
+                isSel
+                  ? 'bg-[#16223F] border-blue-600'
+                  : 'bg-[#111C35] border-[#1E293B] hover:border-slate-600'
+              }`}
+            >
+              <div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-[#0E172C] border border-[#1E293B]">
+                      {getActionIcon(action.type)}
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wide">
+                        {action.title}
+                      </h3>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {action.parameterDelta}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Badge variant={isFeasible ? 'success' : 'danger'} size="sm">
+                    {isFeasible ? 'FEASIBLE' : 'NOT FEASIBLE'}
+                  </Badge>
+                </div>
+
+                <p className="text-xs text-slate-300 mt-3 line-clamp-2">
+                  {action.description}
+                </p>
+
+                {!isFeasible && action.infeasibleReason && (
+                  <div className="mt-2.5 p-2 rounded bg-red-950/60 border border-red-800 text-[11px] text-red-300">
+                    <span className="font-bold">Constraint Breach: </span>
+                    {action.infeasibleReason}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#1E293B] text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Voltage Target:</span>
+                    <span className="font-mono font-bold text-emerald-400">
+                      {action.expectedVoltagePu} pu
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">F-02 Loading:</span>
+                    <span className="font-mono font-bold text-slate-200">
+                      {action.expectedFeederLoadPercent}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button
+                  variant={isSel ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    selectAction(action)
+                    executeAction(action.id)
+                  }}
+                  disabled={isRunning}
+                >
+                  {isSel && executionResult ? 'Simulated ✓' : 'Simulate Action'}
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 2. Before / After Comparison Section (Prominent Panels) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
+            <span>Simulation Outcome: {selectedAction?.title || 'Feeder Reconfiguration'}</span>
+            <Badge variant={selectedAction?.isFeasible ? 'success' : 'danger'} size="sm">
+              {selectedAction?.isFeasible ? 'Action Tested' : 'Constraint Failure'}
+            </Badge>
+          </h2>
+          <span className="text-xs text-slate-400">
+            Comparing pre-dispatch grid status with post-dispatch telemetry
+          </span>
+        </div>
+
+        {/* Selected Infeasible Action Callout */}
+        {selectedAction && !selectedAction.isFeasible && (
+          <div className="p-4 rounded-xl bg-red-950/60 border border-red-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-white">
+                  Action Infeasible: {selectedAction.title}
+                </h4>
+                <p className="text-xs text-red-200 mt-0.5">
+                  Requested discharge (-80 kW) exceeds available battery storage reserves. Battery operating constraints do not permit this dispatch.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const alt = actions.find((a) => a.isFeasible)
+                if (alt) {
+                  selectAction(alt)
+                  executeAction(alt.id)
+                }
+              }}
+              className="shrink-0"
+            >
+              Try Another Action
+            </Button>
+          </div>
+        )}
+
+        {/* Side-by-Side BEFORE / AFTER Panels */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          {/* BEFORE Panel */}
+          <div className="p-5 rounded-xl bg-[#111C35] border border-red-800/80">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E293B]">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                <h3 className="text-sm font-bold text-white uppercase">Before Dispatch</h3>
+              </div>
+              <Badge variant="danger">Unsafe</Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <div className="text-xs text-slate-400">Bus B3 Voltage</div>
+                <div className="text-xl font-bold font-mono text-red-400 mt-1">1.074 pu</div>
+                <div className="text-[10px] text-red-400/80 mt-0.5">+0.024 pu over limit (1.050)</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Feeder F-02 Loading</div>
+                <div className="text-xl font-bold font-mono text-red-400 mt-1">108%</div>
+                <div className="text-[10px] text-red-400/80 mt-0.5">+8% above rated ampacity</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Active Violations</div>
+                <div className="text-lg font-bold font-mono text-white mt-1">2 Violations</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Critical severity</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Solar Utilization</div>
+                <div className="text-lg font-bold font-mono text-amber-400 mt-1">240 kW</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">100% Generation</div>
+              </div>
+            </div>
+          </div>
+
+          {/* AFTER Panel */}
+          <div className="p-5 rounded-xl bg-[#111C35] border border-emerald-800/80">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E293B]">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <h3 className="text-sm font-bold text-white uppercase">After Dispatch</h3>
+              </div>
+              <Badge variant={selectedAction?.isFeasible ? 'success' : 'danger'}>
+                {selectedAction?.isFeasible ? 'Grid Safe' : 'Unresolved'}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <div className="text-xs text-slate-400">Bus B3 Voltage</div>
+                <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+                  {selectedAction?.isFeasible ? `${selectedAction?.expectedVoltagePu || '1.038'} pu` : '1.074 pu'}
+                </div>
+                <div className="text-[10px] text-emerald-400/80 mt-0.5">Within IEEE 1547 (0.95 - 1.05)</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Feeder F-02 Loading</div>
+                <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+                  {selectedAction?.isFeasible ? `${selectedAction?.expectedFeederLoadPercent || '92'}%` : '108%'}
+                </div>
+                <div className="text-[10px] text-emerald-400/80 mt-0.5">Below 100% thermal rating</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Remaining Violations</div>
+                <div className="text-lg font-bold font-mono text-emerald-400 mt-1">
+                  {selectedAction?.isFeasible ? '0 Violations' : '2 Violations'}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">All constraints cleared</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400">Renewable Utilization</div>
+                <div className="text-lg font-bold font-mono text-white mt-1">
+                  {selectedAction?.renewableUtilizationPercent || 96}%
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">Clean energy maintained</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Action Comparison Matrix Table */}
+      <Card>
+        <CardHeader
+          title="Compare Corrective Actions"
+          subtitle="Multi-criteria ranking of voltage relief, thermal loading, and renewable utilization"
+          icon={<Wrench className="w-4 h-4 text-blue-400" />}
+        />
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full text-xs text-left border-collapse min-w-[700px]">
+            <thead className="bg-[#0E172C] text-slate-400 uppercase text-[10px] tracking-wider border-b border-[#1E293B]">
+              <tr>
+                <th className="py-3 px-4">Action</th>
+                <th className="py-3 px-4">B3 Voltage</th>
+                <th className="py-3 px-4">Feeder Load</th>
+                <th className="py-3 px-4">Renewable Used</th>
+                <th className="py-3 px-4">Battery SOC</th>
+                <th className="py-3 px-4">Violations</th>
+                <th className="py-3 px-4">Feasibility</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1E293B] text-slate-200">
+              {comparisonRows.map((row) => (
+                <tr key={row.actionId} className="hover:bg-[#16223F]/50 transition-colors">
+                  <td className="py-3 px-4 font-bold text-white">
+                    <div>{row.actionTitle}</div>
+                    {row.infeasibleNote && (
+                      <div className="text-[10px] text-red-400">{row.infeasibleNote}</div>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 font-mono font-medium">
+                    <span className={row.voltage.includes('1.07') ? 'text-red-400' : 'text-emerald-400'}>
+                      {row.voltage}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 font-mono">
+                    <span className={parseInt(row.feederLoading) > 100 ? 'text-red-400' : 'text-slate-200'}>
+                      {row.feederLoading}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 font-mono text-amber-400">{row.solarUsed}</td>
+                  <td className="py-3 px-4 font-mono">{row.batterySoc}</td>
+                  <td className="py-3 px-4 font-mono">
+                    <span className={row.violationsRemaining === 0 ? 'text-emerald-400 font-bold' : 'text-red-400'}>
+                      {row.violationsRemaining}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <Badge variant={row.isFeasible ? 'success' : 'danger'} size="sm">
+                      {row.isFeasible ? 'FEASIBLE' : 'INFEASIBLE'}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </PageContainer>
+  )
+}
