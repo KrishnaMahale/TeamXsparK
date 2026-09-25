@@ -28,7 +28,12 @@ export const Sidebar: React.FC = () => {
       name: 'Violations',
       path: '/violations',
       icon: AlertTriangle,
-      badge: violationSummary.total > 0 ? violationSummary.total : undefined,
+      badge:
+        violationSummary.critical > 0
+          ? violationSummary.critical
+          : violationSummary.warning > 0
+          ? violationSummary.warning
+          : undefined,
       badgeColor:
         violationSummary.critical > 0
           ? 'bg-red-600 text-white'

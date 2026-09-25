@@ -20,12 +20,13 @@ import {
 } from 'lucide-react'
 
 export const ReportsPage: React.FC = () => {
-  const { network, currentTime, violations, violationSummary } = useGridStore()
+  const { network, currentTime, violations, violationSummary, isResolved, activeActionApplied } = useGridStore()
   const { input, fullResult, selectedAction } = useSimulationStore()
   const [reportSummary, setReportSummary] = useState<GridReportSummary | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const scenarioName = fullResult?.summary.scenarioName || input.scenarioName
+  const currentAction = activeActionApplied || selectedAction
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -48,7 +49,7 @@ export const ReportsPage: React.FC = () => {
       summary: reportSummary,
       buses: network.buses.map((b) => ({ id: b.id, name: b.name, voltage: b.voltage, status: b.status })),
       feeders: network.feeders.map((f) => ({ id: f.id, name: f.name, loadingPercent: f.loadingPercent, status: f.status })),
-      violations: violations.map((v) => ({ id: v.id, issue: v.issue, component: v.componentName, severity: v.severity })),
+      violations: violations.map((v) => ({ id: v.id, issue: v.issue, component: v.componentName, severity: v.severity, status: v.status })),
     })
   }
 
@@ -57,7 +58,7 @@ export const ReportsPage: React.FC = () => {
     reportService.exportReportCsv(reportSummary)
   }
 
-  const isSafe = violationSummary.critical === 0
+  const isSafe = isResolved || violationSummary.critical === 0
 
   return (
     <PageContainer
@@ -90,7 +91,7 @@ export const ReportsPage: React.FC = () => {
           title="Executive Audit Summary"
           subtitle={`Scenario: ${scenarioName} • Snapshot: ${currentTime}`}
           icon={<FileText className="w-4 h-4 text-blue-400" />}
-          action={<Badge variant={isSafe ? 'success' : 'danger'}>{isSafe ? 'Audit Passed' : 'Violations Logged'}</Badge>}
+          action={<Badge variant={isSafe ? 'success' : 'danger'}>{isSafe ? 'Audit Passed (Safe)' : 'Violations Logged'}</Badge>}
         />
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -108,10 +109,10 @@ export const ReportsPage: React.FC = () => {
 
             <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B]">
               <div className="text-[11px] text-slate-400">Active Violations</div>
-              <div className={`text-xs font-bold font-mono mt-1 ${violations.length > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                {violations.length} Issues
+              <div className={`text-xs font-bold font-mono mt-1 ${violationSummary.total > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {violationSummary.total > 0 ? `${violationSummary.total} Issues` : '0 Issues (Resolved)'}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">Constraint Breaches</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">{isSafe ? 'Cleared' : 'Constraint Breaches'}</div>
             </div>
 
             <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B]">
@@ -121,17 +122,17 @@ export const ReportsPage: React.FC = () => {
             </div>
 
             <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B]">
-              <div className="text-[11px] text-slate-400">Recommended Action</div>
+              <div className="text-[11px] text-slate-400">Applied / Recommended</div>
               <div className="text-xs font-bold text-blue-400 mt-1 truncate">
-                {selectedAction?.title || 'Feeder Reconfiguration'}
+                {currentAction?.title || 'Feeder Reconfiguration'}
               </div>
-              <div className="text-[10px] text-slate-500 mt-0.5">Optimal Feasible</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">{isSafe ? 'Dispatched' : 'Optimal Feasible'}</div>
             </div>
 
             <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B]">
               <div className="text-[11px] text-slate-400">Renewable Used</div>
               <div className="text-xs font-bold font-mono text-emerald-400 mt-1">
-                {reportSummary?.renewableUtilizationPercent || 96}%
+                {currentAction?.renewableUtilizationPercent || reportSummary?.renewableUtilizationPercent || 96}%
               </div>
               <div className="text-[10px] text-slate-500 mt-0.5">Zero Carbon Yield</div>
             </div>
@@ -150,14 +151,14 @@ export const ReportsPage: React.FC = () => {
           />
           <CardContent className="space-y-3 text-xs text-slate-300 leading-relaxed">
             <p>
-              Under the active scenario <strong className="text-white">{scenarioName}</strong>, solar PV reverse power injection across Bus 2 and Bus 3 created nodal voltage escalation up to <span className="font-mono text-red-400 font-bold">1.074 pu</span>. Feeder F-02 loading peaked at <span className="font-mono text-red-400 font-bold">108%</span> of thermal ampacity rating.
+              Under the active scenario <strong className="text-white">{scenarioName}</strong> at time snapshot <span className="font-mono text-blue-400 font-bold">{currentTime}</span>, peak solar generation reached <span className="font-mono text-amber-400 font-bold">{reportSummary?.peakSolarKw ?? 240} kW</span> against a peak load of <span className="font-mono text-blue-400 font-bold">{reportSummary?.peakLoadKw ?? 150} kW</span>. Initial audit identified <span className="font-mono text-red-400 font-bold">{reportSummary?.initialViolations ?? 2}</span> constraint breaches.
             </p>
             <p>
-              The optimization engine evaluated four corrective dispatch candidates. The tie-line switching action (<span className="text-blue-400 font-medium">Feeder Reconfiguration F-02 → F-03</span>) resolved all critical voltage and loading violations while preserving <span className="text-emerald-400 font-bold">96%</span> renewable utilization.
+              The optimization engine evaluated and dispatched <span className="text-blue-400 font-medium">{currentAction?.title || 'Feeder Reconfiguration (F-02 → F-03)'}</span>, which cleared critical violations (remaining: <span className="text-emerald-400 font-bold">{violationSummary.critical}</span>) while preserving <span className="text-emerald-400 font-bold">{currentAction?.renewableUtilizationPercent || reportSummary?.renewableUtilizationPercent || 96}%</span> renewable utilization.
             </p>
             <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B] text-[11px] text-slate-400">
-              <span className="font-bold text-white block mb-0.5">Infeasible Constraint Record:</span>
-              A max battery discharge request (-80 kW) was flagged as <strong className="text-red-400">NOT FEASIBLE</strong> due to insufficient battery state-of-charge reserves.
+              <span className="font-bold text-white block mb-0.5">Asset Utilization Metric:</span>
+              Grid loss estimated at <strong className="text-white">{reportSummary?.gridLossPercent ?? 3.2}%</strong> with Voltage Stability Index (VSI) at <strong className="text-emerald-400">{reportSummary?.voltageStabilityIndex ?? 0.98}</strong>. Battery throughput: <strong className="text-cyan-400">{reportSummary?.batteryThroughputKwh ?? 24.5} kWh</strong>.
             </div>
           </CardContent>
         </Card>

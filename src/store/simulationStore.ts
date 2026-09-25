@@ -16,6 +16,8 @@ import { defaultComparisonData } from '../mocks/simulationMock'
 import { mockCorrectiveActions } from '../mocks/actionMock'
 import { useGridStore } from './gridStore'
 
+import { actionService } from '../services/api/actionService'
+
 const initialSteps: SimulationProgressStep[] = [
   { id: '1', title: 'Initializing Digital Twin', subtitle: 'Loading distribution network model & topology', status: 'waiting' },
   { id: '2', title: 'Loading Time-Series Data', subtitle: 'Processing user-entered solar PV and load demand arrays', status: 'waiting' },
@@ -57,6 +59,7 @@ interface SimulationState {
   // Simulation execution actions
   runFullSimulation: () => Promise<FullSimulationResult | null>
   closeProgressModal: () => void
+  fetchActions: () => Promise<void>
   runCorrectiveActionsAnalysis: () => Promise<void>
   selectAction: (action: CorrectiveAction) => void
   executeSelectedAction: (actionId?: string) => Promise<ActionExecutionResult | null>
@@ -92,6 +95,9 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       input: newInput,
       activePresetKey: presetKey,
     })
+    const gridStore = useGridStore.getState()
+    const targetTime = presetKey === 'NORMAL_DAY' ? '10:00' : (presetKey === 'EVENING_PEAK' ? '19:30' : (presetKey === 'HIGH_SOLAR_LOW_LOAD' ? '12:30' : (presetKey === 'EXTREME_INFEASIBLE' ? '14:00' : '13:15')))
+    gridStore.setTime(targetTime)
   },
 
   updateSolarPoint: (id, solarKw) => {
@@ -271,6 +277,21 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     set({ isProgressModalOpen: false })
   },
 
+  fetchActions: async () => {
+    set({ isRunning: true, error: null })
+    try {
+      const actions = await actionService.getActions()
+      const recommended = actions.find((a) => a.id === 'ACT-02') || actions[0]
+      set({
+        availableActions: actions,
+        selectedAction: recommended,
+        isRunning: false,
+      })
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to fetch actions', isRunning: false })
+    }
+  },
+
   runCorrectiveActionsAnalysis: async () => {
     set({ isRunning: true, error: null })
     try {
@@ -319,6 +340,9 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       selectedAction: action,
       comparisonData: updatedComp,
     })
+
+    const gridStore = useGridStore.getState()
+    gridStore.applyActionToNetwork(action)
   },
 
   executeSelectedAction: async (actionId?: string) => {
@@ -336,43 +360,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         isRunning: false,
       })
 
-      // If action is feasible, update the grid network state
-      if (result.success) {
-        const gridStore = useGridStore.getState()
-        const updatedBuses = gridStore.network.buses.map((b) => {
-          if (b.id === 'B3') {
-            return {
-              ...b,
-              voltage: result.afterState.b3Voltage,
-              lineLoadingPercent: result.afterState.f02LoadingPercent,
-              status: 'normal' as const,
-            }
-          }
-          return b
-        })
-
-        const updatedFeeders = gridStore.network.feeders.map((f) => {
-          if (f.id === 'F-02') {
-            return {
-              ...f,
-              loadingPercent: result.afterState.f02LoadingPercent,
-              status: 'normal' as const,
-              isSwitchClosed: targetAction.id === 'ACT-02' ? false : f.isSwitchClosed,
-            }
-          }
-          if (f.id === 'F-03' && targetAction.id === 'ACT-02') {
-            return {
-              ...f,
-              loadingPercent: 46,
-              status: 'normal' as const,
-              isSwitchClosed: true,
-            }
-          }
-          return f
-        })
-
-        gridStore.resolveViolations(updatedBuses, updatedFeeders)
-      }
+      const gridStore = useGridStore.getState()
+      gridStore.applyActionToNetwork(targetAction)
 
       return result
     } catch (err: any) {
@@ -392,5 +381,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       comparisonData: defaultComparisonData,
       fullResult: null,
     })
+    const gridStore = useGridStore.getState()
+    gridStore.fetchNetwork()
   },
 }))

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Network2D } from '../components/network/Network2D'
 import { NetworkStatus } from '../components/dashboard/NetworkStatus'
 import { ComponentDetailsPanel } from '../components/dashboard/BusDetails'
@@ -21,13 +21,22 @@ import {
 } from 'lucide-react'
 
 export const DashboardPage: React.FC = () => {
-  const { input, fullResult, isRunning, selectedAction, comparisonData } = useSimulationStore()
-  const { currentTime, network, violationSummary, selectedComponent } = useGridStore()
+  const { input, fullResult, isRunning, selectedAction, comparisonData, fetchActions } = useSimulationStore()
+  const { currentTime, network, violationSummary, selectedComponent, isResolved, activeActionApplied, fetchNetwork } = useGridStore()
   const navigate = useNavigate()
 
-  // Calculate live power values
-  const currentSolarKw = network.solarUnits.reduce((acc, s) => acc + s.generationKw, 0) || 240
-  const currentLoadKw = network.loads.reduce((acc, l) => acc + l.powerKw, 0) || 120
+  useEffect(() => {
+    fetchNetwork()
+    fetchActions()
+  }, [fetchNetwork, fetchActions])
+
+  // Calculate live power values directly from digital twin network assets
+  const currentSolarKw = network.solarUnits.length > 0
+    ? network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)
+    : (fullResult?.summary.solarKw ?? input.currentSolarKw)
+  const currentLoadKw = network.loads.length > 0
+    ? network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
+    : (fullResult?.summary.loadKw ?? input.currentLoadKw)
   const scenarioName = fullResult?.summary.scenarioName || input.scenarioName
 
   const hasCritical = violationSummary.critical > 0
@@ -45,7 +54,7 @@ export const DashboardPage: React.FC = () => {
                 Scenario: {scenarioName}
               </h2>
               <Badge variant={hasCritical ? 'danger' : 'success'} size="sm">
-                {hasCritical ? 'Violations Active' : 'Normal'}
+                {hasCritical ? 'Violations Active' : 'Normal / Grid Safe'}
               </Badge>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -64,12 +73,12 @@ export const DashboardPage: React.FC = () => {
             Configure Scenario
           </Button>
           <Button
-            variant="primary"
+            variant={hasCritical ? 'primary' : 'secondary'}
             size="sm"
             rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             onClick={() => navigate('/actions')}
           >
-            Resolve Violations
+            {hasCritical ? 'Resolve Violations' : 'Review Actions'}
           </Button>
         </div>
       </div>
@@ -85,7 +94,7 @@ export const DashboardPage: React.FC = () => {
                 {isRunning ? 'CALCULATING' : hasCritical ? 'ATTENTION' : 'SAFE'}
               </div>
               <div className="text-[11px] text-slate-500 mt-0.5">
-                {hasCritical ? `${violationSummary.critical} critical issues` : 'Within IEEE 1547'}
+                {hasCritical ? `${violationSummary.critical} critical issues` : '0 Issues • Within IEEE 1547'}
               </div>
             </div>
             <div className={`p-2.5 rounded-lg ${hasCritical ? 'bg-red-950/80 text-red-400 border border-red-800' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800'}`}>
@@ -177,22 +186,30 @@ export const DashboardPage: React.FC = () => {
       {/* 4. Bottom Section: Quick Action & Before/After Snapshot */}
       <div className="p-5 rounded-xl bg-[#111C35] border border-[#1E293B] flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center shrink-0">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
+            hasCritical
+              ? 'bg-red-600/20 border-red-500/40 text-red-400'
+              : 'bg-emerald-600/20 border-emerald-500/40 text-emerald-400'
+          }`}>
             {hasCritical ? (
-              <AlertTriangle className="w-5 h-5 text-red-400" />
+              <AlertTriangle className="w-5 h-5" />
             ) : (
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <ShieldCheck className="w-5 h-5" />
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-white uppercase tracking-wide">
-                Optimization Engine: {selectedAction?.title || 'Feeder Reconfiguration (F-02 → F-03)'}
+                Optimization Engine: {activeActionApplied?.title || selectedAction?.title || 'Feeder Reconfiguration (F-02 → F-03)'}
               </h3>
-              <Badge variant="primary" size="sm">Recommended</Badge>
+              <Badge variant={hasCritical ? 'primary' : 'success'} size="sm">
+                {hasCritical ? 'Recommended' : 'Dispatched & Resolved ✓'}
+              </Badge>
             </div>
             <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Resolves Bus B3 over-voltage (1.074 pu → 1.038 pu) and Feeder F-02 overload (108% → 92%) by transferring 40 kW of solar surplus to tie-line F-03 while maintaining 96% renewable utilization.
+              {hasCritical
+                ? 'Resolves Bus B3 over-voltage (1.074 pu → 1.038 pu) and Feeder F-02 overload (108% → 92%) by transferring 40 kW of solar surplus to tie-line F-03 while maintaining 96% renewable utilization.'
+                : 'All voltage and thermal constraints successfully cleared. Distribution grid operating within IEEE 1547 parameters.'}
             </p>
           </div>
         </div>
@@ -203,7 +220,7 @@ export const DashboardPage: React.FC = () => {
             onClick={() => navigate('/actions')}
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Review & Simulate Actions
+            {hasCritical ? 'Resolve Violations' : 'Review Action Results'}
           </Button>
         </div>
       </div>

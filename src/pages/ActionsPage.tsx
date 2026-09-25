@@ -1,11 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useCorrectiveActions } from '../hooks/useCorrectiveActions'
 import { CorrectiveAction, ActionComparisonRow } from '../types/action'
-import { mockActionComparisonRows } from '../mocks/actionMock'
 import {
   Wrench,
   CheckCircle2,
@@ -31,7 +30,19 @@ export const ActionsPage: React.FC = () => {
     resetSimulation,
   } = useCorrectiveActions()
 
-  const comparisonRows = mockActionComparisonRows
+  const comparisonRows: ActionComparisonRow[] = useMemo(() => {
+    return actions.map((a) => ({
+      actionId: a.id,
+      actionTitle: a.title,
+      voltage: `${a.expectedVoltagePu.toFixed(3)} pu`,
+      feederLoading: `${a.expectedFeederLoadPercent}%`,
+      solarUsed: `${a.solarUsedKw} kW`,
+      batterySoc: `${a.batterySocPercent}%`,
+      violationsRemaining: a.remainingViolationsCount,
+      isFeasible: a.isFeasible,
+      infeasibleNote: !a.isFeasible ? a.infeasibleReason : undefined,
+    }))
+  }, [actions])
 
   const getActionIcon = (type: string) => {
     switch (type) {

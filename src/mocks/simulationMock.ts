@@ -28,7 +28,7 @@ export const defaultComparisonData: BeforeAfterComparisonData = {
     after: 62,
   },
   isSafe: true,
-  renewableUseMaintainedPercent: 96,
+  renewableUseMaintainedPercent: 100,
   selectedActionTitle: 'Feeder Reconfiguration (F-02 → F-03)',
 }
 

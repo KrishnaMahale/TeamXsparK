@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useScenarioStore } from '../store/scenarioStore'
 import { ScenarioId, GridScenario } from '../types/scenario'
 
@@ -13,6 +14,10 @@ export const useScenarios = () => {
     fetchScenarios,
   } = useScenarioStore()
 
+  useEffect(() => {
+    fetchScenarios()
+  }, [fetchScenarios])
+
   return {
     scenarios,
     selectedScenario,
@@ -24,3 +29,4 @@ export const useScenarios = () => {
     refresh: fetchScenarios,
   }
 }
+

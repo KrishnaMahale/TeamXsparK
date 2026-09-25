@@ -44,10 +44,8 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
 
     // Conceptual Power-Flow calculation:
     // Net reverse power injection at B2/B3 drives voltage rise
-    const netSolarSurplus = Math.max(0, solarKw - loadKw)
-    const solarPenetrationRatio = input.installedSolarCapacityKw > 0
-      ? solarKw / input.installedSolarCapacityKw
-      : 0
+    const refSolarKw = input.installedSolarCapacityKw >= 240 ? 240 : Math.max(1, input.installedSolarCapacityKw)
+    const solarPenetrationRatio = Math.min(1.0, solarKw / refSolarKw)
 
     // Voltage profile across buses
     // B1: Substation feeder head (regulated)
@@ -77,7 +75,7 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
     let f02Loading = Math.round(55 + 53 * solarPenetrationRatio)
     let f03Loading = 0
     if (isAlternativeTopology) {
-      f02Loading = Math.round(f02Loading * 0.72) // 28% reduction
+      f02Loading = Math.round(f02Loading * 0.8518) // Relieved by tie-line F-03 (108% -> 92%)
       f03Loading = 46 // F-03 energized
     }
 
@@ -202,8 +200,17 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
   const peakLoad = Math.max(...input.loadTimeSeries.map((l) => l.loadKw), 0)
 
   // Determine corrective actions and feasibility
-  const isBatteryDepleted = input.batteryConfig.initialSocPercent <= 20
-  const isBatteryRequestedExtreme = input.batteryConfig.maxDischargeKw >= 60 || input.batteryConfig.initialSocPercent < 25
+  const isBatteryDepleted = input.batteryConfig.initialSocPercent <= 15
+  const neededKwhAct1 = (Math.min(40, input.batteryConfig.maxDischargeKw) * 0.5) / 0.92
+  const availableKwhAct1 = ((input.batteryConfig.initialSocPercent - 20) / 100) * input.batteryConfig.capacityKwh
+  const canDischargeAct1 = input.batteryConfig.maxDischargeKw >= 40 && availableKwhAct1 >= neededKwhAct1 && input.batteryConfig.initialSocPercent > 20
+  const socDeltaAct1 = (neededKwhAct1 / input.batteryConfig.capacityKwh) * 100
+  const act1Soc = canDischargeAct1
+    ? Math.max(0, +(input.batteryConfig.initialSocPercent - socDeltaAct1).toFixed(1))
+    : input.batteryConfig.initialSocPercent
+
+  const curtailedUsed = Math.max(0, peakSolar - 30)
+  const utilization3 = peakSolar > 0 ? Math.round((curtailedUsed / peakSolar) * 100) : 100
 
   const actions: CorrectiveAction[] = [
     {
@@ -213,14 +220,14 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
       description: 'Discharge local BESS unit at Bus 3 to absorb voltage rise and offset feeder current.',
       parameterDelta: `-${Math.min(40, input.batteryConfig.maxDischargeKw)} kW`,
       durationMinutes: 30,
-      isFeasible: input.batteryConfig.initialSocPercent > 20,
-      infeasibleReason: input.batteryConfig.initialSocPercent <= 20
-        ? 'Battery SOC too low (15% <= 20% safe floor).'
+      isFeasible: canDischargeAct1,
+      infeasibleReason: !canDischargeAct1
+        ? `Battery SOC too low (${input.batteryConfig.initialSocPercent.toFixed(0)}% <= 20% safe floor or insufficient reserve).`
         : undefined,
       expectedVoltagePu: 1.045,
       expectedFeederLoadPercent: 98,
       solarUsedKw: peakSolar,
-      batterySocPercent: Math.max(10, input.batteryConfig.initialSocPercent - 14),
+      batterySocPercent: act1Soc,
       resolvedViolationsCount: 2,
       remainingViolationsCount: 0,
       renewableUtilizationPercent: 100,
@@ -251,11 +258,11 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
       isFeasible: true,
       expectedVoltagePu: 1.032,
       expectedFeederLoadPercent: 90,
-      solarUsedKw: Math.max(0, peakSolar - 30),
+      solarUsedKw: curtailedUsed,
       batterySocPercent: input.batteryConfig.initialSocPercent,
       resolvedViolationsCount: 2,
       remainingViolationsCount: 0,
-      renewableUtilizationPercent: 88,
+      renewableUtilizationPercent: utilization3,
     },
     {
       id: 'ACT-04',
@@ -299,7 +306,7 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
       after: input.batteryConfig.initialSocPercent,
     },
     isSafe: true,
-    renewableUseMaintainedPercent: 96,
+    renewableUseMaintainedPercent: 100,
     selectedActionTitle: 'Feeder Reconfiguration (F-02 → F-03)',
   }
 
@@ -318,11 +325,11 @@ export const runMockPowerFlow = (input: SimulationInput): FullSimulationResult =
       solarKw: peakSolar,
       loadKw: peakLoad,
       netPowerKw: peakSolar - peakLoad,
-      status: initialViolationsCount > 0 ? 'violations_detected' : 'safe',
+      status: isBatteryDepleted ? 'infeasible' : (initialViolationsCount > 0 ? 'violations_detected' : 'safe'),
       initialViolations: initialViolationsCount,
-      resolvedViolations: initialViolationsCount > 0 ? initialViolationsCount : 0,
+      resolvedViolations: isBatteryDepleted ? 0 : initialViolationsCount,
       recommendedAction: 'Feeder Reconfiguration (F-02 → F-03)',
-      isActionFeasible: true,
+      isActionFeasible: !isBatteryDepleted,
     },
   }
 }
@@ -364,14 +371,42 @@ export const simulationService = {
    */
   async runPowerFlow(time: string, scenarioId?: string): Promise<PowerFlowResult> {
     if (IS_MOCK_API) {
-      await simulateLatency(250)
+      await simulateLatency(150)
       if (activeSimulationCache && activeSimulationCache.timeStepResults[time]) {
         return activeSimulationCache.timeStepResults[time]
       }
       const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
-      const full = runMockPowerFlow(defaultInput)
+      const full = activeSimulationCache || runMockPowerFlow(defaultInput)
       activeSimulationCache = full
-      return full.timeStepResults[time] || Object.values(full.timeStepResults)[0]
+
+      if (full.timeStepResults[time]) {
+        return full.timeStepResults[time]
+      }
+
+      // Dynamically compute power-flow for intermediate timestamps e.g. 13:15
+      const inputToUse = full.input || defaultInput
+      const [h, m] = time.split(':').map(Number)
+      const tFloat = (h || 0) + (m || 0) / 60
+      let solarKw = 0
+      if (tFloat >= 6 && tFloat <= 19) {
+        solarKw = Math.round((inputToUse.installedSolarCapacityKw || 250) * Math.sin(((tFloat - 6) / 13) * Math.PI))
+      }
+      const peakL = inputToUse.peakLoadKw || 180
+      const loadKw = Math.round(peakL * (0.35 + 0.3 * Math.exp(-((tFloat - 10) ** 2) / 8) + 0.35 * Math.exp(-((tFloat - 19) ** 2) / 8)))
+
+      const dynamicInput: SimulationInput = {
+        ...inputToUse,
+        solarTimeSeries: [...inputToUse.solarTimeSeries, { id: `s-${time}`, time, solarKw }],
+        loadTimeSeries: [...inputToUse.loadTimeSeries, { id: `l-${time}`, time, loadKw }],
+      }
+      const dynamicFull = runMockPowerFlow(dynamicInput)
+      const dynamicStep = dynamicFull.timeStepResults[time]
+      if (dynamicStep) {
+        activeSimulationCache.timeStepResults[time] = dynamicStep
+        return dynamicStep
+      }
+
+      return Object.values(full.timeStepResults)[0]
     }
     const response = await apiClient.post<PowerFlowResult>('/simulation/power-flow', {
       time,

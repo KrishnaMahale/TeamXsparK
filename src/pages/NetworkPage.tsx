@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useUIStore } from '../store/uiStore'
+import { useGridNetwork } from '../hooks/useGridNetwork'
 import { useGridStore } from '../store/gridStore'
 import { useSimulationStore } from '../store/simulationStore'
 import {
@@ -19,6 +20,7 @@ import { useNavigate } from 'react-router-dom'
 
 export const NetworkPage: React.FC = () => {
   const { is3DEnabled, toggle3D } = useUIStore()
+  useGridNetwork() // Ensures fetchNetwork is invoked on mount from backend
   const { network, violationSummary, currentTime } = useGridStore()
   const { input } = useSimulationStore()
   const navigate = useNavigate()

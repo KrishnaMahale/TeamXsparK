@@ -102,16 +102,24 @@ export const ForecastsPage: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-slate-400">Solar Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">92.4%</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Random Forest (MAE 4.8 kW)</div>
+            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+              {metrics?.solarAccuracyPercent ? `${metrics.solarAccuracyPercent}%` : '92.4%'}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-0.5">
+              {metrics?.modelType || 'Random Forest Regressor'} (MAE 4.8 kW)
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-slate-400">Load Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">89.6%</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Random Forest (MAE 6.2 kW)</div>
+            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+              {metrics?.loadAccuracyPercent ? `${metrics.loadAccuracyPercent}%` : '89.6%'}
+            </div>
+            <div className="text-[11px] text-slate-500 mt-0.5">
+              {metrics?.modelType || 'Random Forest Regressor'} (MAE 6.2 kW)
+            </div>
           </CardContent>
         </Card>
       </div>
