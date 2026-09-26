@@ -11,13 +11,17 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  Factory,
+  Home,
 } from 'lucide-react'
 import { useUIStore } from '../../store/uiStore'
 import { useGridStore } from '../../store/gridStore'
+import { useDomesticStore } from '../../store/domesticStore'
 
 export const Sidebar: React.FC = () => {
   const { sidebarCollapsed, toggleSidebar } = useUIStore()
   const { violationSummary } = useGridStore()
+  const { gridType, setGridType } = useDomesticStore()
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -82,6 +86,55 @@ export const Sidebar: React.FC = () => {
           )
         })}
       </nav>
+
+      {/* Active Model Indicator */}
+      <div className="p-3 border-t border-[#1E293B]">
+        {!sidebarCollapsed ? (
+          <div className="p-2.5 rounded-lg bg-[#111C35] border border-[#1E293B] space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase font-semibold">
+              <span>Active Model</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  gridType === 'domestic' ? 'bg-amber-400' : 'bg-blue-400'
+                }`}
+              />
+            </div>
+            <div className="text-xs font-bold text-white truncate flex items-center gap-1.5">
+              {gridType === 'domestic' ? (
+                <>
+                  <Home className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">Domestic Solar</span>
+                </>
+              ) : (
+                <>
+                  <Factory className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span className="truncate">Industrial Grid</span>
+                </>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                setGridType(gridType === 'domestic' ? 'industrial' : 'domestic')
+              }}
+              className="w-full text-center text-[10px] text-blue-400 hover:text-blue-300 hover:underline pt-0.5"
+            >
+              Switch to {gridType === 'domestic' ? 'Industrial' : 'Domestic'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setGridType(gridType === 'domestic' ? 'industrial' : 'domestic')}
+            className="w-full flex justify-center p-2 rounded-lg bg-[#111C35] text-slate-300 hover:text-white"
+            title={`Active: ${gridType}. Click to switch.`}
+          >
+            {gridType === 'domestic' ? (
+              <Home className="w-4 h-4 text-amber-400" />
+            ) : (
+              <Factory className="w-4 h-4 text-blue-400" />
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Collapse/Expand Toggle */}
       <div className="p-3 border-t border-[#1E293B]">

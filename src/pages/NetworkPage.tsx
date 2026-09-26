@@ -8,6 +8,11 @@ import { useUIStore } from '../store/uiStore'
 import { useGridNetwork } from '../hooks/useGridNetwork'
 import { useGridStore } from '../store/gridStore'
 import { useSimulationStore } from '../store/simulationStore'
+import { useDomesticStore } from '../store/domesticStore'
+import { GridTypeSwitcher } from '../components/layout/GridTypeSwitcher'
+import { DomesticNetwork2D } from '../components/domestic/DomesticNetwork2D'
+import { DomesticHouseDetails } from '../components/domestic/DomesticHouseDetails'
+import { DomesticVoltageProfileChart } from '../components/domestic/DomesticVoltageProfileChart'
 import {
   Share2,
   Box,
@@ -23,53 +28,72 @@ export const NetworkPage: React.FC = () => {
   useGridNetwork() // Ensures fetchNetwork is invoked on mount from backend
   const { network, violationSummary, currentTime } = useGridStore()
   const { input } = useSimulationStore()
+  const { gridType } = useDomesticStore()
   const navigate = useNavigate()
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-[1800px] mx-auto w-full min-w-0">
+      {/* Grid Switcher */}
+      <GridTypeSwitcher />
+
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#1E293B]">
         <div>
           <h1 className="text-xl font-bold text-white tracking-wide uppercase flex items-center gap-2.5">
             <Share2 className="w-5 h-5 text-blue-500" />
-            Grid Digital Twin Topology
+            {gridType === 'domestic' ? 'Rooftop Solar Low-Voltage Feeder Topology' : 'Grid Digital Twin Topology'}
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Interactive nodal power-flow schematic with branch impedance and switch status
+            {gridType === 'domestic'
+              ? 'Residential street distribution network with bidirectional smart meters and pole transformer'
+              : 'Interactive nodal power-flow schematic with branch impedance and switch status'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* 2D / 3D Mode Toggle */}
-          <button
-            onClick={toggle3D}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              is3DEnabled
-                ? 'bg-blue-600 text-white border-blue-500'
-                : 'bg-[#111C35] text-slate-300 border-[#1E293B] hover:text-white'
-            }`}
-          >
-            {is3DEnabled ? <Box className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
-            <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic (Default)'}</span>
-          </button>
+        {gridType === 'industrial' && (
+          <div className="flex items-center gap-3">
+            {/* 2D / 3D Mode Toggle */}
+            <button
+              onClick={toggle3D}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                is3DEnabled
+                  ? 'bg-blue-600 text-white border-blue-500'
+                  : 'bg-[#111C35] text-slate-300 border-[#1E293B] hover:text-white'
+              }`}
+            >
+              {is3DEnabled ? <Box className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
+              <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic (Default)'}</span>
+            </button>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-            onClick={() => navigate('/simulation')}
-          >
-            Configure Network
-          </Button>
-        </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+              onClick={() => navigate('/simulation')}
+            >
+              Configure Network
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Main Grid: Digital Twin (8 cols) + Telemetry Inspector (4 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Network Canvas */}
-        <div className="lg:col-span-8 flex flex-col gap-3">
-          <NetworkDigitalTwin />
+      {gridType === 'domestic' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            <DomesticNetwork2D />
+            <DomesticVoltageProfileChart />
+          </div>
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            <DomesticHouseDetails />
+          </div>
         </div>
+      ) : (
+        /* Main Grid: Digital Twin (8 cols) + Telemetry Inspector (4 cols) */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Network Canvas */}
+          <div className="lg:col-span-8 flex flex-col gap-3">
+            <NetworkDigitalTwin />
+          </div>
 
         {/* Component Telemetry Sidebar */}
         <div className="lg:col-span-4 flex flex-col gap-4">
@@ -109,6 +133,7 @@ export const NetworkPage: React.FC = () => {
           </Card>
         </div>
       </div>
+      )}
     </div>
   )
 }

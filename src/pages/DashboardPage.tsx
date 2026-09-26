@@ -4,6 +4,9 @@ import { NetworkStatus } from '../components/dashboard/NetworkStatus'
 import { ComponentDetailsPanel } from '../components/dashboard/BusDetails'
 import { useSimulationStore } from '../store/simulationStore'
 import { useGridStore } from '../store/gridStore'
+import { useDomesticStore } from '../store/domesticStore'
+import { GridTypeSwitcher } from '../components/layout/GridTypeSwitcher'
+import { DomesticDashboardView } from '../components/domestic/DomesticDashboardView'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -23,6 +26,7 @@ import {
 export const DashboardPage: React.FC = () => {
   const { input, fullResult, isRunning, selectedAction, comparisonData, fetchActions } = useSimulationStore()
   const { currentTime, network, violationSummary, selectedComponent, isResolved, activeActionApplied, fetchNetwork } = useGridStore()
+  const { gridType } = useDomesticStore()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -44,7 +48,14 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-[1800px] mx-auto w-full min-w-0">
-      {/* 1. Header Bar: Scenario & Action Shortcuts */}
+      {/* 0. Primary Grid Type Switcher: Industrial vs Domestic Rooftop Solar */}
+      <GridTypeSwitcher />
+
+      {gridType === 'domestic' ? (
+        <DomesticDashboardView />
+      ) : (
+        <>
+          {/* 1. Header Bar: Scenario & Action Shortcuts */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[#111C35] border border-[#1E293B]">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
@@ -224,6 +235,8 @@ export const DashboardPage: React.FC = () => {
           </Button>
         </div>
       </div>
+        </>
+      )}
     </div>
   )
 }

@@ -6,9 +6,12 @@ import {
   ChevronLeft,
   ChevronRight,
   PlusCircle,
+  Factory,
+  Home,
 } from 'lucide-react'
 import { useTimeSimulation } from '../../hooks/useTimeSimulation'
 import { useGridStore } from '../../store/gridStore'
+import { useDomesticStore } from '../../store/domesticStore'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
 
@@ -23,6 +26,7 @@ export const Header: React.FC = () => {
     stepBackward,
   } = useTimeSimulation()
   const { violationSummary } = useGridStore()
+  const { gridType, setGridType } = useDomesticStore()
   const navigate = useNavigate()
 
   const hasCritical = violationSummary.critical > 0
@@ -47,6 +51,36 @@ export const Header: React.FC = () => {
           <p className="text-xs text-slate-400 truncate hidden sm:block">
             Distribution Grid Simulation & Optimization
           </p>
+        </div>
+
+        {/* Quick Grid Model Switcher in Header */}
+        <div className="hidden xl:flex items-center gap-1 bg-[#111C35] border border-[#1E293B] rounded-lg p-0.5 ml-2">
+          <button
+            onClick={() => {
+              setGridType('industrial')
+              navigate('/')
+            }}
+            className={`px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
+              gridType === 'industrial' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+            }`}
+            title="Switch to Industrial Centralized Grid"
+          >
+            <Factory className="w-3 h-3" />
+            <span>Industrial Grid</span>
+          </button>
+          <button
+            onClick={() => {
+              setGridType('domestic')
+              navigate('/')
+            }}
+            className={`px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
+              gridType === 'domestic' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'
+            }`}
+            title="Switch to Domestic Rooftop Solar Grid"
+          >
+            <Home className="w-3 h-3" />
+            <span>Domestic Rooftop</span>
+          </button>
         </div>
       </div>
 
