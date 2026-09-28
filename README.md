@@ -1,5 +1,7 @@
 # ⚡ Renewable Distribution Grid Digital Twin
 
+> **An industrial-grade, physics-grounded digital twin and control-room simulator that forecasts, detects, and autonomously resolves voltage swells, feeder congestion, and phase unbalance caused by high-penetration rooftop solar and distributed energy resources (DERs).**
+
 [![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -9,31 +11,34 @@
 [![IEEE Standards](https://img.shields.io/badge/Standards-IEEE%201547%20%7C%20EN%2050160-darkgreen)](https://standards.ieee.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Hackathon Flagship Project**: An industrial-grade, physics-grounded Digital Twin designed to simulate, forecast, and autonomously resolve voltage rise, feeder overload, and phase unbalance caused by high rooftop solar and clean energy penetration.
->
-> **Developed by TeamXsparK for HackMatrix 5.0**
+---
+
+## What This Project Does
+
+The **Renewable Distribution Grid Digital Twin** is an interactive, real-time control room application for electric distribution networks. It bridges modern AI forecasting with physical AC electrical engineering to solve the greatest challenge facing clean energy adoption: **the grid was designed for one-way power flow from power plants to homes, but rooftop solar pushes electricity in reverse**.
+
+When hundreds of rooftop solar systems export energy simultaneously on a sunny afternoon, that reverse surge forces neighborhood voltages above statutory limits ($> 1.05\,\text{pu}$ / $> 253\,\text{V}$), overheats distribution cables past $100\%$ capacity, and unbalances three-phase transformers. 
+
+Instead of forcing utilities to shut down clean solar panels, this Digital Twin:
+1. **Simulates Dual-Tier Grid Physics**: Runs AC DistFlow power-flow calculations across both **11 kV utility distribution feeders** and a **230 V residential neighborhood of 8 solar homes** in real-time.
+2. **Forecasts 24 Hours Ahead**: Employs Scikit-Learn **Random Forest** regressors to predict diurnal solar irradiance curves and consumer load demand patterns.
+3. **Audits Statutory Limits**: Detects over-voltage, under-voltage, cable thermal overloads, and Voltage Unbalance Factor (VUF) against **IEEE 1547**, **IEEE 1159**, and **EN 50160** standards.
+4. **Dispatches Autonomous Inverter & Grid Mitigations**: Deploys smart inverter reactive power droop ($\text{Volt-VAR}$), dynamic phase rebalancing, battery energy storage dispatch (BESS), tie-line switching, and solar-matched EV charging (V1G)—**restoring grid stability without wasting renewable energy**.
+5. **Enforces Physical Feasibility**: Evaluates every corrective dispatch against true battery state-of-charge (SOC) floors ($20\%$) and inverter kVA ratings, **strictly refusing to hallucinate impossible actions when battery storage is depleted**.
 
 ---
 
-## 📌 Executive Summary: Renewable Distribution Grid Digital Twin
+## Project at a Glance
 
-As the world transitions to clean energy, millions of homes and businesses are installing rooftop solar panels, home batteries, and electric vehicle (EV) chargers. However, existing electrical grids were built decades ago for **one-way electricity flow** (from a central power plant down to consumer homes).
-
-When millions of solar rooftops generate electricity simultaneously at sunny noon:
-* Power flows in reverse—**from homes back toward the grid substation**.
-* This reverse rush acts like high-pressure water pumped backward into pipes, driving **electrical voltage dangerously high** ($> 253\text{ V}$ or $> 1.05\text{ pu}$).
-* Neighborhood power cables and transformers overheat past $100\%$ capacity.
-* Power companies are often forced to shut down solar panels, **wasting clean renewable electricity**.
-
-### 💡 The Solution: Renewable Distribution Grid Digital Twin
-The **Renewable Distribution Grid Digital Twin** provides a real-time, interactive **"Flight Simulator" for the modern renewable power grid**. 
-
-Instead of guessing or manually inspecting physical equipment, operators and energy planners use the **Renewable Distribution Grid Digital Twin** to:
-1. **Model & Visualize**: See electricity flow in real-time across both **11 kV utility feeders** and a **230 V residential neighborhood of 8 solar homes** in both interactive 2D schematics and 3D isometric WebGL views.
-2. **Forecast with AI**: Use Machine Learning (Random Forest) models to predict tomorrow’s solar production and household demand 24 hours in advance.
-3. **Simulate Real Physics**: Run true AC DistFlow electrical equations calculating voltage drops, branch heating, line losses, and phase unbalance.
-4. **Autonomous Voltage Control**: Automatically activate smart inverter controls (Volt-VAR droop) to absorb excess electrical pressure and direct surplus solar into parked electric cars or home batteries—**stabilizing the grid without wasting a single watt of green solar power**.
-5. **Physical Feasibility Checking**: Ensure that recommended actions are practically possible by evaluating real battery state-of-charge (SOC) limits, refusing to hallucinate impossible fixes if a battery is depleted ($\le 20\%$).
+| Aspect | Description |
+|---|---|
+| **Problem** | High-penetration rooftop solar causes reverse power flow, leading to voltage spikes ($> 253\,\text{V}$), transformer and cable overloads ($> 100\%$), and phase unbalance ($> 2.0\%$), forcing costly solar curtailment. |
+| **Solution** | A dual-tier digital twin combining AC DistFlow physics, 24h Random Forest forecasting, and automated IEEE 1547 smart inverter / BESS / tie-line mitigation engines. |
+| **Input** | Solar generation time-series (kW), consumer load demand curves (kW), feeder electrical impedances ($R, X$), battery storage parameters (capacity, SOC, C-rate), CSV profiles, and interactive diurnal scrub sliders. |
+| **Processing** | AC DistFlow power-flow solver, 3-phase domestic voltage gradient equations, Random Forest regression ($R^2 \approx 0.91\text{--}0.94$), IEEE 1159 VUF calculation, and strict physical feasibility auditing. |
+| **Output** | Nodal voltage profiles (pu & V), feeder loading percentages, real-time violation logs, quantitative before-vs-after mitigation audits, interactive 2D SVG / 3D WebGL isometric twins, and downloadable JSON/CSV compliance reports. |
+| **Target Users** | Distribution System Operators (DSOs), microgrid managers, renewable energy aggregators, EV fleet operators, and academic power-systems researchers. |
+| **Core Technology** | React 19, TypeScript, Vite, Tailwind CSS v4, Three.js / React Three Fiber, Recharts, FastAPI, Scikit-Learn, Pydantic v2, Supabase PostgreSQL. |
 
 ---
 
