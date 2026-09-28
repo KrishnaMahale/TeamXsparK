@@ -1,4 +1,4 @@
-# ⚡ TeamXsparK — Renewable Distribution Grid & Rooftop Solar Digital Twin
+# ⚡ Renewable Distribution Grid Digital Twin
 
 [![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -10,10 +10,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Hackathon Flagship Project**: An industrial-grade, physics-grounded Digital Twin designed to simulate, forecast, and autonomously resolve voltage rise, feeder overload, and phase unbalance caused by high rooftop solar and clean energy penetration.
+>
+> **Developed by TeamXsparK for HackMatrix 5.0**
 
 ---
 
-## 📌 Executive Summary: What Is TeamXsparK?
+## 📌 Executive Summary: Renewable Distribution Grid Digital Twin
 
 As the world transitions to clean energy, millions of homes and businesses are installing rooftop solar panels, home batteries, and electric vehicle (EV) chargers. However, existing electrical grids were built decades ago for **one-way electricity flow** (from a central power plant down to consumer homes).
 
@@ -23,10 +25,10 @@ When millions of solar rooftops generate electricity simultaneously at sunny noo
 * Neighborhood power cables and transformers overheat past $100\%$ capacity.
 * Power companies are often forced to shut down solar panels, **wasting clean renewable electricity**.
 
-### 💡 The Solution: TeamXsparK Digital Twin
-**TeamXsparK** provides a real-time, interactive **"Flight Simulator" for the modern renewable power grid**. 
+### 💡 The Solution: Renewable Distribution Grid Digital Twin
+The **Renewable Distribution Grid Digital Twin** provides a real-time, interactive **"Flight Simulator" for the modern renewable power grid**. 
 
-Instead of guessing or manually inspecting physical equipment, operators and energy planners use TeamXsparK to:
+Instead of guessing or manually inspecting physical equipment, operators and energy planners use the **Renewable Distribution Grid Digital Twin** to:
 1. **Model & Visualize**: See electricity flow in real-time across both **11 kV utility feeders** and a **230 V residential neighborhood of 8 solar homes** in both interactive 2D schematics and 3D isometric WebGL views.
 2. **Forecast with AI**: Use Machine Learning (Random Forest) models to predict tomorrow’s solar production and household demand 24 hours in advance.
 3. **Simulate Real Physics**: Run true AC DistFlow electrical equations calculating voltage drops, branch heating, line losses, and phase unbalance.
