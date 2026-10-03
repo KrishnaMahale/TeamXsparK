@@ -169,10 +169,10 @@ export const DomesticControlPanel: React.FC = () => {
         {/* Presets */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-white uppercase tracking-wider text-[11px]">
+            <span className="font-bold text-[var(--text-primary)] uppercase tracking-wider text-[11px]">
               1. Diurnal Weather & Load Scenario
             </span>
-            <span className="text-slate-400 text-[10px]">Click to apply scenario</span>
+            <span className="text-[var(--text-muted)] text-[10px]">Click to apply scenario</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -185,26 +185,26 @@ export const DomesticControlPanel: React.FC = () => {
                   onClick={() => setPreset(preset.id)}
                   className={`p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-blue-950/70 border-blue-500 shadow-md ring-1 ring-blue-500'
-                      : 'bg-[#0E172C] border-[#1E293B] hover:border-slate-600 hover:bg-[#111C35]'
+                      ? 'bg-sky-500/10 border-sky-500 shadow-sm ring-1 ring-sky-500'
+                      : 'bg-[var(--surface-secondary)] border-[var(--border)] hover:border-slate-400 dark:hover:border-slate-600 hover:bg-[var(--surface)]'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                       <div
                         className={`p-1.5 rounded-md ${
-                          isSelected ? 'bg-blue-600 text-white' : 'bg-[#16223F] text-slate-300'
+                          isSelected ? 'bg-sky-600 text-white' : 'bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border)]'
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                       </div>
-                      <span className="font-bold text-white text-xs">{preset.name}</span>
+                      <span className="font-bold text-[var(--text-primary)] text-xs">{preset.name}</span>
                     </div>
                     <Badge variant={isSelected ? 'primary' : 'neutral'} size="sm">
                       {preset.highlight}
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5 leading-snug line-clamp-2">
+                  <p className="text-[11px] text-[var(--text-muted)] mt-1.5 leading-snug line-clamp-2">
                     {preset.description}
                   </p>
                 </button>
@@ -216,7 +216,7 @@ export const DomesticControlPanel: React.FC = () => {
         {/* Violation Resolution Actions */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-white uppercase tracking-wider text-[11px]">
+            <span className="font-bold text-[var(--text-primary)] uppercase tracking-wider text-[11px]">
               2. Grid Violation Resolving Actions
             </span>
             <Badge variant={isMitigated ? 'success' : 'neutral'} size="sm">
@@ -234,36 +234,36 @@ export const DomesticControlPanel: React.FC = () => {
                   onClick={() => setControlAction(action.id)}
                   className={`w-full p-2.5 rounded-lg border text-left transition-all ${
                     isSelected
-                      ? 'bg-[#122647] border-blue-500 ring-1 ring-blue-500'
-                      : 'bg-[#0E172C] border-[#1E293B] hover:border-slate-600 hover:bg-[#111C35]'
+                      ? 'bg-sky-500/10 border-sky-500 ring-1 ring-sky-500'
+                      : 'bg-[var(--surface-secondary)] border-[var(--border)] hover:border-slate-400 dark:hover:border-slate-600 hover:bg-[var(--surface)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div
                         className={`p-1.5 rounded-md ${
-                          isSelected ? 'bg-blue-600 text-white' : 'bg-[#16223F] text-slate-400'
+                          isSelected ? 'bg-sky-600 text-white' : 'bg-[var(--surface)] text-[var(--text-muted)] border border-[var(--border)]'
                         }`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <div className="font-bold text-white text-xs">{action.title}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{action.standard}</div>
+                        <div className="font-bold text-[var(--text-primary)] text-xs">{action.title}</div>
+                        <div className="text-[10px] text-[var(--text-muted)] font-mono">{action.standard}</div>
                       </div>
                     </div>
                     {isSelected ? (
-                      <span className="text-[10px] font-bold text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800">
+                      <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/30">
                         ACTIVE DISPATCH
                       </span>
                     ) : (
-                      <span className="text-[10px] text-slate-500">{action.category}</span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{action.category}</span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-snug">
                     {action.description}
                   </p>
-                  <div className="mt-1 text-[10px] text-emerald-400 font-medium">
+                  <div className="mt-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
                     ✓ {action.impact}
                   </div>
                 </button>
@@ -273,47 +273,47 @@ export const DomesticControlPanel: React.FC = () => {
         </div>
 
         {/* Quantitative Compliance Results Audit */}
-        <div className="p-3 rounded-lg bg-[#0E172C] border border-[#1E293B] space-y-2">
+        <div className="p-3 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-white text-xs">Feeder Violation Audit</span>
+            <span className="font-bold text-[var(--text-primary)] text-xs">Feeder Violation Audit</span>
             <Badge variant={hasCritical ? 'danger' : isUnbalanced ? 'warning' : 'success'} size="sm">
               {hasCritical ? `${network.overVoltageHousesCount} Violations Active` : isUnbalanced ? 'Phase Warning' : '100% Compliant'}
             </Badge>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-            <div className="p-1.5 rounded bg-[#111C35]">
-              <div className="text-slate-400 text-[10px]">Peak Voltage</div>
+            <div className="p-1.5 rounded bg-[var(--surface)] border border-[var(--border)]">
+              <div className="text-[var(--text-muted)] text-[10px]">Peak Voltage</div>
               <div
                 className={`font-mono font-bold text-sm mt-0.5 ${
-                  hasCritical ? 'text-red-400' : 'text-emerald-400'
+                  hasCritical ? 'text-red-500' : 'text-emerald-500'
                 }`}
               >
                 {network.peakVoltageV} V
               </div>
             </div>
 
-            <div className="p-1.5 rounded bg-[#111C35]">
-              <div className="text-slate-400 text-[10px]">Phase Unbalance (VUF)</div>
+            <div className="p-1.5 rounded bg-[var(--surface)] border border-[var(--border)]">
+              <div className="text-[var(--text-muted)] text-[10px]">Phase Unbalance (VUF)</div>
               <div
                 className={`font-mono font-bold text-sm mt-0.5 ${
-                  isUnbalanced ? 'text-amber-400' : 'text-emerald-400'
+                  isUnbalanced ? 'text-amber-500' : 'text-emerald-500'
                 }`}
               >
                 {network.phaseUnbalanceMaxPercent}%
               </div>
             </div>
 
-            <div className="p-1.5 rounded bg-[#111C35]">
-              <div className="text-slate-400 text-[10px]">Net Grid Export</div>
-              <div className="font-mono font-bold text-amber-300 text-sm mt-0.5">
+            <div className="p-1.5 rounded bg-[var(--surface)] border border-[var(--border)]">
+              <div className="text-[var(--text-muted)] text-[10px]">Net Grid Export</div>
+              <div className="font-mono font-bold text-amber-500 dark:text-amber-400 text-sm mt-0.5">
                 +{network.netGridExchangeKw} kW
               </div>
             </div>
 
-            <div className="p-1.5 rounded bg-[#111C35]">
-              <div className="text-slate-400 text-[10px]">Feeder Line Losses</div>
-              <div className="font-mono font-bold text-slate-200 text-sm mt-0.5">
+            <div className="p-1.5 rounded bg-[var(--surface)] border border-[var(--border)]">
+              <div className="text-[var(--text-muted)] text-[10px]">Feeder Line Losses</div>
+              <div className="font-mono font-bold text-[var(--text-primary)] text-sm mt-0.5">
                 {network.totalLineLossesKw} kW
               </div>
             </div>

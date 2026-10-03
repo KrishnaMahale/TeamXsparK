@@ -11,39 +11,39 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   status,
   label,
   className = '',
-  pulse = true,
+  pulse = false,
 }) => {
   const statusColors = {
-    online: 'bg-emerald-400 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
-    warning: 'bg-amber-400 text-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]',
-    critical: 'bg-rose-500 text-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.9)]',
-    offline: 'bg-slate-500 text-slate-500',
+    online: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    critical: 'bg-red-600',
+    offline: 'bg-slate-400',
   }
 
   const textColors = {
-    online: 'text-emerald-400',
-    warning: 'text-amber-400',
-    critical: 'text-rose-400 font-semibold',
-    offline: 'text-slate-400',
+    online: 'text-emerald-700 dark:text-emerald-400 font-medium',
+    warning: 'text-amber-700 dark:text-amber-400 font-medium',
+    critical: 'text-red-700 dark:text-red-400 font-semibold',
+    offline: 'text-slate-500 dark:text-slate-400',
   }
 
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
-      <span className="relative flex h-2.5 w-2.5">
+      <span className="relative flex h-2 w-2">
         {pulse && status !== 'offline' && (
           <span
-            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${
               status === 'critical'
-                ? 'bg-rose-400'
+                ? 'bg-red-500'
                 : status === 'warning'
                 ? 'bg-amber-400'
                 : 'bg-emerald-400'
             }`}
           />
         )}
-        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${statusColors[status]}`} />
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${statusColors[status]}`} />
       </span>
-      {label && <span className={`text-xs tracking-wide uppercase ${textColors[status]}`}>{label}</span>}
+      {label && <span className={`text-xs tracking-wider uppercase ${textColors[status]}`}>{label}</span>}
     </div>
   )
 }

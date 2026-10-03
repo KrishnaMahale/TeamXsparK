@@ -16,15 +16,15 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 }) => {
   const sizeMap = {
     sm: 'w-5 h-5',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
+    md: 'w-7 h-7',
+    lg: 'w-10 h-10',
   }
 
   return (
     <div className={`flex flex-col items-center justify-center p-8 text-center ${className}`}>
-      <Loader2 className={`${sizeMap[size]} text-cyan-400 animate-spin mb-3`} />
-      <p className="text-sm font-medium text-slate-200">{message}</p>
-      {subMessage && <p className="text-xs text-slate-500 mt-1 max-w-sm">{subMessage}</p>}
+      <Loader2 className={`${sizeMap[size]} text-sky-600 dark:text-sky-400 animate-spin mb-3`} />
+      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{message}</p>
+      {subMessage && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">{subMessage}</p>}
     </div>
   )
 }

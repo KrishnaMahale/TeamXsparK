@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Upload, FileText, CheckCircle2, AlertCircle, X } from 'lucide-react'
+import { Upload, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 
@@ -93,7 +93,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onImport }) => {
       <Button
         variant="outline"
         size="sm"
-        leftIcon={<Upload className="w-3.5 h-3.5 text-cyan-400" />}
+        leftIcon={<Upload className="w-3.5 h-3.5" />}
         onClick={() => setIsOpen(true)}
       >
         Import CSV
@@ -108,9 +108,9 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onImport }) => {
       >
         <div className="space-y-4">
           {/* File Input Box */}
-          <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 hover:border-cyan-400 rounded-xl cursor-pointer bg-slate-950/60 transition-colors">
-            <Upload className="w-8 h-8 text-cyan-400 mb-2" />
-            <span className="text-xs font-semibold text-slate-200">
+          <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-sky-500 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-900/60 transition-colors">
+            <Upload className="w-8 h-8 text-sky-600 dark:text-sky-400 mb-2" />
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
               {fileName ? fileName : 'Choose CSV file or drag & drop'}
             </span>
             <span className="text-[11px] text-slate-500 mt-1">.csv (Max 1MB)</span>
@@ -124,10 +124,10 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onImport }) => {
 
           {/* Errors List */}
           {errors.length > 0 && (
-            <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-500/40 text-xs text-rose-300 space-y-1">
+            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-red-700 dark:text-red-300 space-y-1">
               {errors.map((err, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />
                   <span>{err}</span>
                 </div>
               ))}
@@ -137,27 +137,27 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onImport }) => {
           {/* Preview Table */}
           {parsedRows.length > 0 && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-300">
-                <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
+              <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" />
                   Valid CSV parsed: {parsedRows.length} intervals found
                 </span>
               </div>
-              <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 font-mono text-xs">
+              <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-mono text-xs">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-900 sticky top-0 text-slate-400 border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="p-2">Time</th>
                       <th className="p-2">Solar (kW)</th>
                       <th className="p-2">Load (kW)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {parsedRows.slice(0, 10).map((r, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/50">
-                        <td className="p-2 text-cyan-300">{r.time}</td>
-                        <td className="p-2 text-amber-300">{r.solarKw}</td>
-                        <td className="p-2 text-slate-200">{r.loadKw}</td>
+                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                        <td className="p-2 text-sky-700 dark:text-sky-300">{r.time}</td>
+                        <td className="p-2 text-amber-600 dark:text-amber-300">{r.solarKw}</td>
+                        <td className="p-2 text-slate-800 dark:text-slate-200">{r.loadKw}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -172,7 +172,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onImport }) => {
           )}
 
           {/* Action Footer */}
-          <div className="flex justify-between items-center pt-3 border-t border-slate-800">
+          <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-800">
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
               Cancel
             </Button>

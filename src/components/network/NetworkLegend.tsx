@@ -2,26 +2,26 @@ import React from 'react'
 
 export const NetworkLegend: React.FC = () => {
   return (
-    <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-400 bg-slate-950/70 border border-slate-800/80 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+    <div className="flex flex-wrap items-center gap-3.5 text-[11px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg shadow-xs">
       <div className="flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+        <span className="w-2 h-2 rounded-full bg-emerald-500" />
         <span>Normal (&lt; 1.05 pu)</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-        <span>Warning (90-100% Load)</span>
+        <span className="w-2 h-2 rounded-full bg-amber-500" />
+        <span>Warning (85-100% Load)</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.9)]" />
-        <span>Violation (&gt; 1.05 pu / Overloaded)</span>
+        <span className="w-2 h-2 rounded-full bg-red-600" />
+        <span>Violation (&gt; 1.05 pu)</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-3 h-0.5 bg-cyan-400" />
-        <span>Energized Feeder</span>
+        <span className="w-3 h-0.5 bg-sky-600 dark:bg-sky-400" />
+        <span>Feeder</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-3 h-0.5 border-t border-dashed border-slate-600" />
-        <span>Open Tie-Line (F-03)</span>
+        <span className="w-3 h-0.5 border-t border-dashed border-slate-400 dark:border-slate-600" />
+        <span>Tie-Line (F-03)</span>
       </div>
     </div>
   )

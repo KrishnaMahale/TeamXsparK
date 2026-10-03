@@ -17,11 +17,11 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    default: 'bg-[#111C35] border border-[#1E293B]',
-    highlight: 'bg-[#111C35] border border-blue-600/50',
-    danger: 'bg-[#111C35] border border-red-700/60',
-    warning: 'bg-[#111C35] border border-amber-700/60',
-    success: 'bg-[#111C35] border border-emerald-700/60',
+    default: 'bg-white dark:bg-[#0D2420] border border-gray-100 dark:border-[#23483F] shadow-sm',
+    highlight: 'bg-[#F0FDF4] dark:bg-[#0D2420] border border-emerald-100 dark:border-emerald-800/60 shadow-sm',
+    danger: 'bg-red-50/60 dark:bg-[#0D2420] border border-red-100 dark:border-red-800/60 shadow-sm',
+    warning: 'bg-amber-50/60 dark:bg-[#0D2420] border border-amber-100 dark:border-amber-800/60 shadow-sm',
+    success: 'bg-emerald-50/60 dark:bg-[#0D2420] border border-emerald-100 dark:border-emerald-800/60 shadow-sm',
   }
 
   // Support backward compatible glowColor mapping
@@ -33,7 +33,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`rounded-xl ${variantStyles[activeVariant]} transition-colors duration-150 ${className}`}
+      className={`rounded-2xl ${variantStyles[activeVariant]} transition-colors duration-150 ${className}`}
       {...props}
     >
       {children}
@@ -48,14 +48,14 @@ export const CardHeader: React.FC<{
   className?: string
   icon?: React.ReactNode
 }> = ({ title, subtitle, action, className = '', icon }) => (
-  <div className={`p-4 sm:p-5 border-b border-[#1E293B] flex items-center justify-between ${className}`}>
+  <div className={`p-4 sm:p-5 border-b border-gray-100 dark:border-[#23483F] flex items-center justify-between ${className}`}>
     <div className="flex items-center gap-2.5">
-      {icon && <span className="text-blue-400">{icon}</span>}
+      {icon && <span className="text-emerald-600 dark:text-emerald-400">{icon}</span>}
       <div>
-        <h3 className="text-sm font-semibold text-slate-100 tracking-wide uppercase flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[#14532D] dark:text-emerald-100 tracking-wide uppercase flex items-center gap-2">
           {title}
         </h3>
-        {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-[#6B8178] dark:text-[#6B8E82] mt-0.5">{subtitle}</p>}
       </div>
     </div>
     {action && <div className="flex items-center gap-2">{action}</div>}
@@ -73,7 +73,7 @@ export const CardFooter: React.FC<{
   children: React.ReactNode
   className?: string
 }> = ({ children, className = '' }) => (
-  <div className={`p-4 sm:p-5 border-t border-[#1E293B] flex items-center justify-between bg-[#0E172C] rounded-b-xl ${className}`}>
+<div className={`p-4 sm:p-5 border-t border-gray-100 dark:border-[#23483F] flex items-center justify-between bg-[#F0FDF4] dark:bg-[#0A2018] rounded-b-2xl ${className}`}>
     {children}
   </div>
 )

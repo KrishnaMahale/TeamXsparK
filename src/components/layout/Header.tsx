@@ -8,12 +8,19 @@ import {
   PlusCircle,
   Factory,
   Home,
+  CheckCircle,
+  AlertTriangle,
+  Search,
+  Bell,
+  User,
+  LayoutDashboard,
 } from 'lucide-react'
 import { useTimeSimulation } from '../../hooks/useTimeSimulation'
 import { useGridStore } from '../../store/gridStore'
 import { useDomesticStore } from '../../store/domesticStore'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 export const Header: React.FC = () => {
   const {
@@ -31,66 +38,25 @@ export const Header: React.FC = () => {
 
   const hasCritical = violationSummary.critical > 0
   const hasWarning = violationSummary.warning > 0
-
   return (
-    <header className="h-16 px-4 lg:px-6 bg-[#0E172C] border-b border-[#1E293B] flex items-center justify-between gap-4 shrink-0 z-30 select-none">
-      {/* Left: Logo & Subtitle */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-          <Zap className="w-5 h-5 text-white fill-white" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-white tracking-wide truncate">
-              Renewable Grid Twin
-            </h1>
-            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#16223F] border border-[#273859] text-blue-400 font-mono">
-              DIGITAL TWIN
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 truncate hidden sm:block">
-            Distribution Grid Simulation & Optimization
-          </p>
-        </div>
-
-        {/* Quick Grid Model Switcher in Header */}
-        <div className="hidden xl:flex items-center gap-1 bg-[#111C35] border border-[#1E293B] rounded-lg p-0.5 ml-2">
-          <button
-            onClick={() => {
-              setGridType('industrial')
-              navigate('/')
-            }}
-            className={`px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              gridType === 'industrial' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Switch to Industrial Centralized Grid"
-          >
-            <Factory className="w-3 h-3" />
-            <span>Industrial Grid</span>
-          </button>
-          <button
-            onClick={() => {
-              setGridType('domestic')
-              navigate('/')
-            }}
-            className={`px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 transition-colors ${
-              gridType === 'domestic' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'
-            }`}
-            title="Switch to Domestic Rooftop Solar Grid"
-          >
-            <Home className="w-3 h-3" />
-            <span>Domestic Rooftop</span>
-          </button>
-        </div>
+    <header className="h-20 px-6 bg-transparent flex items-center justify-between gap-4 shrink-0 z-30 select-none transition-colors duration-200">
+      {/* Left: Page Title */}
+      <div className="flex items-center gap-2">
+        <LayoutDashboard className="w-5 h-5 text-gray-400" />
+        <span className="text-sm font-semibold text-gray-500">
+          Dashboard
+        </span>
       </div>
 
+
+
       {/* Center: Time Simulation Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Playback step buttons */}
-        <div className="flex items-center bg-[#111C35] border border-[#1E293B] rounded-lg p-1">
+        <div className="flex items-center bg-[#ECFDF5] dark:bg-[#0A2018] border border-[#D1E7DD] dark:border-[#23483F] rounded-lg p-0.5">
           <button
             onClick={stepBackward}
-            className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#16223F] transition-colors"
+            className="p-1.5 rounded text-[#365A4D] dark:text-[#A7C4B8] hover:text-[#14532D] dark:hover:text-emerald-100 hover:bg-[#D1FAE5] dark:hover:bg-[#183D36] transition-colors"
             title="Previous Hour"
             aria-label="Previous Hour"
           >
@@ -101,8 +67,8 @@ export const Header: React.FC = () => {
             onClick={togglePlay}
             className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
               isPlaying
-                ? 'bg-amber-600 text-white hover:bg-amber-500'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
+                ? 'bg-amber-500 text-white hover:bg-amber-600'
+                : 'bg-emerald-600 text-white hover:bg-emerald-700'
             }`}
             title={isPlaying ? 'Pause Simulation' : 'Play Simulation'}
             aria-label={isPlaying ? 'Pause Simulation' : 'Play Simulation'}
@@ -122,7 +88,7 @@ export const Header: React.FC = () => {
 
           <button
             onClick={stepForward}
-            className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#16223F] transition-colors"
+            className="p-1.5 rounded text-[#365A4D] dark:text-[#A7C4B8] hover:text-[#14532D] dark:hover:text-emerald-100 hover:bg-[#D1FAE5] dark:hover:bg-[#183D36] transition-colors"
             title="Next Hour"
             aria-label="Next Hour"
           >
@@ -131,8 +97,8 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Time slider */}
-        <div className="hidden lg:flex items-center gap-2 bg-[#111C35] border border-[#1E293B] px-3 py-1.5 rounded-lg">
-          <span className="text-[11px] font-mono text-slate-400">06:00</span>
+        <div className="hidden lg:flex items-center gap-2 bg-gray-50 border border-gray-100 dark:bg-[#0A2018] dark:border-[#23483F] px-3 py-1.5 rounded-full shadow-sm">
+          <span className="text-[11px] font-mono text-gray-500">06:00</span>
           <input
             type="range"
             min="6"
@@ -140,51 +106,37 @@ export const Header: React.FC = () => {
             step="0.25"
             value={currentHours}
             onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
-            className="w-28 xl:w-36 h-1.5 bg-[#1E293B] rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-24 xl:w-36 h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             aria-label="Simulation Time Slider"
           />
-          <span className="text-[11px] font-mono text-slate-400">24:00</span>
+          <span className="text-[11px] font-mono text-gray-500">24:00</span>
         </div>
 
         {/* Time badge */}
-        <div className="bg-[#111C35] border border-[#1E293B] px-3 py-1.5 rounded-lg text-center">
-          <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-none">Time</div>
-          <div className="text-xs font-bold text-white font-mono mt-0.5">{currentTime}</div>
+        <div className="bg-[#ECFDF5] dark:bg-[#0A2018] border border-[#D1E7DD] dark:border-[#23483F] px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-center">
+          <div className="text-[10px] uppercase tracking-wider text-[#6B8178] dark:text-[#6B8E82] font-semibold leading-none">Time</div>
+          <div className="text-xs font-bold text-[#14532D] dark:text-emerald-100 font-mono mt-0.5">{currentTime}</div>
         </div>
       </div>
 
-      {/* Right: Simulation Status & Action */}
-      <div className="flex items-center gap-3">
-        {/* Status Indicator */}
-        <div className="hidden sm:flex items-center gap-2 bg-[#111C35] border border-[#1E293B] px-3 py-1.5 rounded-lg">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              hasCritical
-                ? 'bg-red-500'
-                : hasWarning
-                ? 'bg-amber-500'
-                : 'bg-emerald-500'
-            }`}
+      {/* Right: Search, Notifications, Profile */}
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="pl-9 pr-4 py-2 rounded-full bg-white dark:bg-[#0D2420] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 w-64 shadow-sm border border-gray-100 dark:border-[#23483F]"
           />
-          <span className="text-xs font-medium text-slate-200">
-            {hasCritical
-              ? `${violationSummary.critical} Violations`
-              : hasWarning
-              ? `${violationSummary.warning} Warnings`
-              : 'Grid Safe'}
-          </span>
         </div>
-
-        {/* New Simulation Button */}
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon={<PlusCircle className="w-4 h-4" />}
-          onClick={() => navigate('/simulation')}
-          className="whitespace-nowrap"
-        >
-          New Simulation
-        </Button>
+        <ThemeToggle />
+        <button className="w-9 h-9 rounded-full bg-white dark:bg-[#0D2420] flex items-center justify-center shadow-sm border border-gray-100 dark:border-[#23483F] relative">
+          <Bell className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+          <span className="w-2 h-2 rounded-full bg-red-500 absolute top-2 right-2 border border-white" />
+        </button>
+        <button className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm shrink-0">
+          <img src="https://i.pravatar.cc/100?img=1" alt="User Profile" className="w-full h-full object-cover" />
+        </button>
       </div>
     </header>
   )

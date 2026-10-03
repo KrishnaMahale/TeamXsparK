@@ -1,6 +1,5 @@
 import React from 'react'
 import { PageContainer } from '../components/layout/PageContainer'
-import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useScenarios } from '../hooks/useScenarios'
@@ -8,7 +7,6 @@ import { useSimulationStore } from '../store/simulationStore'
 import { GridScenario } from '../types/scenario'
 import { useNavigate } from 'react-router-dom'
 import {
-  Layers,
   Sun,
   Zap,
   BatteryMedium,
@@ -19,7 +17,7 @@ import {
 } from 'lucide-react'
 
 export const ScenariosPage: React.FC = () => {
-  const { scenarios, selectedScenario, lastExecutedScenarioId } = useScenarios()
+  const { scenarios, selectedScenario } = useScenarios()
   const { loadPreset } = useSimulationStore()
   const navigate = useNavigate()
 
@@ -44,14 +42,14 @@ export const ScenariosPage: React.FC = () => {
       }
     >
       {/* Information Header */}
-      <div className="p-4 rounded-xl bg-[#111C35] border border-[#1E293B] text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-xl bg-white dark:bg-[#0D2420] border border-[#D1E7DD] dark:border-[#23483F] text-xs text-[#365A4D] dark:text-[#A7C4B8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-colors">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
           <span>
             Selecting a scenario populates the simulation inputs for inspection and editing before running.
           </span>
         </div>
-        <span className="text-[11px] text-blue-400 font-mono font-medium">
+        <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-medium">
           Select Scenario → Inspect/Edit Data → Run Simulation
         </span>
       </div>
@@ -65,21 +63,21 @@ export const ScenariosPage: React.FC = () => {
           return (
             <div
               key={scenario.id}
-              className={`p-5 rounded-xl border flex flex-col justify-between transition-colors ${
+              className={`p-5 rounded-xl border flex flex-col justify-between transition-colors shadow-sm ${
                 isSelected
-                  ? 'bg-[#16223F] border-blue-600'
+                  ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-400 dark:border-emerald-600 ring-1 ring-emerald-400'
                   : isInfeasible
-                  ? 'bg-[#181829] border-red-800/80 hover:border-red-600'
-                  : 'bg-[#111C35] border-[#1E293B] hover:border-slate-600'
+                  ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-300 dark:border-rose-900/60 hover:border-rose-400'
+                  : 'bg-white dark:bg-[#0D2420] border-[#D1E7DD] dark:border-[#23483F] hover:border-emerald-300 dark:hover:border-emerald-700'
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                    <h3 className="text-sm font-bold text-[#14532D] dark:text-emerald-100 tracking-tight">
                       {scenario.name}
                     </h3>
-                    <span className="text-[11px] font-mono text-blue-400 mt-0.5 block">
+                    <span className="text-[11px] font-mono text-teal-700 dark:text-teal-400 mt-0.5 block">
                       Time Snapshot: {scenario.simulatedTime}
                     </span>
                   </div>
@@ -97,38 +95,38 @@ export const ScenariosPage: React.FC = () => {
                   </Badge>
                 </div>
 
-                <p className="text-xs text-slate-300 mt-3">
+                <p className="text-xs text-[#365A4D] dark:text-[#A7C4B8] mt-3 leading-relaxed">
                   {scenario.description}
                 </p>
 
                 {/* Key Metrics */}
-                <div className="grid grid-cols-3 gap-2 mt-4 p-3 rounded-lg bg-[#0E172C] border border-[#1E293B] text-center">
+                <div className="grid grid-cols-3 gap-2 mt-4 p-3 rounded-lg bg-[#ECFDF5] dark:bg-[#0A2018] border border-[#D1E7DD] dark:border-[#23483F] text-center">
                   <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
-                      <Sun className="w-3 h-3 text-amber-400" />
+                    <div className="flex items-center justify-center gap-1 text-[10px] text-[#6B8178] dark:text-[#6B8E82] mb-0.5">
+                      <Sun className="w-3 h-3 text-yellow-500" />
                       <span>Solar</span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-amber-400">
+                    <span className="font-mono text-xs font-bold text-yellow-600 dark:text-yellow-400">
                       {scenario.solarKw} kW
                     </span>
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
-                      <Zap className="w-3 h-3 text-blue-400" />
+                    <div className="flex items-center justify-center gap-1 text-[10px] text-[#6B8178] dark:text-[#6B8E82] mb-0.5">
+                      <Zap className="w-3 h-3 text-teal-600 dark:text-teal-400" />
                       <span>Load</span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-blue-400">
+                    <span className="font-mono text-xs font-bold text-teal-700 dark:text-teal-300">
                       {scenario.loadKw} kW
                     </span>
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
-                      <BatteryMedium className="w-3 h-3 text-emerald-400" />
+                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">
+                      <BatteryMedium className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                       <span>SOC</span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-white">
+                    <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
                       {scenario.batterySocPercent}%
                     </span>
                   </div>
@@ -138,21 +136,23 @@ export const ScenariosPage: React.FC = () => {
                 <div className="mt-3 flex items-center gap-2 text-xs">
                   {scenario.violationsExpected > 0 ? (
                     <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="text-amber-300">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span className="text-amber-700 dark:text-amber-300 font-medium">
                         {scenario.violationsExpected} Violations Expected
                       </span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-emerald-300">Normal Stable Grid</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span className="text-emerald-700 dark:text-emerald-300 font-medium">
+                        Normal Stable Grid
+                      </span>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-[#1E293B]">
+              <div className="mt-5 pt-3 border-t border-[#D1E7DD] dark:border-[#23483F]">
                 <Button
                   variant={isSelected ? 'primary' : 'secondary'}
                   size="sm"

@@ -36,12 +36,12 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-slate-300">
+      <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300">
         <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           Load Benchmark Preset (Auto-Populates Form)
         </span>
-        <span className="text-[11px] text-slate-500">Presets loaded from database • can be modified</span>
+        <span className="text-[11px] text-gray-500">Presets loaded from database • can be modified</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
@@ -53,23 +53,23 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
               key={p.id}
               type="button"
               onClick={() => onSelectPreset(p.id)}
-              className={`p-3 rounded-lg border text-left transition-colors flex flex-col justify-between ${
+              className={`p-4 rounded-xl border text-left transition-colors flex flex-col justify-between shadow-sm ${
                 isSelected
-                  ? 'bg-[#16223F] border-blue-600 text-white'
-                  : 'bg-[#111C35] border-[#1E293B] hover:border-slate-600 text-slate-300'
+                  ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400 text-gray-900 dark:text-white'
+                  : 'bg-white dark:bg-[#0A2018] border-gray-100 dark:border-[#23483F] hover:border-emerald-200 dark:hover:border-[#2D5C51] text-gray-700 dark:text-gray-300'
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-1">
-                  <span className="text-xs font-bold text-white leading-tight">{p.name}</span>
+                  <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">{p.name}</span>
                   <Badge variant={getVariant(p.status)} size="sm">
                     {getBadgeLabel(p)}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">{p.description}</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 leading-relaxed">{p.description}</p>
               </div>
 
-              <div className="mt-2.5 pt-2 border-t border-[#1E293B] flex items-center justify-between text-[10px] font-mono text-slate-300">
+              <div className="mt-2.5 pt-2 border-t border-gray-100 dark:border-[#23483F] flex items-center justify-between text-[10px] font-mono text-gray-600 dark:text-gray-400">
                 <span>PV: {p.solarKw} kW</span>
                 <span>Load: {p.loadKw} kW</span>
                 <span>SOC: {p.batterySocPercent}%</span>
@@ -81,4 +81,3 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
     </div>
   )
 }
-

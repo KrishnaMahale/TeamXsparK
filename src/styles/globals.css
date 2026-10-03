@@ -1,41 +1,150 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    --color-bg: #0A1124;
-    --color-surface: #111C35;
-    --color-surface-hover: #162444;
-    --color-primary: #2563EB;
-    --color-primary-hover: #1D4ED8;
-    --color-success: #10B981;
-    --color-warning: #F59E0B;
-    --color-danger: #EF4444;
-    --color-text: #F8FAFC;
-    --color-muted: #94A3B8;
-    --color-border: #1E293B;
+    /* ======================================================
+       EcoTech Green — Light Theme (Default)
+       Renewable Energy / Smart Grid Digital Twin
+    ====================================================== */
+
+    /* Application Backgrounds */
+    --background: #F0FDF4;
+    --surface: #FFFFFF;
+    --surface-secondary: #ECFDF5;
+    --surface-elevated: #FFFFFF;
+    --surface-hover: #D1FAE5;
+
+    /* Primary — Emerald */
+    --primary: #059669;
+    --primary-hover: #047857;
+    --primary-active: #065F46;
+    --primary-soft: #D1FAE5;
+
+    /* Secondary — Teal */
+    --secondary: #0D9488;
+    --secondary-hover: #0F766E;
+    --secondary-soft: #CCFBF1;
+
+    /* Solar — Yellow */
+    --solar: #EAB308;
+    --solar-hover: #CA8A04;
+    --solar-soft: #FEF9C3;
+
+    /* Status tokens */
+    --success: #059669;
+    --success-soft: #D1FAE5;
+    --warning: #F59E0B;
+    --warning-soft: #FEF3C7;
+    --danger: #DC2626;
+    --danger-soft: #FEE2E2;
+
+    /* Typography */
+    --text-primary: #14532D;
+    --text-secondary: #365A4D;
+    --text-muted: #6B8178;
+
+    /* Borders */
+    --border: #D1E7DD;
+    --border-strong: #A7CDBD;
+
+    /* Chart tokens */
+    --chart-grid: #E8F5EE;
+    --chart-tooltip-bg: #FFFFFF;
+    --chart-tooltip-border: #D1E7DD;
+    --chart-tooltip-text: #14532D;
+
+    /* Network canvas */
+    --network-bg: #F0FDF4;
+    --network-grid: rgba(5, 150, 105, 0.06);
+  }
+
+  .dark,
+  [data-theme='dark'] {
+    /* ======================================================
+       EcoTech Green — Dark Theme
+       Professional Grid Control Room
+    ====================================================== */
+
+    --background: #071A17;
+    --surface: #0D2420;
+    --surface-secondary: #0A2018;
+    --surface-elevated: #12332D;
+    --surface-hover: #183D36;
+
+    --primary: #34D399;
+    --primary-hover: #10B981;
+    --primary-active: #059669;
+    --primary-soft: #064E3B;
+
+    --secondary: #2DD4BF;
+    --secondary-hover: #14B8A6;
+    --secondary-soft: #042F2E;
+
+    --solar: #FACC15;
+    --solar-hover: #EAB308;
+    --solar-soft: #1C1400;
+
+    --success: #34D399;
+    --success-soft: #064E3B;
+    --warning: #FBBF24;
+    --warning-soft: #451A03;
+    --danger: #F87171;
+    --danger-soft: #450A0A;
+
+    --text-primary: #ECFDF5;
+    --text-secondary: #A7C4B8;
+    --text-muted: #6B8E82;
+
+    --border: #23483F;
+    --border-strong: #2D5C51;
+
+    --chart-grid: #142D27;
+    --chart-tooltip-bg: #0D2420;
+    --chart-tooltip-border: #23483F;
+    --chart-tooltip-text: #ECFDF5;
+
+    --network-bg: #071A17;
+    --network-grid: rgba(52, 211, 153, 0.04);
   }
 }
 
+/* ======================================================
+   Base
+====================================================== */
 body {
-  background-color: #0A1124;
-  color: #F8FAFC;
+  background-color: var(--background);
+  color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Clean solid scrollbar */
+/* ======================================================
+   Scrollbar
+====================================================== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A1124;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 4px;
+  background: var(--border-strong);
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--text-muted);
 }
 
+/* ======================================================
+   Focus ring — accessible, green-themed
+====================================================== */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

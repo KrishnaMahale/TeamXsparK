@@ -40,15 +40,15 @@ export const LoadInputPanel: React.FC<LoadInputPanelProps> = ({
       <CardHeader
         title="Load Demand Input"
         subtitle="Configure aggregate feeder consumption parameters"
-        icon={<Zap className="w-4 h-4 text-cyan-400" />}
+        icon={<Zap className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
         action={
-          <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-xs">
+          <div className="flex bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
             <button
               onClick={() => setActiveTab('simple')}
               className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
                 activeTab === 'simple'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700/60 font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Simple Input
@@ -57,8 +57,8 @@ export const LoadInputPanel: React.FC<LoadInputPanelProps> = ({
               onClick={() => setActiveTab('timeseries')}
               className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
                 activeTab === 'timeseries'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-800 dark:text-sky-200 border border-sky-300 dark:border-sky-700/60 font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Time-Series Table
@@ -70,8 +70,8 @@ export const LoadInputPanel: React.FC<LoadInputPanelProps> = ({
         {activeTab === 'simple' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Peak Feeder Load */}
-            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 block">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 Peak Feeder Load (kW)
               </label>
               <div className="flex items-center gap-2">
@@ -81,16 +81,16 @@ export const LoadInputPanel: React.FC<LoadInputPanelProps> = ({
                   max="1000"
                   value={peakLoadKw}
                   onChange={(e) => onChangePeakLoad(Math.max(0, parseFloat(e.target.value) || 0))}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-100 font-mono text-sm focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
-                <span className="text-xs font-mono text-slate-400">kW</span>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">kW</span>
               </div>
-              <p className="text-[11px] text-slate-500">Maximum coincident demand across all buses</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Maximum coincident demand across all buses</p>
             </div>
 
             {/* Current Feeder Load */}
-            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 block">
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
                 Current Feeder Load (kW)
               </label>
               <div className="flex items-center gap-2">
@@ -99,11 +99,11 @@ export const LoadInputPanel: React.FC<LoadInputPanelProps> = ({
                   min="0"
                   value={currentLoadKw}
                   onChange={(e) => onChangeCurrentLoad(Math.max(0, parseFloat(e.target.value) || 0))}
-                  className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-cyan-300 font-mono text-sm focus:outline-none focus:border-cyan-400"
+                  className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sky-700 dark:text-sky-300 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
-                <span className="text-xs font-mono text-slate-400">kW</span>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">kW</span>
               </div>
-              <p className="text-[11px] text-slate-500">Active demand at baseline snapshot</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Active demand at baseline snapshot</p>
             </div>
           </div>
         ) : (

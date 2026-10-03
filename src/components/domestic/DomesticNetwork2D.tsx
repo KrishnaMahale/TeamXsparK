@@ -21,6 +21,7 @@ import {
   Cable,
 } from 'lucide-react'
 import { useDomesticStore } from '../../store/domesticStore'
+import { useUIStore } from '../../store/uiStore'
 import { HouseNode, DomesticPreset, DomesticControlAction } from '../../types/domestic'
 
 export const DomesticNetwork2D: React.FC = () => {
@@ -32,6 +33,8 @@ export const DomesticNetwork2D: React.FC = () => {
     activeControl,
     setControlAction,
   } = useDomesticStore()
+  const { theme } = useUIStore()
+  const isDark = theme === 'dark'
 
   // Display mode: 'realistic' (architectural suburban street) vs 'electrical' (single-line overlay)
   const [viewMode, setViewMode] = useState<'realistic' | 'electrical'>('realistic')
@@ -190,18 +193,18 @@ export const DomesticNetwork2D: React.FC = () => {
   }, [hoveredHouseId, selectedHouseId, network.houses])
 
   return (
-    <div className="relative w-full flex flex-col bg-[#070D1E] rounded-2xl border border-[#1E293B] shadow-2xl overflow-hidden select-none">
+    <div className="relative w-full flex flex-col bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-md overflow-hidden select-none">
       {/* 1. Header Toolbar: Mode Toggle, Phase Filtering, Legend, Quick Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#0B1428] border-b border-[#1E293B] z-20">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[var(--surface-secondary)] border-b border-[var(--border)] z-20">
         {/* Left: View Mode Switcher */}
         <div className="flex items-center gap-2">
-          <div className="flex bg-[#111C35] p-0.5 rounded-lg border border-[#1E293B]">
+          <div className="flex bg-[var(--surface)] p-0.5 rounded-lg border border-[var(--border)]">
             <button
               onClick={() => setViewMode('realistic')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'realistic'
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Home className="w-3.5 h-3.5" />
@@ -211,8 +214,8 @@ export const DomesticNetwork2D: React.FC = () => {
               onClick={() => setViewMode('electrical')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'electrical'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[var(--primary)] text-white shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Cable className="w-3.5 h-3.5" />
@@ -225,19 +228,19 @@ export const DomesticNetwork2D: React.FC = () => {
             onClick={() => setShowFlowAnimation(!showFlowAnimation)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               showFlowAnimation
-                ? 'bg-blue-950/60 border-blue-500/40 text-blue-300'
-                : 'bg-[#111C35] border-[#1E293B] text-slate-500'
+                ? 'bg-sky-500/15 border-sky-500/40 text-sky-600 dark:text-sky-300'
+                : 'bg-[var(--surface)] border-[var(--border)] text-[var(--text-muted)]'
             }`}
             title="Toggle animated current flow particles"
           >
-            <Sparkles className="w-3 h-3 text-amber-400" />
+            <Sparkles className="w-3 h-3 text-amber-500" />
             <span className="hidden sm:inline">Flow Motion</span>
           </button>
         </div>
 
         {/* Center: Phase Filter Pills */}
-        <div className="flex items-center gap-1.5 bg-[#111C35] px-2 py-1 rounded-lg border border-[#1E293B]">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+        <div className="flex items-center gap-1.5 bg-[var(--surface)] px-2 py-1 rounded-lg border border-[var(--border)]">
+          <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mr-1">
             Phase:
           </span>
           {(['all', 'L1', 'L2', 'L3'] as const).map((p) => (
@@ -247,13 +250,13 @@ export const DomesticNetwork2D: React.FC = () => {
               className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
                 phaseFilter === p
                   ? p === 'L1'
-                    ? 'bg-orange-600 text-white shadow'
+                    ? 'bg-orange-600 text-white shadow-xs'
                     : p === 'L2'
-                    ? 'bg-amber-500 text-slate-900 shadow'
+                    ? 'bg-amber-500 text-slate-900 shadow-xs'
                     : p === 'L3'
-                    ? 'bg-sky-500 text-slate-900 shadow'
-                    : 'bg-slate-700 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-slate-900 shadow-xs'
+                    : 'bg-slate-700 text-white shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {p === 'all' ? 'All (3-Ph)' : p}
@@ -266,13 +269,13 @@ export const DomesticNetwork2D: React.FC = () => {
           {hasCriticalOvervoltage && activeControl === 'NONE' ? (
             <button
               onClick={() => setControlAction('VOLT_VAR_DROOP')}
-              className="flex items-center gap-1.5 px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg shadow-lg animate-pulse transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg shadow-sm animate-pulse transition-colors"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>Mitigate Overvoltage ({network.peakVoltageV}V)</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#111C35] border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--surface)] border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{isReverseFlow ? 'Solar Reverse Export' : 'Grid Supply OK'}</span>
             </div>
@@ -281,7 +284,7 @@ export const DomesticNetwork2D: React.FC = () => {
       </div>
 
       {/* 2. Main High-Resolution Real-World SVG Canvas */}
-      <div className="relative w-full aspect-[16/10] max-h-[680px] min-h-[500px] overflow-hidden bg-[#070F1E]">
+      <div className={`relative w-full aspect-[16/10] max-h-[680px] min-h-[500px] overflow-hidden ${isDark ? 'bg-[#070F1E]' : 'bg-[#E2E8F0]'}`}>
         <svg
           viewBox="0 0 1180 690"
           className="w-full h-full object-contain select-none"
@@ -1231,7 +1234,7 @@ export const DomesticNetwork2D: React.FC = () => {
       </div>
 
       {/* 3. Bottom Live Inspection HUD Bar (Synchronized with Hover & Selection) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#0B1428] border-t border-[#1E293B]">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[var(--surface-secondary)] border-t border-[var(--border)]">
         <div className="flex items-center gap-3">
           <div
             className={`w-3.5 h-3.5 rounded-full ${
@@ -1242,10 +1245,10 @@ export const DomesticNetwork2D: React.FC = () => {
           />
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm font-bold text-[var(--text-primary)]">
                 {activeInspectionHouse.name} ({activeInspectionHouse.address})
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#111C35] text-amber-400 border border-[#1E293B]">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--surface)] text-amber-500 dark:text-amber-400 border border-[var(--border)]">
                 Phase {activeInspectionHouse.phase} • {activeInspectionHouse.distanceMeters}m from Substation
               </span>
               <span
@@ -1256,16 +1259,16 @@ export const DomesticNetwork2D: React.FC = () => {
                 {getVoltageStatusBadge(activeInspectionHouse.telemetry.voltageV).label}
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-slate-400 mt-1">
+            <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] mt-1">
               <span>
                 Terminal Voltage:{' '}
-                <strong className="text-white font-mono">
+                <strong className="text-[var(--text-primary)] font-mono">
                   {activeInspectionHouse.telemetry.voltageV} V
                 </strong>
               </span>
               <span>
                 Rooftop Solar:{' '}
-                <strong className="text-amber-400 font-mono">
+                <strong className="text-amber-500 dark:text-amber-400 font-mono">
                   {activeInspectionHouse.rooftopSolar.hasSolar
                     ? `${activeInspectionHouse.rooftopSolar.currentGenerationKw} kW (${activeInspectionHouse.rooftopSolar.installedCapacityKw} kWp)`
                     : 'None (Shaded)'}
@@ -1273,7 +1276,7 @@ export const DomesticNetwork2D: React.FC = () => {
               </span>
               <span>
                 Home Battery:{' '}
-                <strong className="text-emerald-400 font-mono">
+                <strong className="text-emerald-500 font-mono">
                   {activeInspectionHouse.battery?.installed
                     ? `${activeInspectionHouse.battery.currentSocPercent}% SOC (${activeInspectionHouse.battery.currentPowerKw > 0 ? 'Discharging' : activeInspectionHouse.battery.currentPowerKw < 0 ? 'Charging' : 'Idle'})`
                     : 'None'}
@@ -1284,8 +1287,8 @@ export const DomesticNetwork2D: React.FC = () => {
                 <strong
                   className={
                     activeInspectionHouse.telemetry.flowDirection === 'export'
-                      ? 'text-amber-400 font-mono'
-                      : 'text-sky-400 font-mono'
+                      ? 'text-amber-500 dark:text-amber-400 font-mono'
+                      : 'text-sky-600 dark:text-sky-400 font-mono'
                   }
                 >
                   {activeInspectionHouse.telemetry.flowDirection === 'export'
@@ -1301,7 +1304,7 @@ export const DomesticNetwork2D: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => selectHouse(activeInspectionHouse.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white transition-colors"
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Deep Dive Telemetry</span>

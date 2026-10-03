@@ -22,27 +22,31 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed ${
+      className={`flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed transition-colors ${
         isSuccess
-          ? 'border-emerald-500/30 bg-emerald-950/10'
-          : 'border-slate-800 bg-slate-900/30'
+          ? 'border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/20'
+          : 'border-slate-300 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40'
       } ${className}`}
     >
       <div
         className={`p-3 rounded-full mb-3 ${
-          isSuccess ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'
+          isSuccess
+            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
         }`}
       >
-        {icon || (isSuccess ? <ShieldCheck className="w-8 h-8" /> : <Info className="w-8 h-8" />)}
+        {icon || (isSuccess ? <ShieldCheck className="w-7 h-7" /> : <Info className="w-7 h-7" />)}
       </div>
       <h4
         className={`text-sm font-semibold tracking-wide ${
-          isSuccess ? 'text-emerald-300' : 'text-slate-200'
+          isSuccess ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-200'
         }`}
       >
         {title}
       </h4>
-      {description && <p className="text-xs text-slate-400 mt-1 max-w-sm">{description}</p>}
+      {description && (
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">{description}</p>
+      )}
       {action && <div className="mt-4">{action}</div>}
     </div>
   )

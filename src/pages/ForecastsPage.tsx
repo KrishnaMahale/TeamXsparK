@@ -5,11 +5,11 @@ import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useForecast } from '../hooks/useForecast'
 import { useSimulationStore } from '../store/simulationStore'
+import { useUIStore } from '../store/uiStore'
 import { ForecastDataPoint } from '../types/forecast'
 import { useNavigate } from 'react-router-dom'
 import {
   TrendingUp,
-  Sun,
   Zap,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -20,13 +20,14 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   CartesianGrid,
 } from 'recharts'
 
 export const ForecastsPage: React.FC = () => {
   const { dataPoints: defaultPoints, metrics } = useForecast()
   const { input } = useSimulationStore()
+  const { theme } = useUIStore()
+  const isDark = theme === 'dark'
   const navigate = useNavigate()
 
   // Dynamically merge user-entered input data with ML predictions
@@ -63,6 +64,13 @@ export const ForecastsPage: React.FC = () => {
   const peakSolar = Math.max(...mergedDataPoints.map((d) => d.solarGenerationKw), 0)
   const peakLoad = Math.max(...mergedDataPoints.map((d) => d.loadDemandKw), 0)
 
+  // Chart theme tokens — EcoTech palette
+  const gridStroke = isDark ? '#142D27' : '#E8F5EE'
+  const axisStroke = isDark ? '#6B8E82' : '#6B8178'
+  const tooltipBg = isDark ? '#0D2420' : '#FFFFFF'
+  const tooltipBorder = isDark ? '#23483F' : '#D1E7DD'
+  const tooltipText = isDark ? '#ECFDF5' : '#14532D'
+
   return (
     <PageContainer
       title="Solar PV & Load Demand Forecast"
@@ -85,27 +93,27 @@ export const ForecastsPage: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-xs text-slate-400">Peak Solar Generation</div>
-            <div className="text-xl font-bold font-mono text-amber-400 mt-1">{peakSolar} kW</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Capacity: {input.installedSolarCapacityKw} kW</div>
+            <div className="text-xs text-[#6B8178] dark:text-[#6B8E82]">Peak Solar Generation</div>
+            <div className="text-xl font-bold font-mono text-yellow-600 dark:text-yellow-400 mt-1">{peakSolar} kW</div>
+            <div className="text-[11px] text-[#6B8178] dark:text-[#6B8E82] mt-0.5">Capacity: {input.installedSolarCapacityKw} kW</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <div className="text-xs text-slate-400">Peak Load Demand</div>
-            <div className="text-xl font-bold font-mono text-blue-400 mt-1">{peakLoad} kW</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Peak Load: {input.peakLoadKw} kW</div>
+            <div className="text-xs text-[#6B8178] dark:text-[#6B8E82]">Peak Load Demand</div>
+            <div className="text-xl font-bold font-mono text-teal-700 dark:text-teal-300 mt-1">{peakLoad} kW</div>
+            <div className="text-[11px] text-[#6B8178] dark:text-[#6B8E82] mt-0.5">Peak Load: {input.peakLoadKw} kW</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4">
-            <div className="text-xs text-slate-400">Solar Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+            <div className="text-xs text-slate-500 dark:text-slate-400">Solar Model Accuracy</div>
+            <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
               {metrics?.solarAccuracyPercent ? `${metrics.solarAccuracyPercent}%` : '92.4%'}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
               {metrics?.modelType || 'Random Forest Regressor'} (MAE 4.8 kW)
             </div>
           </CardContent>
@@ -113,11 +121,11 @@ export const ForecastsPage: React.FC = () => {
 
         <Card>
           <CardContent className="p-4">
-            <div className="text-xs text-slate-400">Load Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-400 mt-1">
+            <div className="text-xs text-slate-500 dark:text-slate-400">Load Model Accuracy</div>
+            <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
               {metrics?.loadAccuracyPercent ? `${metrics.loadAccuracyPercent}%` : '89.6%'}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
               {metrics?.modelType || 'Random Forest Regressor'} (MAE 6.2 kW)
             </div>
           </CardContent>
@@ -129,23 +137,23 @@ export const ForecastsPage: React.FC = () => {
         <CardHeader
           title="24-Hour Solar & Load Lookahead Profile"
           subtitle="Observed/Input profiles vs. Random Forest ML forecasts across temporal horizon"
-          icon={<TrendingUp className="w-4 h-4 text-blue-400" />}
+          icon={<TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
           action={
-            <div className="flex items-center gap-3 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-amber-400 inline-block" />
+                <span className="w-2.5 h-0.5 bg-amber-500 inline-block" />
                 <span>Observed Solar</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-amber-400/60 inline-block border-t border-dashed border-amber-400" />
+                <span className="w-2.5 h-0.5 bg-amber-500/60 inline-block border-t border-dashed border-amber-500" />
                 <span>Predicted Solar</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-blue-500 inline-block" />
+                <span className="w-2.5 h-0.5 bg-sky-600 dark:bg-sky-400 inline-block" />
                 <span>Observed Load</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-blue-400/60 inline-block border-t border-dashed border-blue-400" />
+                <span className="w-2.5 h-0.5 bg-sky-500/60 inline-block border-t border-dashed border-sky-400" />
                 <span>Predicted Load</span>
               </span>
             </div>
@@ -155,23 +163,24 @@ export const ForecastsPage: React.FC = () => {
           <div className="w-full h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={mergedDataPoints} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                <XAxis dataKey="time" stroke="#64748B" fontSize={11} tickLine={false} />
-                <YAxis stroke="#64748B" fontSize={11} tickLine={false} unit=" kW" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                <XAxis dataKey="time" stroke={axisStroke} fontSize={11} tickLine={false} />
+                <YAxis stroke={axisStroke} fontSize={11} tickLine={false} unit=" kW" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#111C35',
-                    borderColor: '#1E293B',
+                    backgroundColor: tooltipBg,
+                    borderColor: tooltipBorder,
                     borderRadius: '8px',
-                    color: '#F8FAFC',
+                    color: tooltipText,
                     fontSize: '12px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   }}
                 />
                 <Line
                   type="monotone"
                   dataKey="solarGenerationKw"
                   name="Observed Solar (kW)"
-                  stroke="#F59E0B"
+                  stroke="#EAB308"
                   strokeWidth={2.5}
                   dot={false}
                 />
@@ -179,7 +188,7 @@ export const ForecastsPage: React.FC = () => {
                   type="monotone"
                   dataKey="predictedSolarKw"
                   name="Predicted Solar (kW)"
-                  stroke="#F59E0B"
+                  stroke="#EAB308"
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
                   dot={false}
@@ -188,7 +197,7 @@ export const ForecastsPage: React.FC = () => {
                   type="monotone"
                   dataKey="loadDemandKw"
                   name="Observed Demand (kW)"
-                  stroke="#3B82F6"
+                  stroke="#059669"
                   strokeWidth={2.5}
                   dot={false}
                 />
@@ -196,7 +205,7 @@ export const ForecastsPage: React.FC = () => {
                   type="monotone"
                   dataKey="predictedLoadKw"
                   name="Predicted Demand (kW)"
-                  stroke="#3B82F6"
+                  stroke="#0D9488"
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
                   dot={false}
@@ -212,11 +221,11 @@ export const ForecastsPage: React.FC = () => {
         <CardHeader
           title="Hourly Time-Series Breakdown"
           subtitle="Tabular listing of observed inputs and forecasted outputs"
-          icon={<Zap className="w-4 h-4 text-blue-400" />}
+          icon={<Zap className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
         />
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse min-w-[700px]">
-            <thead className="bg-[#0E172C] text-slate-400 uppercase text-[10px] tracking-wider border-b border-[#1E293B]">
+            <thead className="bg-[#ECFDF5] dark:bg-[#0A2018] text-[#6B8178] dark:text-[#6B8E82] uppercase text-[10px] tracking-wider border-b border-[#D1E7DD] dark:border-[#23483F]">
               <tr>
                 <th className="py-3 px-4">Time</th>
                 <th className="py-3 px-4">Observed Solar (kW)</th>
@@ -226,16 +235,16 @@ export const ForecastsPage: React.FC = () => {
                 <th className="py-3 px-4">Net Balance (kW)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E293B] text-slate-200">
+            <tbody className="divide-y divide-[#D1E7DD] dark:divide-[#23483F] text-[#14532D] dark:text-emerald-100">
               {mergedDataPoints.map((row) => (
-                <tr key={row.time} className="hover:bg-[#16223F] transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-blue-400">{row.time}</td>
-                  <td className="py-3 px-4 font-mono font-bold text-amber-400">{row.solarGenerationKw}</td>
-                  <td className="py-3 px-4 font-mono text-amber-300/80">{row.predictedSolarKw}</td>
-                  <td className="py-3 px-4 font-mono font-bold text-blue-400">{row.loadDemandKw}</td>
-                  <td className="py-3 px-4 font-mono text-blue-300/80">{row.predictedLoadKw}</td>
+                <tr key={row.time} className="hover:bg-[#ECFDF5] dark:hover:bg-[#183D36] transition-colors">
+                  <td className="py-3 px-4 font-mono font-bold text-teal-700 dark:text-teal-400">{row.time}</td>
+                  <td className="py-3 px-4 font-mono font-bold text-yellow-600 dark:text-yellow-400">{row.solarGenerationKw}</td>
+                  <td className="py-3 px-4 font-mono text-yellow-700/80 dark:text-yellow-300/80">{row.predictedSolarKw}</td>
+                  <td className="py-3 px-4 font-mono font-bold text-teal-700 dark:text-teal-300">{row.loadDemandKw}</td>
+                  <td className="py-3 px-4 font-mono text-teal-600/80 dark:text-teal-300/80">{row.predictedLoadKw}</td>
                   <td className="py-3 px-4 font-mono font-bold">
-                    <span className={row.netPowerKw >= 0 ? 'text-emerald-400' : 'text-slate-300'}>
+                    <span className={row.netPowerKw >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}>
                       {row.netPowerKw >= 0 ? `+${row.netPowerKw}` : row.netPowerKw} kW
                     </span>
                   </td>

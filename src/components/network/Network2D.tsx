@@ -11,10 +11,13 @@ import {
 } from 'lucide-react'
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
+import { useUIStore } from '../../store/uiStore'
 
 export const Network2D: React.FC = () => {
   const { network, currentTime } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
+  const { theme } = useUIStore()
+  const isDark = theme === 'dark'
 
   const b1 = network.buses.find((b) => b.id === 'B1') || network.buses[0]
   const b2 = network.buses.find((b) => b.id === 'B2') || network.buses[1]
@@ -54,30 +57,45 @@ export const Network2D: React.FC = () => {
   const isSelected = (type: string, id: string) =>
     selectedComponent?.type === type && selectedComponent?.id === id
 
+  // Dynamic Theme Colors for SVG
+  const cardBg = isDark ? '#111827' : '#FFFFFF'
+  const cardBorder = isDark ? '#1E293B' : '#E2E8F0'
+  const textMain = isDark ? '#F8FAFC' : '#0F172A'
+  const textMuted = isDark ? '#94A3B8' : '#64748B'
+  const hudBg = isDark ? '#0E172C' : '#F8FAFC'
+  const hudBorder = isDark ? '#1E293B' : '#CBD5E1'
+
+  const primaryColor = isDark ? '#38BDF8' : '#0284C7'
+  const successColor = isDark ? '#22C55E' : '#16A34A'
+  const warningColor = isDark ? '#FBBF24' : '#D97706'
+  const dangerColor = isDark ? '#F87171' : '#DC2626'
+  const lineBaseColor = isDark ? '#38BDF8' : '#0284C7'
+  const flowColorNormal = isDark ? '#93C5FD' : '#0284C7'
+
   const getNodeColor = (status?: string, voltage?: number, isSel?: boolean) => {
-    if (isSel) return '#2563EB' // Solid Electric Blue
+    if (isSel) return primaryColor
     if (voltage !== undefined) {
-      if (voltage > 1.05) return '#EF4444' // Red
-      if (voltage < 0.95) return '#F59E0B' // Amber
-      return '#10B981' // Green
+      if (voltage > 1.05) return dangerColor
+      if (voltage < 0.95) return warningColor
+      return successColor
     }
-    if (status === 'critical') return '#EF4444'
-    if (status === 'warning') return '#F59E0B'
-    return '#10B981'
+    if (status === 'critical') return dangerColor
+    if (status === 'warning') return warningColor
+    return successColor
   }
 
   const getFeederStroke = (status?: string, loading?: number, isSel?: boolean) => {
-    if (isSel) return '#2563EB'
-    if (loading !== undefined && loading > 100) return '#EF4444'
-    if (status === 'critical') return '#EF4444'
-    if (status === 'warning') return '#F59E0B'
-    return '#3B82F6'
+    if (isSel) return primaryColor
+    if (loading !== undefined && loading > 100) return dangerColor
+    if (status === 'critical') return dangerColor
+    if (status === 'warning') return warningColor
+    return lineBaseColor
   }
 
   return (
-    <div className="relative w-full aspect-[4/3] max-h-[600px] min-h-[400px] flex items-center justify-center overflow-hidden bg-[#0A1124] rounded-xl border border-[#1E293B] p-2 sm:p-4">
+    <div className="relative w-full aspect-[4/3] max-h-[600px] min-h-[400px] flex items-center justify-center overflow-hidden bg-white dark:bg-[#0B1220] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4 transition-colors">
       {/* Subtle Grid Background */}
-      <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#3B82F6_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03] bg-[radial-gradient(#0284C7_1px,transparent_1px)] dark:bg-[radial-gradient(#38BDF8_1px,transparent_1px)] bg-[size:24px_24px]" />
 
       <svg
         viewBox="0 0 920 620"
@@ -92,10 +110,6 @@ export const Network2D: React.FC = () => {
             @keyframes flow-reverse {
               from { stroke-dashoffset: 0; }
               to { stroke-dashoffset: 24; }
-            }
-            @keyframes pulse-dot {
-              0%, 100% { opacity: 1; transform: scale(1); }
-              50% { opacity: 0.4; transform: scale(1.3); }
             }
             .flow-line-normal {
               stroke-dasharray: 6 6;
@@ -125,7 +139,7 @@ export const Network2D: React.FC = () => {
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#3B82F6" />
+            <path d="M 0 1 L 8 5 L 0 9 z" fill={primaryColor} />
           </marker>
           <marker
             id="arrow-critical"
@@ -136,7 +150,7 @@ export const Network2D: React.FC = () => {
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#EF4444" />
+            <path d="M 0 1 L 8 5 L 0 9 z" fill={dangerColor} />
           </marker>
           <marker
             id="arrow-success"
@@ -147,7 +161,7 @@ export const Network2D: React.FC = () => {
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#10B981" />
+            <path d="M 0 1 L 8 5 L 0 9 z" fill={successColor} />
           </marker>
           <marker
             id="arrow-solar"
@@ -158,7 +172,7 @@ export const Network2D: React.FC = () => {
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 1 L 8 5 L 0 9 z" fill="#F59E0B" />
+            <path d="M 0 1 L 8 5 L 0 9 z" fill={warningColor} />
           </marker>
         </defs>
 
@@ -172,7 +186,7 @@ export const Network2D: React.FC = () => {
           y1="35"
           x2="460"
           y2="85"
-          stroke="#3B82F6"
+          stroke={lineBaseColor}
           strokeWidth="3"
         />
 
@@ -183,24 +197,20 @@ export const Network2D: React.FC = () => {
             if (f01) setSelectedComponent({ type: 'feeder', id: 'F-01', data: f01 })
           }}
         >
-          {/* Base Feeder Path */}
-          <line
-            x1="460"
-            y1="135"
-            x2="460"
-            y2="195"
+          {/* Hanging Wire */}
+          <path
+            d="M 460 145 Q 460 175 460 185"
             stroke={getFeederStroke(f01?.status, f01?.loadingPercent, isSelected('feeder', 'F-01'))}
             strokeWidth={isSelected('feeder', 'F-01') ? '5' : '3.5'}
+            fill="none"
             markerEnd={isF01Critical ? 'url(#arrow-critical)' : 'url(#arrow-normal)'}
           />
           {/* Flow Animation Overlay */}
-          <line
-            x1="460"
-            y1="135"
-            x2="460"
-            y2="190"
-            stroke="#93C5FD"
+          <path
+            d="M 460 145 Q 460 175 460 185"
+            stroke={flowColorNormal}
             strokeWidth="2"
+            fill="none"
             opacity="0.8"
             className="flow-line-normal"
           />
@@ -210,11 +220,11 @@ export const Network2D: React.FC = () => {
             width="68"
             height="22"
             rx="4"
-            fill="#111C35"
-            stroke={isF01Critical ? '#EF4444' : '#1E293B'}
+            fill={cardBg}
+            stroke={isF01Critical ? dangerColor : cardBorder}
             strokeWidth="1"
           />
-          <text x="514" y="165" fill={isF01Critical ? '#EF4444' : '#94A3B8'} fontSize="11" textAnchor="middle" fontFamily="monospace">
+          <text x="514" y="165" fill={isF01Critical ? dangerColor : textMuted} fontSize="11" textAnchor="middle" fontFamily="monospace">
             F-01 {f01?.loadingPercent !== undefined ? Math.round(f01.loadingPercent) : 64}%
           </text>
         </g>
@@ -226,16 +236,17 @@ export const Network2D: React.FC = () => {
             if (f12) setSelectedComponent({ type: 'feeder', id: 'F-LINE-12', data: f12 })
           }}
         >
+          {/* Hanging Wire */}
           <path
-            d="M 440 215 L 290 280"
+            d="M 450 205 Q 370 270 290 280"
             stroke={getFeederStroke(f12?.status, f12?.loadingPercent, isSelected('feeder', 'F-LINE-12'))}
             strokeWidth={isSelected('feeder', 'F-LINE-12') ? '5' : '3'}
+            fill="none"
             markerEnd="url(#arrow-normal)"
           />
-          {/* Flow Animation */}
           <path
-            d="M 440 215 L 295 278"
-            stroke="#93C5FD"
+            d="M 450 205 Q 370 270 290 280"
+            stroke={flowColorNormal}
             strokeWidth="1.8"
             fill="none"
             opacity="0.8"
@@ -247,11 +258,11 @@ export const Network2D: React.FC = () => {
             width="72"
             height="22"
             rx="4"
-            fill="#111C35"
-            stroke={isF12Critical ? '#EF4444' : '#1E293B'}
+            fill={cardBg}
+            stroke={isF12Critical ? dangerColor : cardBorder}
             strokeWidth="1"
           />
-          <text x="361" y="250" fill={isF12Critical ? '#EF4444' : '#94A3B8'} fontSize="11" textAnchor="middle" fontFamily="monospace">
+          <text x="361" y="250" fill={isF12Critical ? dangerColor : textMuted} fontSize="11" textAnchor="middle" fontFamily="monospace">
             F-12 {f12?.loadingPercent !== undefined ? Math.round(f12.loadingPercent) : 78}%
           </text>
         </g>
@@ -263,23 +274,18 @@ export const Network2D: React.FC = () => {
             if (f02) setSelectedComponent({ type: 'feeder', id: 'F-02', data: f02 })
           }}
         >
-          <line
-            x1="315"
-            y1="295"
-            x2="615"
-            y2="295"
+          <path
+            d="M 300 295 Q 460 335 630 295"
             stroke={getFeederStroke(f02?.status, f02?.loadingPercent, isSelected('feeder', 'F-02'))}
             strokeWidth={isF02Critical ? '4.5' : '3.5'}
+            fill="none"
             markerEnd={isF02Critical ? 'url(#arrow-critical)' : 'url(#arrow-normal)'}
           />
-          {/* Active Flow Animation */}
-          <line
-            x1="315"
-            y1="295"
-            x2="610"
-            y2="295"
-            stroke={isF02Critical ? '#FCA5A5' : '#93C5FD'}
+          <path
+            d="M 300 295 Q 460 335 630 295"
+            stroke={isF02Critical ? dangerColor : flowColorNormal}
             strokeWidth="2.5"
+            fill="none"
             className={isF02Critical ? 'flow-line-fast' : 'flow-line-normal'}
             opacity="0.9"
           />
@@ -290,14 +296,14 @@ export const Network2D: React.FC = () => {
             width="80"
             height="26"
             rx="4"
-            fill="#111C35"
-            stroke={isF02Critical ? '#EF4444' : '#10B981'}
+            fill={cardBg}
+            stroke={isF02Critical ? dangerColor : successColor}
             strokeWidth="1.5"
           />
           <text
             x="470"
             y="297"
-            fill={isF02Critical ? '#EF4444' : '#10B981'}
+            fill={isF02Critical ? dangerColor : successColor}
             fontSize="11"
             fontWeight="bold"
             textAnchor="middle"
@@ -316,7 +322,7 @@ export const Network2D: React.FC = () => {
         >
           <path
             d="M 480 215 Q 570 230 635 275"
-            stroke={isF03Energized ? '#10B981' : '#64748B'}
+            stroke={isF03Energized ? successColor : textMuted}
             strokeWidth={isF03Energized ? '3.5' : '2.5'}
             strokeDasharray={isF03Energized ? undefined : '5,5'}
             fill="none"
@@ -325,7 +331,7 @@ export const Network2D: React.FC = () => {
           {isF03Energized && (
             <path
               d="M 480 215 Q 570 230 630 273"
-              stroke="#6EE7B7"
+              stroke={successColor}
               strokeWidth="2"
               fill="none"
               className="flow-line-tie"
@@ -333,11 +339,11 @@ export const Network2D: React.FC = () => {
             />
           )}
           {/* Switch marker */}
-          <circle cx="560" cy="240" r="11" fill="#111C35" stroke={isF03Energized ? '#10B981' : '#64748B'} strokeWidth="2" />
-          <text x="560" y="244" fill={isF03Energized ? '#10B981' : '#94A3B8'} fontSize="9" fontWeight="bold" textAnchor="middle">
+          <circle cx="560" cy="240" r="11" fill={cardBg} stroke={isF03Energized ? successColor : textMuted} strokeWidth="2" />
+          <text x="560" y="244" fill={isF03Energized ? successColor : textMuted} fontSize="9" fontWeight="bold" textAnchor="middle">
             {isF03Energized ? 'ON' : 'OFF'}
           </text>
-          <text x="560" y="260" fill={isF03Energized ? '#10B981' : '#94A3B8'} fontSize="10" fontWeight={isF03Energized ? 'bold' : 'normal'} textAnchor="middle">
+          <text x="560" y="260" fill={isF03Energized ? successColor : textMuted} fontSize="10" fontWeight={isF03Energized ? 'bold' : 'normal'} textAnchor="middle">
             {isF03Energized ? `F-03 (${f03?.loadingPercent !== undefined ? Math.round(f03.loadingPercent) : 46}%)` : 'F-03 Tie-Switch'}
           </text>
         </g>
@@ -349,23 +355,18 @@ export const Network2D: React.FC = () => {
             if (f04) setSelectedComponent({ type: 'feeder', id: 'F-04', data: f04 })
           }}
         >
-          <line
-            x1="640"
-            y1="315"
-            x2="640"
-            y2="455"
+          <path
+            d="M 640 315 Q 660 385 640 455"
             stroke={getFeederStroke(f04?.status, f04?.loadingPercent, isSelected('feeder', 'F-04'))}
             strokeWidth={isSelected('feeder', 'F-04') ? '5' : '3'}
+            fill="none"
             markerEnd={isF04Critical ? 'url(#arrow-critical)' : 'url(#arrow-normal)'}
           />
-          {/* Flow Animation */}
-          <line
-            x1="640"
-            y1="315"
-            x2="640"
-            y2="450"
-            stroke="#93C5FD"
+          <path
+            d="M 640 315 Q 660 385 640 455"
+            stroke={flowColorNormal}
             strokeWidth="1.8"
+            fill="none"
             className="flow-line-normal"
             opacity="0.8"
           />
@@ -375,34 +376,30 @@ export const Network2D: React.FC = () => {
             width="65"
             height="22"
             rx="4"
-            fill="#111C35"
-            stroke={isF04Critical ? '#EF4444' : '#1E293B'}
+            fill={cardBg}
+            stroke={isF04Critical ? dangerColor : cardBorder}
             strokeWidth="1"
           />
-          <text x="687" y="395" fill={isF04Critical ? '#EF4444' : '#94A3B8'} fontSize="11" textAnchor="middle" fontFamily="monospace">
+          <text x="687" y="395" fill={isF04Critical ? dangerColor : textMuted} fontSize="11" textAnchor="middle" fontFamily="monospace">
             F-04 {f04?.loadingPercent !== undefined ? Math.round(f04.loadingPercent) : 52}%
           </text>
         </g>
 
         {/* 7. Branch: B2 to Solar Unit (SOLAR-01) */}
         <g>
-          <line
-            x1="285"
-            y1="295"
-            x2="160"
-            y2="295"
-            stroke={solar01?.generationKw && solar01.generationKw > 0 ? '#F59E0B' : '#475569'}
+          <path
+            d="M 285 295 Q 220 320 160 295"
+            stroke={solar01?.generationKw && solar01.generationKw > 0 ? warningColor : textMuted}
             strokeWidth="2.5"
+            fill="none"
             markerEnd={solar01?.generationKw && solar01.generationKw > 0 ? 'url(#arrow-solar)' : undefined}
           />
           {solar01?.generationKw && solar01.generationKw > 0 ? (
-            <line
-              x1="160"
-              y1="295"
-              x2="280"
-              y2="295"
-              stroke="#FDE68A"
+            <path
+              d="M 160 295 Q 220 320 280 295"
+              stroke={warningColor}
               strokeWidth="2"
+              fill="none"
               className="flow-line-solar"
               opacity="0.8"
             />
@@ -411,39 +408,33 @@ export const Network2D: React.FC = () => {
 
         {/* 8. Branch: B2 to Commercial Load (LOAD-01) */}
         <g>
-          <line x1="290" y1="315" x2="290" y2="425" stroke="#3B82F6" strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
-          <line x1="290" y1="315" x2="290" y2="420" stroke="#93C5FD" strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
+          <path d="M 290 315 Q 310 370 290 425" fill="none" stroke={primaryColor} strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
+          <path d="M 290 315 Q 310 370 290 420" fill="none" stroke={flowColorNormal} strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
         </g>
 
         {/* 9. Branch: B3 to Battery Unit (BAT-01) */}
-        <line
-          x1="660"
-          y1="295"
-          x2="775"
-          y2="295"
-          stroke={bat01?.status === 'critical' ? '#EF4444' : '#10B981'}
+        <path
+          d="M 660 295 Q 715 315 775 295"
+          fill="none"
+          stroke={bat01?.status === 'critical' ? dangerColor : successColor}
           strokeWidth="2.5"
         />
 
         {/* 10. Branch: B3 to Rooftop Solar Unit (SOLAR-02) */}
         <g>
-          <line
-            x1="655"
-            y1="280"
-            x2="760"
-            y2="195"
-            stroke={solar02?.generationKw && solar02.generationKw > 0 ? '#F59E0B' : '#475569'}
+          <path
+            d="M 655 280 Q 710 215 760 195"
+            stroke={solar02?.generationKw && solar02.generationKw > 0 ? warningColor : textMuted}
             strokeWidth="2.5"
+            fill="none"
             markerEnd={solar02?.generationKw && solar02.generationKw > 0 ? 'url(#arrow-solar)' : undefined}
           />
           {solar02?.generationKw && solar02.generationKw > 0 ? (
-            <line
-              x1="760"
-              y1="195"
-              x2="655"
-              y2="280"
-              stroke="#FDE68A"
+            <path
+              d="M 760 195 Q 710 215 655 280"
+              stroke={warningColor}
               strokeWidth="1.8"
+              fill="none"
               className="flow-line-solar"
               opacity="0.8"
             />
@@ -452,14 +443,14 @@ export const Network2D: React.FC = () => {
 
         {/* 11. Branch: B3 to Residential Load (LOAD-02) */}
         <g>
-          <line x1="620" y1="310" x2="520" y2="425" stroke="#3B82F6" strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
-          <line x1="620" y1="310" x2="525" y2="420" stroke="#93C5FD" strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
+          <path d="M 620 310 Q 560 370 520 425" fill="none" stroke={primaryColor} strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
+          <path d="M 620 310 Q 560 370 525 420" fill="none" stroke={flowColorNormal} strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
         </g>
 
         {/* 12. Branch: B4 to Industrial Load (LOAD-03) */}
         <g>
-          <line x1="660" y1="475" x2="775" y2="475" stroke="#3B82F6" strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
-          <line x1="660" y1="475" x2="770" y2="475" stroke="#93C5FD" strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
+          <path d="M 660 475 Q 715 495 775 475" fill="none" stroke={primaryColor} strokeWidth="2.5" markerEnd="url(#arrow-normal)" />
+          <path d="M 660 475 Q 715 495 770 475" fill="none" stroke={flowColorNormal} strokeWidth="1.8" className="flow-line-normal" opacity="0.8" />
         </g>
 
         {/* ===================================================
@@ -468,8 +459,8 @@ export const Network2D: React.FC = () => {
 
         {/* GRID INJECTION ICON */}
         <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'transformer', id: 'GRID', data: network.substation })}>
-          <rect x="420" y="8" width="80" height="26" rx="4" fill="#16223F" stroke="#2563EB" strokeWidth="1.5" />
-          <text x="460" y="25" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle">
+          <rect x="420" y="8" width="80" height="26" rx="4" fill={isDark ? '#16223F' : '#E0F2FE'} stroke={primaryColor} strokeWidth="1.5" />
+          <text x="460" y="25" fill={primaryColor} fontSize="11" fontWeight="bold" textAnchor="middle">
             MAIN GRID
           </text>
         </g>
@@ -485,312 +476,202 @@ export const Network2D: React.FC = () => {
             })
           }
         >
-          <rect
-            x="410"
-            y="85"
-            width="100"
-            height="48"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('transformer', 'TX-MAIN') ? '#2563EB' : '#1E293B'}
-            strokeWidth={isSelected('transformer', 'TX-MAIN') ? '2.5' : '1.5'}
-          />
-          <text x="460" y="105" fill="#F8FAFC" fontSize="12" fontWeight="bold" textAnchor="middle">
-            SUBSTATION
-          </text>
-          <text x="460" y="122" fill="#94A3B8" fontSize="10" textAnchor="middle">
-            33 / 11 kV ({network.substation?.loadingPercent ? Math.round(network.substation.loadingPercent) : Math.round(f01?.loadingPercent ?? 68)}%)
+          {/* Detailed Transformer Station */}
+          <rect x="410" y="85" width="100" height="48" rx="6" fill={cardBg} stroke={isSelected('transformer', 'TX-MAIN') ? primaryColor : cardBorder} strokeWidth={isSelected('transformer', 'TX-MAIN') ? '2.5' : '1.5'} />
+          <path d="M 430 85 L 430 75 M 460 85 L 460 75 M 490 85 L 490 75" stroke={textMuted} strokeWidth="2" />
+          <rect x="425" y="70" width="10" height="5" rx="1" fill={textMain} />
+          <rect x="455" y="70" width="10" height="5" rx="1" fill={textMain} />
+          <rect x="485" y="70" width="10" height="5" rx="1" fill={textMain} />
+          <text x="460" y="105" fill={textMain} fontSize="12" fontWeight="bold" textAnchor="middle">SUBSTATION</text>
+          <text x="460" y="122" fill={textMuted} fontSize="10" textAnchor="middle">
+            33/11kV ({network.substation?.loadingPercent ? Math.round(network.substation.loadingPercent) : Math.round(f01?.loadingPercent ?? 68)}%)
           </text>
         </g>
 
-        {/* BUS 1 (B1) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'bus', id: 'B1', data: b1 })}
-        >
-          <circle
-            cx="460"
-            cy="205"
-            r="18"
-            fill="#111C35"
-            stroke={getNodeColor(b1?.status, b1?.voltage, isSelected('bus', 'B1'))}
-            strokeWidth="3.5"
-          />
-          <text x="460" y="210" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle">
-            B1
-          </text>
-          <text x="460" y="235" fill="#94A3B8" fontSize="11" textAnchor="middle" fontFamily="monospace">
+        {/* BUS 1 (B1) - Utility Pole */}
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'bus', id: 'B1', data: b1 })}>
+          <line x1="460" y1="185" x2="460" y2="215" stroke={textMuted} strokeWidth="4" />
+          <line x1="445" y1="195" x2="475" y2="195" stroke={textMuted} strokeWidth="3" />
+          <circle cx="460" cy="205" r="8" fill={cardBg} stroke={getNodeColor(b1?.status, b1?.voltage, isSelected('bus', 'B1'))} strokeWidth="3" />
+          <text x="440" y="225" fill={textMain} fontSize="11" fontWeight="bold" textAnchor="end">B1</text>
+          <text x="480" y="225" fill={textMuted} fontSize="10" textAnchor="start" fontFamily="monospace">
             {b1?.voltage !== undefined ? b1.voltage.toFixed(3) : '1.020'} pu
           </text>
         </g>
 
-        {/* BUS 2 (B2) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'bus', id: 'B2', data: b2 })}
-        >
-          <circle
-            cx="290"
-            cy="295"
-            r="18"
-            fill="#111C35"
-            stroke={getNodeColor(b2?.status, b2?.voltage, isSelected('bus', 'B2'))}
-            strokeWidth="3.5"
-          />
-          <text x="290" y="300" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle">
-            B2
-          </text>
-          <text x="290" y="325" fill="#94A3B8" fontSize="11" textAnchor="middle" fontFamily="monospace">
+        {/* BUS 2 (B2) - Utility Pole */}
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'bus', id: 'B2', data: b2 })}>
+          <line x1="290" y1="275" x2="290" y2="305" stroke={textMuted} strokeWidth="4" />
+          <line x1="275" y1="285" x2="305" y2="285" stroke={textMuted} strokeWidth="3" />
+          <circle cx="290" cy="295" r="8" fill={cardBg} stroke={getNodeColor(b2?.status, b2?.voltage, isSelected('bus', 'B2'))} strokeWidth="3" />
+          <text x="270" y="315" fill={textMain} fontSize="11" fontWeight="bold" textAnchor="end">B2</text>
+          <text x="310" y="315" fill={textMuted} fontSize="10" textAnchor="start" fontFamily="monospace">
             {b2?.voltage !== undefined ? b2.voltage.toFixed(3) : '1.010'} pu
           </text>
           {isB2Critical && (
-            <g transform="translate(200, 240)">
-              <rect x="-4" y="-2" width="94" height="20" rx="3" fill="#EF4444" />
-              <text x="43" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">
-                OVER-VOLTAGE
-              </text>
+            <g transform="translate(195, 255)">
+              <rect x="-4" y="-2" width="94" height="20" rx="3" fill={dangerColor} />
+              <text x="43" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">OVER-VOLTAGE</text>
             </g>
           )}
         </g>
 
-        {/* BUS 3 (B3) - CRITICAL OVER-VOLTAGE / SAFE STATE */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'bus', id: 'B3', data: b3 })}
-        >
-          <circle
-            cx="640"
-            cy="295"
-            r="20"
-            fill="#111C35"
-            stroke={getNodeColor(b3?.status, b3?.voltage, isSelected('bus', 'B3'))}
-            strokeWidth={isB3Critical ? '4.5' : '3.5'}
-          />
-          <text x="640" y="300" fill="#F8FAFC" fontSize="12" fontWeight="bold" textAnchor="middle">
-            B3
-          </text>
-          <text
-            x="640"
-            y="328"
-            fill={isB3Critical ? '#EF4444' : isB3Safe ? '#10B981' : '#94A3B8'}
-            fontSize="12"
-            fontWeight="bold"
-            textAnchor="middle"
-            fontFamily="monospace"
-          >
+        {/* BUS 3 (B3) - Sub-transmission Pole */}
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'bus', id: 'B3', data: b3 })}>
+          <line x1="640" y1="275" x2="640" y2="315" stroke={textMuted} strokeWidth="6" />
+          <line x1="620" y1="285" x2="660" y2="285" stroke={textMuted} strokeWidth="4" />
+          <line x1="620" y1="295" x2="660" y2="295" stroke={textMuted} strokeWidth="4" />
+          <circle cx="640" cy="295" r="10" fill={cardBg} stroke={getNodeColor(b3?.status, b3?.voltage, isSelected('bus', 'B3'))} strokeWidth="3.5" />
+          <text x="640" y="335" fill={textMain} fontSize="12" fontWeight="bold" textAnchor="middle">B3</text>
+          <text x="640" y="350" fill={isB3Critical ? dangerColor : isB3Safe ? successColor : textMuted} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
             {b3?.voltage !== undefined ? b3.voltage.toFixed(3) : '1.074'} pu
           </text>
           {isB3Critical && (
-            <g transform="translate(655, 268)">
-              <rect x="-4" y="-2" width="94" height="20" rx="3" fill="#EF4444" />
-              <text x="43" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">
-                OVER-VOLTAGE
-              </text>
-            </g>
-          )}
-          {isB3Safe && (
-            <g transform="translate(655, 268)">
-              <rect x="-4" y="-2" width="55" height="20" rx="3" fill="#10B981" />
-              <text x="23" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">
-                NORMAL
-              </text>
-            </g>
-          )}
-          {isB3UnderVoltage && (
-            <g transform="translate(655, 268)">
-              <rect x="-4" y="-2" width="100" height="20" rx="3" fill="#F59E0B" />
-              <text x="46" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">
-                UNDER-VOLTAGE
-              </text>
+            <g transform="translate(660, 265)">
+              <rect x="-4" y="-2" width="94" height="20" rx="3" fill={dangerColor} />
+              <text x="43" y="12" fill="#FFFFFF" fontSize="9" fontWeight="bold" textAnchor="middle">OVER-VOLTAGE</text>
             </g>
           )}
         </g>
 
-        {/* BUS 4 (B4) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'bus', id: 'B4', data: b4 })}
-        >
-          <circle
-            cx="640"
-            cy="475"
-            r="18"
-            fill="#111C35"
-            stroke={getNodeColor(b4?.status, b4?.voltage, isSelected('bus', 'B4'))}
-            strokeWidth="3.5"
-          />
-          <text x="640" y="480" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle">
-            B4
-          </text>
-          <text x="640" y="505" fill="#94A3B8" fontSize="11" textAnchor="middle" fontFamily="monospace">
+        {/* BUS 4 (B4) - Utility Pole */}
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'bus', id: 'B4', data: b4 })}>
+          <line x1="640" y1="455" x2="640" y2="485" stroke={textMuted} strokeWidth="4" />
+          <line x1="625" y1="465" x2="655" y2="465" stroke={textMuted} strokeWidth="3" />
+          <circle cx="640" cy="475" r="8" fill={cardBg} stroke={getNodeColor(b4?.status, b4?.voltage, isSelected('bus', 'B4'))} strokeWidth="3" />
+          <text x="620" y="495" fill={textMain} fontSize="11" fontWeight="bold" textAnchor="end">B4</text>
+          <text x="660" y="495" fill={textMuted} fontSize="10" textAnchor="start" fontFamily="monospace">
             {b4?.voltage !== undefined ? b4.voltage.toFixed(3) : '1.000'} pu
           </text>
         </g>
 
         {/* SOLAR FARM ALPHA (ATTACHED TO B2) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'solar', id: 'SOLAR-01', data: solar01 })}
-        >
-          <rect
-            x="70"
-            y="268"
-            width="90"
-            height="54"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('solar', 'SOLAR-01') ? '#2563EB' : solar01?.generationKw && solar01.generationKw > 0 ? '#F59E0B' : '#475569'}
-            strokeWidth="1.5"
-          />
-          <text x="115" y="288" fill={solar01?.generationKw && solar01.generationKw > 0 ? '#F59E0B' : '#94A3B8'} fontSize="11" fontWeight="bold" textAnchor="middle">
-            SOLAR PV B2
-          </text>
-          <text x="115" y="306" fill="#F8FAFC" fontSize="12" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'solar', id: 'SOLAR-01', data: solar01 })}>
+          <rect x="70" y="265" width="90" height="60" rx="6" fill={cardBg} stroke={isSelected('solar', 'SOLAR-01') ? primaryColor : solar01?.generationKw && solar01.generationKw > 0 ? warningColor : cardBorder} strokeWidth="1.5" />
+          {/* Detailed Solar Panel Art */}
+          <g transform="translate(85, 272)">
+            <polygon points="10,0 50,0 40,20 0,20" fill={isDark ? '#1E3A8A' : '#60A5FA'} stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="1" />
+            <line x1="20" y1="0" x2="10" y2="20" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+            <line x1="30" y1="0" x2="20" y2="20" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+            <line x1="40" y1="0" x2="30" y2="20" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+            <line x1="5" y1="10" x2="45" y2="10" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+          </g>
+          <text x="115" y="305" fill={textMain} fontSize="10" fontWeight="bold" textAnchor="middle">SOLAR FARM</text>
+          <text x="115" y="318" fill={warningColor} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
             {solar01?.generationKw !== undefined ? Math.round(solar01.generationKw) : 150} kW
           </text>
         </g>
 
         {/* ROOFTOP SOLAR (ATTACHED TO B3) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'solar', id: 'SOLAR-02', data: solar02 })}
-        >
-          <rect
-            x="760"
-            y="155"
-            width="105"
-            height="50"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('solar', 'SOLAR-02') ? '#2563EB' : isB3Critical && solar02?.generationKw && solar02.generationKw > 30 ? '#EF4444' : solar02?.generationKw && solar02.generationKw > 0 ? '#F59E0B' : '#475569'}
-            strokeWidth="1.5"
-          />
-          <text x="812" y="174" fill={isB3Critical && solar02?.generationKw && solar02.generationKw > 30 ? '#EF4444' : solar02?.generationKw && solar02.generationKw > 0 ? '#F59E0B' : '#94A3B8'} fontSize="10" fontWeight="bold" textAnchor="middle">
-            ROOFTOP PV B3
-          </text>
-          <text x="812" y="192" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'solar', id: 'SOLAR-02', data: solar02 })}>
+          <rect x="760" y="155" width="105" height="55" rx="6" fill={cardBg} stroke={isSelected('solar', 'SOLAR-02') ? primaryColor : isB3Critical && solar02?.generationKw && solar02.generationKw > 30 ? dangerColor : solar02?.generationKw && solar02.generationKw > 0 ? warningColor : cardBorder} strokeWidth="1.5" />
+          <g transform="translate(790, 162)">
+            <polygon points="10,0 40,0 35,15 5,15" fill={isDark ? '#1E3A8A' : '#60A5FA'} stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="1" />
+            <line x1="20" y1="0" x2="15" y2="15" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+            <line x1="30" y1="0" x2="25" y2="15" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+            <line x1="7.5" y1="7.5" x2="37.5" y2="7.5" stroke={isDark ? '#3B82F6' : '#2563EB'} strokeWidth="0.5" />
+          </g>
+          <text x="812" y="190" fill={textMain} fontSize="9" fontWeight="bold" textAnchor="middle">ROOFTOP PV</text>
+          <text x="812" y="202" fill={warningColor} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
             {solar02?.generationKw !== undefined ? Math.round(solar02.generationKw) : 80} kW
           </text>
         </g>
 
         {/* BATTERY STORAGE (ATTACHED TO B3) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'battery', id: 'BAT-01', data: bat01 })}
-        >
-          <rect
-            x="775"
-            y="268"
-            width="95"
-            height="54"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('battery', 'BAT-01') ? '#2563EB' : bat01?.status === 'critical' ? '#EF4444' : '#10B981'}
-            strokeWidth="1.5"
-          />
-          <text x="822" y="288" fill={bat01?.status === 'critical' ? '#EF4444' : '#10B981'} fontSize="11" fontWeight="bold" textAnchor="middle">
-            BESS 100kWh
-          </text>
-          <text x="822" y="306" fill="#F8FAFC" fontSize="12" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'battery', id: 'BAT-01', data: bat01 })}>
+          <rect x="775" y="265" width="95" height="60" rx="6" fill={cardBg} stroke={isSelected('battery', 'BAT-01') ? primaryColor : bat01?.status === 'critical' ? dangerColor : successColor} strokeWidth="1.5" />
+          {/* Detailed Battery Icon */}
+          <g transform="translate(812, 275)">
+            <rect x="-10" y="-5" width="20" height="15" rx="2" fill={isDark ? '#374151' : '#9CA3AF'} />
+            <rect x="-5" y="-7" width="10" height="2" rx="1" fill={isDark ? '#4B5563' : '#6B7280'} />
+            <rect x="-8" y="-3" width="16" height="11" rx="1" fill={isDark ? '#1F2937' : '#F3F4F6'} />
+            <rect x="-8" y="-3" width="16" height="11" rx="1" fill={successColor} opacity={bat01?.socPercent ? bat01.socPercent / 100 : 0.62} />
+            <path d="M-2,0 L-4,5 L0,5 L-2,9 L4,3 L0,3 Z" fill={isDark ? '#FFFFFF' : '#111827'} transform="scale(0.8) translate(1, -1)" />
+          </g>
+          <text x="822" y="303" fill={textMain} fontSize="10" fontWeight="bold" textAnchor="middle">BESS 100kWh</text>
+          <text x="822" y="318" fill={bat01?.status === 'critical' ? dangerColor : successColor} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
             SOC {bat01?.socPercent !== undefined ? Math.round(bat01.socPercent) : 62}%
           </text>
         </g>
 
         {/* LOAD 1: COMMERCIAL (B2) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-01', data: load01 })}
-        >
-          <rect
-            x="240"
-            y="425"
-            width="100"
-            height="46"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('load', 'LOAD-01') ? '#2563EB' : '#1E293B'}
-            strokeWidth="1.5"
-          />
-          <text x="290" y="443" fill="#94A3B8" fontSize="10" textAnchor="middle">
-            Commercial Load
-          </text>
-          <text x="290" y="460" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
-            {load01?.powerKw !== undefined ? Math.round(load01.powerKw) : 90} kW
-          </text>
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-01', data: load01 })}>
+          <rect x="240" y="425" width="100" height="55" rx="6" fill={cardBg} stroke={isSelected('load', 'LOAD-01') ? primaryColor : cardBorder} strokeWidth="1.5" />
+          {/* Commercial Building Art */}
+          <g transform="translate(280, 432)">
+            <rect x="0" y="0" width="20" height="25" fill={isDark ? '#1E293B' : '#94A3B8'} />
+            <rect x="3" y="3" width="4" height="4" fill={isDark ? '#38BDF8' : '#DBEAFE'} />
+            <rect x="13" y="3" width="4" height="4" fill={isDark ? '#38BDF8' : '#DBEAFE'} />
+            <rect x="3" y="10" width="4" height="4" fill={isDark ? '#38BDF8' : '#DBEAFE'} />
+            <rect x="13" y="10" width="4" height="4" fill={isDark ? '#38BDF8' : '#DBEAFE'} />
+            <rect x="8" y="17" width="4" height="8" fill={isDark ? '#0F172A' : '#475569'} />
+          </g>
+          <text x="290" y="470" fill={textMain} fontSize="9" textAnchor="middle">COMMERCIAL</text>
+          <text x="290" y="470" fill={textMain} fontSize="9" textAnchor="middle"></text>
         </g>
+        <text x="290" y="495" fill={textMuted} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+          {load01?.powerKw !== undefined ? Math.round(load01.powerKw) : 90} kW
+        </text>
 
         {/* LOAD 2: RESIDENTIAL (B3) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-02', data: load02 })}
-        >
-          <rect
-            x="465"
-            y="425"
-            width="100"
-            height="46"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('load', 'LOAD-02') ? '#2563EB' : '#1E293B'}
-            strokeWidth="1.5"
-          />
-          <text x="515" y="443" fill="#94A3B8" fontSize="10" textAnchor="middle">
-            Residential Load
-          </text>
-          <text x="515" y="460" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
-            {load02?.powerKw !== undefined ? Math.round(load02.powerKw) : 60} kW
-          </text>
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-02', data: load02 })}>
+          <rect x="465" y="425" width="100" height="55" rx="6" fill={cardBg} stroke={isSelected('load', 'LOAD-02') ? primaryColor : cardBorder} strokeWidth="1.5" />
+          {/* Residential House Art */}
+          <g transform="translate(505, 432)">
+            <polygon points="10,0 20,10 0,10" fill={isDark ? '#991B1B' : '#EF4444'} />
+            <rect x="2" y="10" width="16" height="15" fill={isDark ? '#1E293B' : '#94A3B8'} />
+            <rect x="12" y="14" width="4" height="4" fill={isDark ? '#FDE047' : '#FEF08A'} />
+            <rect x="4" y="17" width="5" height="8" fill={isDark ? '#0F172A' : '#475569'} />
+          </g>
+          <text x="515" y="470" fill={textMain} fontSize="9" textAnchor="middle">RESIDENTIAL</text>
         </g>
+        <text x="515" y="495" fill={textMuted} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+          {load02?.powerKw !== undefined ? Math.round(load02.powerKw) : 60} kW
+        </text>
 
         {/* LOAD 3: INDUSTRIAL (B4) */}
-        <g
-          className="cursor-pointer"
-          onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-03', data: load03 })}
-        >
-          <rect
-            x="775"
-            y="450"
-            width="105"
-            height="46"
-            rx="6"
-            fill="#111C35"
-            stroke={isSelected('load', 'LOAD-03') ? '#2563EB' : '#1E293B'}
-            strokeWidth="1.5"
-          />
-          <text x="827" y="468" fill="#94A3B8" fontSize="10" textAnchor="middle">
-            Industrial Park
-          </text>
-          <text x="827" y="485" fill="#F8FAFC" fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
-            {load03?.powerKw !== undefined ? Math.round(load03.powerKw) : 120} kW
-          </text>
+        <g className="cursor-pointer" onClick={() => setSelectedComponent({ type: 'load', id: 'LOAD-03', data: load03 })}>
+          <rect x="775" y="450" width="105" height="55" rx="6" fill={cardBg} stroke={isSelected('load', 'LOAD-03') ? primaryColor : cardBorder} strokeWidth="1.5" />
+          {/* Factory Art */}
+          <g transform="translate(815, 457)">
+            <polygon points="0,20 0,10 8,10 8,20" fill={isDark ? '#1E293B' : '#94A3B8'} />
+            <polygon points="8,20 8,5 16,10 16,20" fill={isDark ? '#334155' : '#64748B'} />
+            <polygon points="16,20 16,0 24,10 24,20" fill={isDark ? '#1E293B' : '#94A3B8'} />
+            <rect x="2" y="2" width="2" height="6" fill={isDark ? '#64748B' : '#CBD5E1'} />
+            <rect x="18" y="0" width="2" height="8" fill={isDark ? '#64748B' : '#CBD5E1'} />
+          </g>
+          <text x="827" y="495" fill={textMain} fontSize="9" textAnchor="middle">INDUSTRIAL</text>
         </g>
+        <text x="827" y="520" fill={textMuted} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+          {load03?.powerKw !== undefined ? Math.round(load03.powerKw) : 120} kW
+        </text>
 
         {/* LIVE TELEMETRY STREAM CHIP (TOP-RIGHT HUD) */}
         <g transform="translate(680, 15)">
-          <rect x="0" y="0" width="225" height="30" rx="5" fill="#0E172C" stroke="#1E293B" strokeWidth="1" />
-          <circle cx="16" cy="15" r="4.5" fill="#10B981" />
-          <text x="28" y="19" fill="#94A3B8" fontSize="10" fontWeight="bold">
+          <rect x="0" y="0" width="225" height="30" rx="5" fill={hudBg} stroke={hudBorder} strokeWidth="1" />
+          <circle cx="16" cy="15" r="4.5" fill={successColor} />
+          <text x="28" y="19" fill={textMuted} fontSize="10" fontWeight="bold">
             LIVE • {currentTime}
           </text>
-          <text x="145" y="19" fill={netPower >= 0 ? '#F59E0B' : '#60A5FA'} fontSize="10" fontWeight="bold" fontFamily="monospace">
+          <text x="145" y="19" fill={netPower >= 0 ? warningColor : primaryColor} fontSize="10" fontWeight="bold" fontFamily="monospace">
             NET: {netPower >= 0 ? '+' : ''}{Math.round(netPower)} kW
           </text>
         </g>
 
         {/* Schematic Legend Watermark */}
         <g transform="translate(20, 565)">
-          <rect x="0" y="0" width="310" height="34" rx="4" fill="#0E172C" stroke="#1E293B" strokeWidth="1" />
-          <circle cx="20" cy="17" r="5" fill="#10B981" />
-          <text x="32" y="21" fill="#94A3B8" fontSize="10">Normal</text>
+          <rect x="0" y="0" width="310" height="34" rx="4" fill={hudBg} stroke={hudBorder} strokeWidth="1" />
+          <circle cx="20" cy="17" r="5" fill={successColor} />
+          <text x="32" y="21" fill={textMuted} fontSize="10">Normal</text>
 
-          <circle cx="85" cy="17" r="5" fill="#F59E0B" />
-          <text x="97" y="21" fill="#94A3B8" fontSize="10">Warning</text>
+          <circle cx="85" cy="17" r="5" fill={warningColor} />
+          <text x="97" y="21" fill={textMuted} fontSize="10">Warning</text>
 
-          <circle cx="155" cy="17" r="5" fill="#EF4444" />
-          <text x="167" y="21" fill="#94A3B8" fontSize="10">Violation</text>
+          <circle cx="155" cy="17" r="5" fill={dangerColor} />
+          <text x="167" y="21" fill={textMuted} fontSize="10">Violation</text>
 
-          <circle cx="230" cy="17" r="5" fill="#2563EB" />
-          <text x="242" y="21" fill="#94A3B8" fontSize="10">Selected</text>
+          <circle cx="230" cy="17" r="5" fill={primaryColor} />
+          <text x="242" y="21" fill={textMuted} fontSize="10">Selected</text>
         </g>
       </svg>
     </div>

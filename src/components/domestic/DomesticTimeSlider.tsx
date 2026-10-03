@@ -50,13 +50,13 @@ export const DomesticTimeSlider: React.FC = () => {
   const PhaseIcon = phase.icon
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[#0E172C] border border-[#1E293B]">
+    <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-xs">
       {/* Playback step buttons */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center bg-[#111C35] border border-[#1E293B] rounded-lg p-1">
+        <div className="flex items-center bg-[var(--surface-secondary)] border border-[var(--border)] rounded-lg p-1">
           <button
             onClick={stepBackward}
-            className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#16223F] transition-colors"
+            className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] transition-colors"
             title="Previous Hour (-1h)"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -67,7 +67,7 @@ export const DomesticTimeSlider: React.FC = () => {
             className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors ${
               isPlaying
                 ? 'bg-amber-600 text-white hover:bg-amber-500'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
+                : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'
             }`}
             title={isPlaying ? 'Pause Simulation' : 'Play 24h Playback'}
           >
@@ -86,7 +86,7 @@ export const DomesticTimeSlider: React.FC = () => {
 
           <button
             onClick={stepForward}
-            className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-[#16223F] transition-colors"
+            className="p-1.5 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface)] transition-colors"
             title="Next Hour (+1h)"
           >
             <ChevronRight className="w-4 h-4" />
@@ -94,15 +94,15 @@ export const DomesticTimeSlider: React.FC = () => {
         </div>
 
         {/* Phase badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#111C35] border border-[#1E293B]">
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)]">
           <PhaseIcon className={`w-3.5 h-3.5 ${phase.color}`} />
-          <span className="text-[11px] font-medium text-slate-200">{phase.label}</span>
+          <span className="text-[11px] font-medium text-[var(--text-primary)]">{phase.label}</span>
         </div>
       </div>
 
       {/* Slider */}
       <div className="flex-1 max-w-xl mx-2 flex items-center gap-3">
-        <span className="text-[11px] font-mono text-slate-400">06:00</span>
+        <span className="text-[11px] font-mono text-[var(--text-muted)]">06:00</span>
         <input
           type="range"
           min="6"
@@ -110,17 +110,17 @@ export const DomesticTimeSlider: React.FC = () => {
           step="0.5"
           value={currentHours}
           onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
-          className="w-full h-1.5 bg-[#1E293B] rounded-lg appearance-none cursor-pointer accent-blue-600"
+          className="w-full h-1.5 bg-[var(--border)] rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
           aria-label="Domestic Simulation Time Slider"
         />
-        <span className="text-[11px] font-mono text-slate-400">24:00</span>
+        <span className="text-[11px] font-mono text-[var(--text-muted)]">24:00</span>
       </div>
 
       {/* Clock Badge */}
-      <div className="flex items-center gap-2 bg-[#111C35] border border-[#1E293B] px-3 py-1.5 rounded-lg shrink-0">
-        <Clock className="w-4 h-4 text-blue-400" />
-        <span className="text-xs text-slate-400 font-medium">Time:</span>
-        <span className="text-sm font-bold font-mono text-white">{currentTime}</span>
+      <div className="flex items-center gap-2 bg-[var(--surface-secondary)] border border-[var(--border)] px-3 py-1.5 rounded-lg shrink-0">
+        <Clock className="w-4 h-4 text-sky-500" />
+        <span className="text-xs text-[var(--text-muted)] font-medium">Time:</span>
+        <span className="text-sm font-bold font-mono text-[var(--text-primary)]">{currentTime}</span>
       </div>
     </div>
   )

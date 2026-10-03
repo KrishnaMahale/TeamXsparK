@@ -21,7 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A1124] disabled:opacity-50 disabled:cursor-not-allowed select-none'
+    'inline-flex items-center justify-center font-medium rounded-xl transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed select-none'
 
   const sizeStyles = {
     sm: 'text-xs px-3 py-1.5 gap-1.5',
@@ -31,17 +31,17 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-blue-600 hover:bg-blue-500 text-white font-medium focus:ring-blue-500 active:bg-blue-700',
+      'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
     secondary:
-      'bg-[#16223F] hover:bg-[#1E2D52] text-slate-200 border border-[#273859] focus:ring-slate-400 active:bg-[#111A30]',
+      'bg-white dark:bg-[#12332D] hover:bg-emerald-50 dark:hover:bg-[#183D36] text-emerald-800 dark:text-emerald-200 border border-[#A7CDBD] dark:border-[#2D5C51] focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
     success:
-      'bg-emerald-600 hover:bg-emerald-500 text-white font-medium focus:ring-emerald-500 active:bg-emerald-700',
+      'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm focus:ring-emerald-500 focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
     danger:
-      'bg-red-600 hover:bg-red-500 text-white font-medium focus:ring-red-500 active:bg-red-700',
+      'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-sm focus:ring-red-500 focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
     ghost:
-      'bg-transparent hover:bg-[#16223F] text-slate-300 hover:text-white',
+      'bg-transparent hover:bg-emerald-50 dark:hover:bg-[#183D36] text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100',
     outline:
-      'bg-transparent border border-blue-500/60 text-blue-400 hover:bg-blue-600/10 focus:ring-blue-500',
+      'bg-transparent border border-emerald-600 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-[#064E3B]',
   }
 
   return (

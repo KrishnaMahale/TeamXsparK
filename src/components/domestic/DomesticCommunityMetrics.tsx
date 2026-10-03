@@ -28,15 +28,15 @@ export const DomesticCommunityMetrics: React.FC = () => {
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Total Rooftop Solar</div>
-            <div className="text-lg font-bold text-amber-400 font-mono mt-1">
+            <div className="text-xs text-[var(--text-muted)] font-medium">Total Rooftop Solar</div>
+            <div className="text-lg font-bold text-amber-500 dark:text-amber-400 font-mono mt-1">
               {network.totalGenerationKw} kW
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
               {solarHousesCount} Rooftops Active (47.1 kWp)
             </div>
           </div>
-          <div className="p-2.5 rounded-lg bg-amber-950/80 text-amber-400 border border-amber-800">
+          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <Sun className="w-5 h-5" />
           </div>
         </CardContent>
@@ -46,15 +46,15 @@ export const DomesticCommunityMetrics: React.FC = () => {
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Household Demand</div>
-            <div className="text-lg font-bold text-blue-400 font-mono mt-1">
+            <div className="text-xs text-[var(--text-muted)] font-medium">Household Demand</div>
+            <div className="text-lg font-bold text-sky-600 dark:text-sky-400 font-mono mt-1">
               {network.totalLoadKw} kW
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
               8 Residences • Avg {(network.totalLoadKw / 8).toFixed(1)} kW
             </div>
           </div>
-          <div className="p-2.5 rounded-lg bg-blue-950/80 text-blue-400 border border-blue-800">
+          <div className="p-2.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
             <Home className="w-5 h-5" />
           </div>
         </CardContent>
@@ -64,23 +64,23 @@ export const DomesticCommunityMetrics: React.FC = () => {
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Transformer Power Flow</div>
+            <div className="text-xs text-[var(--text-muted)] font-medium">Transformer Power Flow</div>
             <div
               className={`text-lg font-bold font-mono mt-1 ${
-                isExportingToGrid ? 'text-amber-300' : 'text-cyan-400'
+                isExportingToGrid ? 'text-amber-600 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400'
               }`}
             >
               {isExportingToGrid ? `▲ Export +${network.netGridExchangeKw}` : `▼ Import ${Math.abs(network.netGridExchangeKw)}`} kW
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
               TX Load: {network.transformer.loadingPercent}% ({network.transformer.currentLoadKva} kVA)
             </div>
           </div>
           <div
             className={`p-2.5 rounded-lg ${
               isExportingToGrid
-                ? 'bg-amber-950/80 text-amber-300 border border-amber-700'
-                : 'bg-cyan-950/80 text-cyan-400 border border-cyan-800'
+                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                : 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
             }`}
           >
             <Zap className="w-5 h-5" />
@@ -92,15 +92,15 @@ export const DomesticCommunityMetrics: React.FC = () => {
       <Card>
         <CardContent className="p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Feeder Voltage State</div>
+            <div className="text-xs text-[var(--text-muted)] font-medium">Feeder Voltage State</div>
             <div
               className={`text-lg font-bold font-mono mt-1 ${
-                hasCritical ? 'text-red-400' : 'text-emerald-400'
+                hasCritical ? 'text-red-500' : 'text-emerald-500'
               }`}
             >
               {hasCritical ? `${network.peakVoltageV} V Peak` : `${network.peakVoltageV} V Safe`}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
               {hasCritical
                 ? `${overVoltageCount} House > 253V Limit`
                 : '100% within IEEE 1547'}
@@ -109,8 +109,8 @@ export const DomesticCommunityMetrics: React.FC = () => {
           <div
             className={`p-2.5 rounded-lg ${
               hasCritical
-                ? 'bg-red-950/80 text-red-400 border border-red-800'
-                : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800'
+                ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
             }`}
           >
             {hasCritical ? (
