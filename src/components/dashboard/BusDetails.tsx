@@ -64,13 +64,13 @@ export const ComponentDetailsPanel: React.FC = () => {
                 {formatVoltage(bus.voltage)}
               </div>
               <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
-                Limit: {bus.voltageLimitMax.toFixed(2)} pu
+                Limit: {bus.voltageLimitMax?.toFixed(2) ?? '1.05'} pu
               </div>
             </div>
 
             {/* Line Loading */}
             <div className={`p-3 rounded-lg border ${
-              bus.lineLoadingPercent > 100
+              (bus.lineLoadingPercent || 0) > 100
                 ? 'bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800'
                 : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
             }`}>
@@ -201,7 +201,7 @@ export const ComponentDetailsPanel: React.FC = () => {
     return (
       <Card className="h-full">
         <CardHeader
-          title="Solar Farm Alpha"
+          title={solar.name || 'Solar PV Installation'}
           subtitle={solar.id}
           icon={<Sun className="w-4 h-4 text-amber-500 dark:text-amber-400" />}
           action={<Badge variant="success">Active</Badge>}
@@ -248,7 +248,7 @@ export const ComponentDetailsPanel: React.FC = () => {
     return (
       <Card className="h-full">
         <CardHeader
-          title="Battery Storage BESS"
+          title={battery.name || 'Battery Storage BESS'}
           subtitle={battery.id}
           icon={<BatteryMedium className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
           action={<Badge variant={isLowSoc ? 'danger' : 'success'}>{battery.status}</Badge>}

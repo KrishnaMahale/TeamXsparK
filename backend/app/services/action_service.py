@@ -26,7 +26,12 @@ class ActionService:
         simulation_input: Optional[SimulationInput] = None
     ) -> SimulationResponse:
         input_data = simulation_input or SimulationInput()
-        full_res = NetworkEngine.run_full_simulation(input_data)
+        from app.db.repositories.network_repository import NetworkRepository
+        repo = NetworkRepository()
+        grid = await repo.get_grid(await repo.get_active_grid_id())
+        if not grid:
+            grid = await repo.get_network()
+        full_res = NetworkEngine.run_full_simulation(input_data, grid)
         peak_key = "13:15" if "13:15" in full_res.timeStepResults else list(full_res.timeStepResults.keys())[0]
         peak_flow = full_res.timeStepResults[peak_key]
 

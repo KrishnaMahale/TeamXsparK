@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { GridNetwork, Bus, Feeder, SolarUnit, Battery, Load, Transformer, ComponentSelection } from '../types/network'
+import { GridNetwork, Bus, Feeder, SolarUnit, Battery, Load, ComponentSelection } from '../types/network'
 import { GridViolation, ViolationSummary } from '../types/violation'
 import { gridService } from '../services/api/gridService'
 import { simulationService } from '../services/api/simulationService'
@@ -30,6 +30,15 @@ interface GridState {
   updateFromSimulationResult: (pfResult: PowerFlowResult, time: string) => void
   resolveViolations: (updatedBuses: Bus[], updatedFeeders: Feeder[]) => void
   applyActionToNetwork: (action: any) => void
+
+  // Grid Management actions
+  setNetwork: (network: GridNetwork) => void
+  updateNetwork: (updated: GridNetwork) => Promise<void>
+  switchGrid: (gridId: string) => Promise<void>
+  createGrid: (name: string, template?: 'clone' | 'starter' | 'empty') => Promise<GridNetwork>
+  deleteGrid: (gridId: string) => Promise<boolean>
+  addComponent: (type: 'bus' | 'feeder' | 'solar' | 'battery' | 'load', item: any) => Promise<void>
+  removeComponent: (type: string, id: string) => Promise<void>
 }
 
 export const useGridStore = create<GridState>((set, get) => ({
@@ -49,43 +58,177 @@ export const useGridStore = create<GridState>((set, get) => ({
   error: null,
 
   fetchNetwork: async (force: boolean = false) => {
-    // If already initialized and not forced, preserve current state
     if (!force && get().isInitialized) {
       return
     }
     set({ isLoading: true, error: null })
     try {
-      const network = await gridService.getNetwork()
+      const activeId = await gridService.getActiveGridId()
+      const network = await gridService.getGrid(activeId)
       set({ network, isInitialized: true, isLoading: false })
-      // Run dynamic simulation for initial time
       await get().setTime(get().currentTime)
     } catch (err: any) {
-      set({ error: err.message || 'Failed to fetch grid network', isInitialized: true, isLoading: false })
+      const fallbackNet = await gridService.getNetwork()
+      set({ network: fallbackNet, error: err.message || null, isInitialized: true, isLoading: false })
     }
+  },
+
+  setNetwork: (network: GridNetwork) => {
+    set({ network })
+  },
+
+  updateNetwork: async (updated: GridNetwork) => {
+    set({ network: updated })
+    await gridService.updateGrid(updated.id, updated)
+  },
+
+  switchGrid: async (gridId: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      await gridService.setActiveGridId(gridId)
+      const network = await gridService.getGrid(gridId)
+      set({ network, selectedComponent: null, isLoading: false })
+      await get().setTime(get().currentTime)
+    } catch (err: any) {
+      set({ error: err.message || 'Failed to switch grid', isLoading: false })
+    }
+  },
+
+  createGrid: async (name: string, template: 'clone' | 'starter' | 'empty' = 'clone') => {
+    const current = get().network
+    let newGridData: Partial<GridNetwork>
+
+    if (template === 'clone') {
+      newGridData = {
+        ...JSON.parse(JSON.stringify(current)),
+        id: `GRID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        name: name.trim() || `Cloned Grid`,
+      }
+    } else if (template === 'starter') {
+      const sub = JSON.parse(JSON.stringify(mockNetwork.substation))
+      const b1: Bus = {
+        id: 'B1',
+        name: 'Feeder Head Bus 1',
+        voltage: 1.02,
+        voltageLimitMin: 0.95,
+        voltageLimitMax: 1.05,
+        loadKw: 0,
+        solarKw: 0,
+        lineLoadingPercent: 40,
+        temperatureC: 30,
+        status: 'normal',
+        connectedFeeders: ['F-01'],
+        connectedAssets: {},
+        position: { x: 0, y: 0, z: -5 },
+      }
+      const f1: Feeder = {
+        id: 'F-01',
+        name: 'Substation Feeder F-01',
+        fromBus: sub.id,
+        toBus: 'B1',
+        loadingPercent: 40,
+        loadingLimitPercent: 100,
+        capacityKw: 1000,
+        activePowerKw: 400,
+        reactivePowerKvar: 50,
+        status: 'normal',
+        isSwitchClosed: true,
+      }
+      newGridData = {
+        id: `GRID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        name: name.trim() || `Radial Feeder`,
+        substation: sub,
+        buses: [b1],
+        feeders: [f1],
+        solarUnits: [],
+        batteries: [],
+        loads: [],
+      }
+    } else {
+      newGridData = {
+        id: `GRID-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        name: name.trim() || `New Custom Grid`,
+        substation: JSON.parse(JSON.stringify(mockNetwork.substation)),
+        buses: [],
+        feeders: [],
+        solarUnits: [],
+        batteries: [],
+        loads: [],
+      }
+    }
+
+    const created = await gridService.createGrid(newGridData)
+    await get().switchGrid(created.id)
+    return created
+  },
+
+  deleteGrid: async (gridId: string) => {
+    if (gridId === 'default-grid') return false
+    const success = await gridService.deleteGrid(gridId)
+    if (success) {
+      await get().switchGrid('default-grid')
+    }
+    return success
+  },
+
+  addComponent: async (type, item) => {
+    const net = JSON.parse(JSON.stringify(get().network)) as GridNetwork
+    if (type === 'bus') {
+      net.buses.push(item)
+    } else if (type === 'feeder') {
+      net.feeders.push(item)
+    } else if (type === 'solar') {
+      net.solarUnits.push(item)
+    } else if (type === 'battery') {
+      net.batteries.push(item)
+    } else if (type === 'load') {
+      net.loads.push(item)
+    }
+    await get().updateNetwork(net)
+    await get().setTime(get().currentTime)
+  },
+
+  removeComponent: async (type, id) => {
+    const net = JSON.parse(JSON.stringify(get().network)) as GridNetwork
+    if (type === 'bus') {
+      net.buses = net.buses.filter((b) => b.id !== id)
+      net.feeders = net.feeders.filter((f) => f.fromBus !== id && f.toBus !== id)
+      net.solarUnits.forEach((s) => {
+        if (s.busId === id) s.busId = ''
+      })
+      net.batteries.forEach((b) => {
+        if (b.busId === id) b.busId = ''
+      })
+      net.loads.forEach((l) => {
+        if (l.busId === id) l.busId = ''
+      })
+    } else if (type === 'feeder') {
+      net.feeders = net.feeders.filter((f) => f.id !== id)
+    } else if (type === 'solar') {
+      net.solarUnits = net.solarUnits.filter((s) => s.id !== id)
+    } else if (type === 'battery') {
+      net.batteries = net.batteries.filter((b) => b.id !== id)
+    } else if (type === 'load') {
+      net.loads = net.loads.filter((l) => l.id !== id)
+    }
+    if (get().selectedComponent?.id === id) {
+      set({ selectedComponent: null })
+    }
+    await get().updateNetwork(net)
+    await get().setTime(get().currentTime)
   },
 
   updateFromSimulationResult: (pfResult: PowerFlowResult, time: string) => {
     const currentNet = get().network
 
-    // Update solar generation and battery SOC if present
+    const totalSolarCap = currentNet.solarUnits.reduce((acc, s) => acc + s.capacityKw, 0) || 1
     const updatedSolarUnits = currentNet.solarUnits.map((s) => {
-      if (s.id === 'SOLAR-01') {
-        return {
-          ...s,
-          generationKw: Math.round(pfResult.totalGenerationKw * 0.65),
-          status: pfResult.totalGenerationKw > 0 ? ('normal' as const) : ('normal' as const),
-        }
+      const gen = Math.round(pfResult.totalGenerationKw * (s.capacityKw / totalSolarCap))
+      return {
+        ...s,
+        generationKw: gen,
+        status: gen > 0 ? ('normal' as const) : ('normal' as const),
       }
-      if (s.id === 'SOLAR-02') {
-        const gen = Math.round(pfResult.totalGenerationKw * 0.35)
-        const isB3Critical = pfResult.buses.find((b) => b.id === 'B3')?.status === 'critical'
-        return {
-          ...s,
-          generationKw: gen,
-          status: isB3Critical && gen > 40 ? ('warning' as const) : ('normal' as const),
-        }
-      }
-      return s
     })
 
     const updatedBatteries = currentNet.batteries.map((b) => {
@@ -95,11 +238,9 @@ export const useGridStore = create<GridState>((set, get) => ({
       return b
     })
 
+    const totalLoadCap = currentNet.loads.reduce((acc, l) => acc + l.powerKw, 0) || 1
     const updatedLoads = currentNet.loads.map((l) => {
-      if (l.id === 'LOAD-01') return { ...l, powerKw: Math.round(pfResult.totalDemandKw * 0.4) }
-      if (l.id === 'LOAD-02') return { ...l, powerKw: Math.round(pfResult.totalDemandKw * 0.3) }
-      if (l.id === 'LOAD-03') return { ...l, powerKw: Math.round(pfResult.totalDemandKw * 0.3) }
-      return l
+      return { ...l, powerKw: Math.round(pfResult.totalDemandKw * (l.powerKw / totalLoadCap)) }
     })
 
     const f01 = pfResult.feeders.find((f) => f.id === 'F-01')
@@ -110,10 +251,29 @@ export const useGridStore = create<GridState>((set, get) => ({
         }
       : currentNet.substation
 
+    // Match buses and feeders by ID to preserve custom grids without overwriting
+    const pfBusMap = new Map(pfResult.buses.map((b) => [b.id, b]))
+    const hasMatchingBuses = currentNet.buses.some((b) => pfBusMap.has(b.id))
+    const updatedBuses = hasMatchingBuses
+      ? currentNet.buses.map((b) => {
+          const sim = pfBusMap.get(b.id)
+          return sim ? { ...b, voltage: sim.voltage, lineLoadingPercent: sim.lineLoadingPercent, status: sim.status } : b
+        })
+      : currentNet.buses
+
+    const pfFeederMap = new Map(pfResult.feeders.map((f) => [f.id, f]))
+    const hasMatchingFeeders = currentNet.feeders.some((f) => pfFeederMap.has(f.id))
+    const updatedFeeders = hasMatchingFeeders
+      ? currentNet.feeders.map((f) => {
+          const sim = pfFeederMap.get(f.id)
+          return sim ? { ...f, loadingPercent: sim.loadingPercent, status: sim.status, isSwitchClosed: sim.isSwitchClosed } : f
+        })
+      : currentNet.feeders
+
     const updatedNetwork: GridNetwork = {
       ...currentNet,
-      buses: pfResult.buses,
-      feeders: pfResult.feeders,
+      buses: updatedBuses,
+      feeders: updatedFeeders,
       substation: updatedSubstation,
       solarUnits: updatedSolarUnits,
       batteries: updatedBatteries,
@@ -124,10 +284,10 @@ export const useGridStore = create<GridState>((set, get) => ({
     const prevSel = get().selectedComponent
     let updatedSel = prevSel
     if (prevSel && prevSel.type === 'bus') {
-      const found = pfResult.buses.find((b) => b.id === prevSel.id)
+      const found = updatedBuses.find((b) => b.id === prevSel.id)
       if (found) updatedSel = { type: 'bus', id: found.id, data: found }
     } else if (prevSel && prevSel.type === 'feeder') {
-      const found = pfResult.feeders.find((f) => f.id === prevSel.id)
+      const found = updatedFeeders.find((f) => f.id === prevSel.id)
       if (found) updatedSel = { type: 'feeder', id: found.id, data: found }
     } else if (prevSel && prevSel.type === 'solar') {
       const found = updatedSolarUnits.find((s) => s.id === prevSel.id)

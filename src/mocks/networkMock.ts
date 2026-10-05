@@ -9,6 +9,7 @@ export const mockSubstation: Transformer = {
   loadingPercent: 68.4,
   temperatureC: 38.5,
   status: 'normal',
+  position: { x: 0, y: 0.6, z: -10 },
 }
 
 export const mockBuses: Bus[] = [
@@ -25,6 +26,7 @@ export const mockBuses: Bus[] = [
     status: 'normal',
     connectedFeeders: ['F-01', 'F-LINE-12'],
     connectedAssets: {},
+    position: { x: 0, y: 0, z: -5 },
   },
   {
     id: 'B2',
@@ -42,6 +44,7 @@ export const mockBuses: Bus[] = [
       solar: 'SOLAR-01',
       load: 'LOAD-01',
     },
+    position: { x: 0, y: 0, z: 0 },
   },
   {
     id: 'B3',
@@ -59,6 +62,7 @@ export const mockBuses: Bus[] = [
       battery: 'BAT-01',
       load: 'LOAD-02',
     },
+    position: { x: 0, y: 0, z: 6 },
   },
   {
     id: 'B4',
@@ -75,6 +79,7 @@ export const mockBuses: Bus[] = [
     connectedAssets: {
       load: 'LOAD-03',
     },
+    position: { x: 0, y: 0, z: 12 },
   },
 ]
 
@@ -157,6 +162,7 @@ export const mockSolarUnits: SolarUnit[] = [
     irradianceWm2: 895,
     curtailedKw: 0,
     status: 'normal',
+    position: { x: -7, y: 0, z: 0 },
   },
   {
     id: 'SOLAR-02',
@@ -167,6 +173,7 @@ export const mockSolarUnits: SolarUnit[] = [
     irradianceWm2: 890,
     curtailedKw: 0,
     status: 'warning',
+    position: { x: -7, y: 0, z: 3 },
   },
 ]
 
@@ -182,6 +189,7 @@ export const mockBatteries: Battery[] = [
     capacityKwh: 100,
     status: 'normal',
     cycleCount: 312,
+    position: { x: -7, y: 0, z: 6 },
   },
 ]
 
@@ -193,6 +201,7 @@ export const mockLoads: Load[] = [
     powerKw: 90,
     powerFactor: 0.94,
     status: 'normal',
+    position: { x: 7, y: 0, z: 0 },
   },
   {
     id: 'LOAD-02',
@@ -201,6 +210,7 @@ export const mockLoads: Load[] = [
     powerKw: 60,
     powerFactor: 0.92,
     status: 'normal',
+    position: { x: 7, y: 0, z: 6 },
   },
   {
     id: 'LOAD-03',
@@ -209,10 +219,13 @@ export const mockLoads: Load[] = [
     powerKw: 120,
     powerFactor: 0.89,
     status: 'normal',
+    position: { x: 7, y: 0, z: 12 },
   },
 ]
 
 export const mockNetwork: GridNetwork = {
+  id: 'default-grid',
+  name: 'Default 4-Bus Feeder',
   gridConnectionStatus: 'connected',
   gridFrequencyHz: 50.02,
   substation: mockSubstation,

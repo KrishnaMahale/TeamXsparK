@@ -14,6 +14,7 @@ import { GridTypeSwitcher } from '../components/layout/GridTypeSwitcher'
 import { DomesticNetwork2D } from '../components/domestic/DomesticNetwork2D'
 import { DomesticHouseDetails } from '../components/domestic/DomesticHouseDetails'
 import { DomesticVoltageProfileChart } from '../components/domestic/DomesticVoltageProfileChart'
+import { GridManagerPanel } from '../components/network/GridManagerPanel'
 import {
   Share2,
   Box,
@@ -88,6 +89,7 @@ export const NetworkPage: React.FC = () => {
 
           {/* Component Telemetry Sidebar */}
           <div className="lg:col-span-4 flex flex-col gap-4">
+            <GridManagerPanel />
             <ComponentDetailsPanel />
 
             {/* Network Constraints Summary Card */}

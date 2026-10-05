@@ -178,12 +178,17 @@ export const DomesticVoltageProfileChart: React.FC = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Informative Explanation for Judges / Operators */}
-        <div className="p-2.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-[11px] text-[var(--text-secondary)] flex items-start gap-2">
-          <Info className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            <strong className="text-[var(--text-primary)]">Rooftop Solar Voltage Rise Physics:</strong> Low-voltage residential lines have high resistance-to-reactance ratios ($R \gg X$). As multiple houses inject concurrent solar surplus back towards the distribution transformer, cumulative current reverses, driving terminal voltage progressively higher with distance. Notice the sharp rise between 170m and 290m.
-          </p>
+        {/* Concise Key Insight */}
+        <div className="p-2.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-xs text-[var(--text-secondary)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-sky-500 shrink-0" />
+            <span>
+              <strong className="text-[var(--text-primary)]">Voltage Trend:</strong> Solar export from houses raises voltage along the street, peaking at end-of-line residences ({maxV}V at 290m).
+            </span>
+          </div>
+          <Badge variant={isOverVoltage ? 'danger' : 'success'} size="sm">
+            {isOverVoltage ? 'Breaches 253V Limit' : 'Within Limits'}
+          </Badge>
         </div>
       </CardContent>
     </Card>

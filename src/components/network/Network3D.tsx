@@ -1,633 +1,1095 @@
-import React, { useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Html, DragControls } from '@react-three/drei'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { Canvas, useFrame, useThree, ThreeEvent } from '@react-three/fiber'
+import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
+import { gridService } from '../../services/api/gridService'
+import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Compass, ArrowUp, ArrowDown } from 'lucide-react'
+import { FactoryAsset, ResidentialAsset, CommercialAsset, SolarUtilityAsset, SolarRooftopAsset } from './assets/GridAssets3D'
 
-// 3D Bus Node Component
+// --- Reusable 3D Nodes ---
+
 const Bus3DNode: React.FC<{
-  nodeRef: React.RefObject<THREE.Group>
+  id: string
+  position: [number, number, number]
   name: string
   voltage: number
   isCritical?: boolean
   onClick: () => void
   isSelected: boolean
-}> = ({ nodeRef, name, voltage, isCritical, onClick, isSelected }) => {
-  const meshRef = useRef<THREE.Mesh>(null)
+  isConnectionSource?: boolean
+  isDragging?: boolean
+  onPointerDown: (e: ThreeEvent<PointerEvent>) => void
+}> = ({ position, name, isCritical, onClick, isSelected, isConnectionSource, isDragging, onPointerDown }) => {
+  const meshRef = useRef<THREE.Group>(null)
+  const internalRef = useRef<THREE.Mesh>(null)
 
   useFrame((state) => {
-    if (meshRef.current && isCritical) {
-      const scale = 1 + 0.08 * Math.sin(state.clock.getElapsedTime() * 3)
-      meshRef.current.scale.set(scale, scale, scale)
+    if (internalRef.current && (isCritical || isConnectionSource)) {
+      const scale = 1 + 0.08 * Math.sin(state.clock.getElapsedTime() * 4)
+      internalRef.current.scale.set(scale, scale, scale)
+    } else if (internalRef.current && !isDragging) {
+      internalRef.current.scale.set(1, 1, 1)
     }
   })
 
   return (
-    <group ref={nodeRef}>
-      <mesh
-        ref={meshRef}
-        onClick={(e) => {
-          e.stopPropagation()
-          onClick()
-        }}
-      >
+    <group
+      ref={meshRef}
+      position={position}
+      onPointerDown={onPointerDown}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        document.body.style.cursor = 'grab'
+      }}
+      onPointerOut={() => {
+        if (!isDragging) document.body.style.cursor = 'default'
+      }}
+    >
+      {/* Ground marker halo when dragging, selected, or connection source */}
+      {(isDragging || isSelected || isConnectionSource) && (
+        <mesh position={[0, -0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.85, 1.25, 32]} />
+          <meshBasicMaterial
+            color={isConnectionSource ? '#eab308' : isDragging ? '#38bdf8' : isSelected ? '#0284c7' : '#10b981'}
+            transparent
+            opacity={isDragging ? 0.85 : 0.6}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+
+      {/* Main Bus Cylinder */}
+      <mesh ref={internalRef} position={[0, isDragging ? 0.2 : 0, 0]}>
         <cylinderGeometry args={[0.7, 0.7, 0.4, 32]} />
         <meshStandardMaterial
-          color={isCritical ? '#dc2626' : isSelected ? '#0284c7' : '#16a34a'}
-          roughness={0.4}
-          metalness={0.4}
+          color={isConnectionSource ? '#eab308' : isCritical ? '#dc2626' : isSelected ? '#0284c7' : isDragging ? '#0ea5e9' : '#16a34a'}
+          roughness={0.35}
+          metalness={0.45}
+          emissive={isDragging ? '#0284c7' : isCritical ? '#7f1d1d' : '#000000'}
+          emissiveIntensity={isDragging ? 0.4 : 0.15}
         />
       </mesh>
 
-      {/* Clean HUD Label */}
-      <Html position={[0, 1.2, 0]} center distanceFactor={15}>
+      {/* Dynamic HTML Badge */}
+      <Html position={[0, (isDragging ? 1.5 : 1.2), 0]} center distanceFactor={15}>
         <div
-          onClick={onClick}
-          className={`cursor-pointer px-2 py-0.5 rounded-md text-[11px] font-mono font-bold tracking-wider whitespace-nowrap shadow-sm border transition-colors ${
-            isCritical
-              ? 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/90 dark:text-rose-200 dark:border-rose-800'
+          className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold tracking-wider whitespace-nowrap shadow-md border transition-all ${
+            isConnectionSource
+              ? 'bg-yellow-50 text-yellow-800 border-yellow-300 ring-2 ring-yellow-400'
+              : isDragging
+              ? 'bg-sky-600 text-white border-sky-400 ring-2 ring-sky-300 scale-105 shadow-xl'
+              : isCritical
+              ? 'bg-rose-50 text-rose-800 border-rose-300'
               : isSelected
-              ? 'bg-sky-50 text-sky-800 border-sky-300 dark:bg-sky-950/90 dark:text-sky-200 dark:border-sky-800'
-              : 'bg-white text-slate-800 border-slate-200 dark:bg-slate-900/90 dark:text-slate-200 dark:border-slate-700'
+              ? 'bg-sky-50 text-sky-800 border-sky-300 ring-2 ring-sky-300'
+              : 'bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700'
           }`}
         >
-          {name}: {voltage.toFixed(3)} pu
+          {name}
+          {isDragging && (
+            <span className="ml-1.5 text-[9px] font-normal opacity-90 text-sky-100">
+              ({position[0].toFixed(1)}, {position[2].toFixed(1)})
+            </span>
+          )}
         </div>
       </Html>
     </group>
   )
 }
 
-// 3D Feeder Power Line with Animated Flow
-const Feeder3DLine: React.FC<{
-  startRef: React.RefObject<THREE.Group>
-  endRef: React.RefObject<THREE.Group>
+const Component3DNode: React.FC<{
+  id: string
+  position: [number, number, number]
+  name: string
+  type: 'solar' | 'battery' | 'load' | 'transformer'
+  kw?: number
+  onClick: () => void
+  isConnectionSource?: boolean
+  isDragging?: boolean
+  onPointerDown: (e: ThreeEvent<PointerEvent>) => void
+}> = ({ position, name, type, kw, onClick, isConnectionSource, isDragging, onPointerDown }) => {
+  const meshRef = useRef<THREE.Group>(null)
+  const groupRef = useRef<THREE.Group>(null)
+
+  useFrame((state) => {
+    if (groupRef.current && isConnectionSource) {
+      const scale = 1 + 0.05 * Math.sin(state.clock.getElapsedTime() * 4)
+      groupRef.current.scale.set(scale, scale, scale)
+    } else if (groupRef.current && !isDragging) {
+      groupRef.current.scale.set(1, 1, 1)
+    }
+  })
+
+  const renderAsset = () => {
+    if (type === 'transformer') return (
+      <mesh position={[0, 0.6, 0]}>
+        <boxGeometry args={[3, 1.5, 3]} />
+        <meshStandardMaterial color="#1e293b" />
+        <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(3, 1.5, 3)]} /><lineBasicMaterial color={isDragging ? '#38bdf8' : '#06b6d4'} /></lineSegments>
+        <mesh position={[-0.8, 1.0, 0]}><cylinderGeometry args={[0.2, 0.2, 0.6, 8]} /><meshStandardMaterial color="#334155" /></mesh>
+        <mesh position={[0.8, 1.0, 0]}><cylinderGeometry args={[0.2, 0.2, 0.6, 8]} /><meshStandardMaterial color="#334155" /></mesh>
+      </mesh>
+    )
+    if (type === 'battery') return (
+      <group position={[0, 0.6, 0]}>
+        <mesh>
+          <boxGeometry args={[1.8, 1.2, 1.2]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.4} />
+          <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(1.8, 1.2, 1.2)]} /><lineBasicMaterial color={isDragging ? '#38bdf8' : '#10b981'} /></lineSegments>
+        </mesh>
+        <mesh position={[0, 0, 0.61]}><boxGeometry args={[1.2, 0.2, 0.05]} /><meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={1} /></mesh>
+      </group>
+    )
+    if (type === 'solar') {
+      if (name.includes('[Rooftop]')) return <SolarRooftopAsset />
+      return <SolarUtilityAsset />
+    }
+    if (type === 'load') {
+      if (name.includes('[Factory]')) return <FactoryAsset />
+      if (name.includes('[Commercial]')) return <CommercialAsset />
+      return <ResidentialAsset />
+    }
+    return null
+  }
+
+  return (
+    <group
+      ref={meshRef}
+      position={position}
+      onPointerDown={onPointerDown}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation()
+        document.body.style.cursor = 'grab'
+      }}
+      onPointerOut={() => {
+        if (!isDragging) document.body.style.cursor = 'default'
+      }}
+    >
+      {/* Ground marker halo when dragging or connection source */}
+      {(isDragging || isConnectionSource) && (
+        <mesh position={[0, -0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.5, 2.0, 32]} />
+          <meshBasicMaterial
+            color={isConnectionSource ? '#eab308' : '#38bdf8'}
+            transparent
+            opacity={isDragging ? 0.85 : 0.6}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+
+      <group ref={groupRef} position={[0, isDragging ? 0.25 : 0, 0]}>
+        {renderAsset()}
+        {isConnectionSource && (
+          <mesh position={[0, 2, 0]}>
+            <boxGeometry args={[0.2, 0.2, 0.2]} />
+            <meshBasicMaterial color="#eab308" />
+          </mesh>
+        )}
+      </group>
+
+      <Html position={[0, (type === 'transformer' ? 3.0 : 2.5) + (isDragging ? 0.35 : 0), 0]} center distanceFactor={15}>
+        <div
+          className={`px-2.5 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-md backdrop-blur-md transition-all ${
+            isConnectionSource
+              ? 'bg-[#0f172a]/95 text-yellow-300 border border-yellow-400 ring-2 ring-yellow-400'
+              : isDragging
+              ? 'bg-sky-600 text-white border border-sky-300 ring-2 ring-sky-300 scale-105 shadow-xl'
+              : 'bg-[#0f172a]/90 text-[#e2e8f0] border border-[#06b6d4]'
+          }`}
+        >
+          {name.replace(/\[.*?\]\s*/, '')}
+          {kw !== undefined && <div className="text-[8px] text-[#94a3b8]">{kw} kW</div>}
+          {isDragging && <div className="text-[8px] text-sky-200">({position[0].toFixed(1)}, {position[2].toFixed(1)})</div>}
+        </div>
+      </Html>
+    </group>
+  )
+}
+
+// --- Dynamic Wire & Power Flow Conductor ---
+
+const DynamicFeederLine: React.FC<{
+  startPos: [number, number, number]
+  endPos: [number, number, number]
   color?: string
   isCritical?: boolean
   flowDirection?: 'forward' | 'reverse' | 'none'
-}> = ({ startRef, endRef, color = '#0284c7', isCritical = false, flowDirection = 'forward' }) => {
+  flowMagnitude?: number
+  onClick?: () => void
+}> = ({ startPos, endPos, color = '#0284c7', isCritical = false, flowDirection = 'forward', flowMagnitude = 500, onClick }) => {
   const groupRef = useRef<THREE.Group>(null)
-  const cylinderRef = useRef<THREE.Mesh>(null)
-  const edgesRef = useRef<THREE.LineSegments>(null)
-  
-  // Animated Flow Particles
-  const particleRef1 = useRef<THREE.Mesh>(null)
-  const particleRef2 = useRef<THREE.Mesh>(null)
-  
+  const wireOffsets = [-0.15, 0, 0.15]
+
+  const cylinderRefs = useRef<(THREE.Mesh | null)[]>([])
+  const particles1Refs = useRef<(THREE.Mesh | null)[]>([])
+  const particles2Refs = useRef<(THREE.Mesh | null)[]>([])
+  const particles3Refs = useRef<(THREE.Mesh | null)[]>([])
+  const hitMeshRefs = useRef<(THREE.Mesh | null)[]>([])
+
   useFrame((state) => {
-    if (!startRef.current || !endRef.current) return
-    
-    // Use world positions in case they are nested
-    const startVec = new THREE.Vector3()
-    startRef.current.getWorldPosition(startVec)
-    
-    const endVec = new THREE.Vector3()
-    endRef.current.getWorldPosition(endVec)
-    
+    if (!groupRef.current) return
+
+    // Elevate wire slightly above ground for physical realism
+    const startVec = new THREE.Vector3(startPos[0], startPos[1] + 0.35, startPos[2])
+    const endVec = new THREE.Vector3(endPos[0], endPos[1] + 0.35, endPos[2])
     const distance = startVec.distanceTo(endVec)
-    const position = startVec.clone().lerp(endVec, 0.5)
 
-    if (groupRef.current) {
-      groupRef.current.position.copy(position)
-      const orientation = new THREE.Matrix4()
-      orientation.lookAt(startVec, endVec, new THREE.Vector3(0, 1, 0))
-      groupRef.current.rotation.setFromRotationMatrix(orientation)
+    // Hide degenerate lines
+    if (distance < 0.08) {
+      groupRef.current.visible = false
+      return
     }
+    groupRef.current.visible = true
 
-    if (cylinderRef.current) cylinderRef.current.scale.set(1, 1, distance)
-    if (edgesRef.current) edgesRef.current.scale.set(1, 1, distance)
+    // Position group at midpoint
+    const position = startVec.clone().lerp(endVec, 0.5)
+    groupRef.current.position.copy(position)
 
+    // Calculate orientation safe from vertical gimbal lock
+    const dir = endVec.clone().sub(startVec).normalize()
+    const up = Math.abs(dir.y) > 0.98 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0)
+    const orientation = new THREE.Matrix4()
+    orientation.lookAt(startVec, endVec, up)
+    groupRef.current.rotation.setFromRotationMatrix(orientation)
+
+    // Scale wires and click targets to match dynamic span length
+    wireOffsets.forEach((_, i) => {
+      if (cylinderRefs.current[i]) cylinderRefs.current[i]!.scale.set(1, 1, distance)
+      if (hitMeshRefs.current[i]) hitMeshRefs.current[i]!.scale.set(1, 1, distance)
+    })
+
+    // Animate power flow along the dynamically repositioned wire
     if (flowDirection !== 'none') {
-      const speed = isCritical ? 1.5 : 0.8
+      const speed = (isCritical ? 1.5 : 0.6) + Math.min(Math.abs(flowMagnitude) / 1000, 2.5)
       let t1 = (state.clock.elapsedTime * speed) % 1
-      let t2 = ((state.clock.elapsedTime * speed) + 0.5) % 1
-      
+      let t2 = ((state.clock.elapsedTime * speed) + 0.33) % 1
+      let t3 = ((state.clock.elapsedTime * speed) + 0.66) % 1
+
       if (flowDirection === 'reverse') {
         t1 = 1 - t1
         t2 = 1 - t2
+        t3 = 1 - t3
       }
 
-      if (particleRef1.current) particleRef1.current.position.copy(startVec).lerp(endVec, t1)
-      if (particleRef2.current) particleRef2.current.position.copy(startVec).lerp(endVec, t2)
+      const localZ1 = (distance / 2) - (t1 * distance)
+      const localZ2 = (distance / 2) - (t2 * distance)
+      const localZ3 = (distance / 2) - (t3 * distance)
+
+      wireOffsets.forEach((_, i) => {
+        if (particles1Refs.current[i]) particles1Refs.current[i]!.position.set(0, 0, localZ1)
+        if (particles2Refs.current[i]) particles2Refs.current[i]!.position.set(0, 0, localZ2)
+        if (particles3Refs.current[i]) particles3Refs.current[i]!.position.set(0, 0, localZ3)
+      })
     }
   })
 
   return (
-    <group>
-      <group ref={groupRef}>
-        <mesh ref={cylinderRef} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.06, 0.06, 1, 8]} />
-          <meshStandardMaterial color={isCritical ? '#dc2626' : '#1e293b'} roughness={0.4} metalness={0.8} />
-        </mesh>
-        <lineSegments ref={edgesRef} rotation={[Math.PI / 2, 0, 0]}>
-          <edgesGeometry args={[new THREE.CylinderGeometry(0.06, 0.06, 1, 8)]} />
-          <lineBasicMaterial color={isCritical ? '#f87171' : color} opacity={0.3} transparent />
-        </lineSegments>
-      </group>
-      
-      {/* Power Flow Energy Packets */}
-      {flowDirection !== 'none' && (
-        <>
-          <mesh ref={particleRef1}>
-            <sphereGeometry args={[0.15, 8, 8]} />
-            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
+    <group ref={groupRef}>
+      {wireOffsets.map((offsetX, i) => (
+        <group key={`wire-${i}`} position={[offsetX, 0, 0]}>
+          {/* Overhead Conductor Cable */}
+          <mesh ref={(el) => { if (el) cylinderRefs.current[i] = el }} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.018, 0.018, 1, 8]} />
+            <meshStandardMaterial
+              color={isCritical ? '#dc2626' : '#334155'}
+              roughness={0.4}
+              metalness={0.7}
+              emissive={isCritical ? '#ef4444' : '#000000'}
+              emissiveIntensity={isCritical ? 0.35 : 0}
+            />
           </mesh>
-          <mesh ref={particleRef2}>
-            <sphereGeometry args={[0.15, 8, 8]} />
-            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-          </mesh>
-        </>
-      )}
-    </group>
-  )
-}
 
-// Stylized Solar Panel Array (Delta Solar Park style)
-const SolarArray3D: React.FC<{ nodeRef: React.RefObject<THREE.Group>; onClick: () => void }> = ({
-  nodeRef,
-  onClick,
-}) => {
-  return (
-    <group
-      ref={nodeRef}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      {/* Central Transformer Hub */}
-      <mesh position={[0, 0.4, 0]}>
-        <boxGeometry args={[0.8, 0.8, 0.8]} />
-        <meshStandardMaterial color="#0f172a" />
-        <lineSegments>
-          <edgesGeometry args={[new THREE.BoxGeometry(0.8, 0.8, 0.8)]} />
-          <lineBasicMaterial color="#06b6d4" />
-        </lineSegments>
-      </mesh>
-      <mesh position={[0, 0.85, 0]}>
-        <boxGeometry args={[0.4, 0.1, 0.4]} />
-        <meshStandardMaterial color="#334155" />
-      </mesh>
-
-      {/* Panel Grid Array - More Detailed Tilt */}
-      <group position={[0, 0.3, 0]}>
-        {[-1.2, 0, 1.2].map((x, i) =>
-          [-1.0, 0, 1.0].map((z, j) => (
-            <group position={[x, 0, z]} key={`${i}-${j}`}>
-              {/* Individual support pole */}
-              <mesh position={[0, 0.2, 0]}>
-                <cylinderGeometry args={[0.05, 0.05, 0.4, 8]} />
-                <meshStandardMaterial color="#334155" />
+          {/* Animated Power Flow Energy Pulses */}
+          {flowDirection !== 'none' && (
+            <>
+              <mesh ref={(el) => { if (el) particles1Refs.current[i] = el }}>
+                <sphereGeometry args={[0.07, 10, 10]} />
+                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
               </mesh>
-              {/* Tilted Panel */}
-              <mesh position={[0, 0.4, 0]} rotation={[-Math.PI / 6, 0, 0]}>
-                <boxGeometry args={[1.0, 0.05, 0.8]} />
-                <meshStandardMaterial color="#0B1220" roughness={0.1} metalness={0.8} />
-                <lineSegments>
-                  <edgesGeometry args={[new THREE.BoxGeometry(1.0, 0.05, 0.8)]} />
-                  <lineBasicMaterial color="#06b6d4" />
-                </lineSegments>
+              <mesh ref={(el) => { if (el) particles2Refs.current[i] = el }}>
+                <sphereGeometry args={[0.07, 10, 10]} />
+                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
               </mesh>
-              {/* Glowing Junction Box */}
-              <mesh position={[0.3, 0.2, 0.3]}>
-                <boxGeometry args={[0.1, 0.15, 0.1]} />
-                <meshStandardMaterial color="#06b6d4" emissive="#06b6d4" emissiveIntensity={0.5} />
+              <mesh ref={(el) => { if (el) particles3Refs.current[i] = el }}>
+                <sphereGeometry args={[0.06, 8, 8]} />
+                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
               </mesh>
-            </group>
-          ))
-        )}
-      </group>
+            </>
+          )}
 
-      <Html position={[0, 2.2, 0]} center distanceFactor={15}>
-        <div className="bg-[#0f172a]/90 text-[#e2e8f0] border border-[#06b6d4] px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-sm backdrop-blur-md">
-          Delta Solar Park
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// Stylized Battery Storage
-const Battery3D: React.FC<{ nodeRef: React.RefObject<THREE.Group>; onClick: () => void }> = ({
-  nodeRef,
-  onClick,
-}) => {
-  return (
-    <group
-      ref={nodeRef}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      <mesh position={[0, 0.6, 0]}>
-        <boxGeometry args={[1.8, 1.2, 1.2]} />
-        <meshStandardMaterial color="#0f172a" roughness={0.4} />
-        <lineSegments>
-          <edgesGeometry args={[new THREE.BoxGeometry(1.8, 1.2, 1.2)]} />
-          <lineBasicMaterial color="#10b981" />
-        </lineSegments>
-      </mesh>
-      {/* Glowing Charge Indicators */}
-      <mesh position={[0, 0.6, 0.61]}>
-        <boxGeometry args={[1.2, 0.2, 0.05]} />
-        <meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={1} />
-      </mesh>
-      <Html position={[0, 1.5, 0]} center distanceFactor={15}>
-        <div className="bg-[#0f172a]/90 text-[#e2e8f0] border border-[#10b981] px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-sm backdrop-blur-md">
-          BESS (SOC 62%)
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-// SCADA Styled Buildings (HQ, Factory, Refinery)
-const Building3D: React.FC<{
-  nodeRef: React.RefObject<THREE.Group>
-  name: string
-  kw: number
-  type: 'hq' | 'factory' | 'refinery'
-  onClick: () => void
-}> = ({ nodeRef, name, kw, type, onClick }) => {
-  return (
-    <group
-      ref={nodeRef}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      {type === 'hq' && (
-        <group position={[0, 0, 0]}>
-          {/* Multi-tier Base */}
-          <mesh position={[0, 0.3, 0]}>
-            <boxGeometry args={[2.6, 0.6, 2.0]} />
-            <meshStandardMaterial color="#1e293b" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(2.6, 0.6, 2.0)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Main Tower */}
-          <mesh position={[0, 1.4, 0]}>
-            <boxGeometry args={[1.2, 1.6, 1.2]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(1.2, 1.6, 1.2)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Roof Helipad & Antenna */}
-          <mesh position={[0, 2.25, 0]}>
-            <cylinderGeometry args={[0.3, 0.3, 0.1, 16]} />
-            <meshStandardMaterial color="#334155" />
-            <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          <mesh position={[0.4, 2.4, -0.4]}>
-            <cylinderGeometry args={[0.02, 0.02, 0.5, 4]} />
-            <meshStandardMaterial color="#e2e8f0" />
-          </mesh>
-          {/* Horizontal glowing window bands */}
-          {[-0.8, -0.4, 0, 0.4, 0.8].map((y, i) => (
-             <mesh position={[0, 1.4 + y, 0.61]} key={i}>
-               <boxGeometry args={[1.0, 0.1, 0.05]} />
-               <meshStandardMaterial color="#06b6d4" emissive="#06b6d4" emissiveIntensity={1} />
-             </mesh>
-          ))}
-        </group>
-      )}
-
-      {type === 'factory' && (
-        <group position={[0, 0, 0]}>
-          <mesh position={[0, 0.3, 0]}>
-            <boxGeometry args={[3.2, 0.6, 2.4]} />
-            <meshStandardMaterial color="#1e293b" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(3.2, 0.6, 2.4)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Stepped roofs */}
-          <mesh position={[-0.8, 0.7, 0]}>
-            <boxGeometry args={[1.2, 0.2, 2.0]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(1.2, 0.2, 2.0)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          <mesh position={[0.8, 0.7, 0]}>
-            <boxGeometry args={[1.2, 0.2, 2.0]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(1.2, 0.2, 2.0)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Detailed Smokestacks */}
-          {[-0.6, 0.6].map(x => (
-            <group position={[x, 1.2, -0.4]} key={x}>
-              <mesh>
-                <cylinderGeometry args={[0.3, 0.4, 1.0, 12]} />
-                <meshStandardMaterial color="#0f172a" />
-                <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.3, 0.4, 1.0, 12)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-              </mesh>
-              {/* Smoke glowing tip */}
-              <mesh position={[0, 0.5, 0]}>
-                <cylinderGeometry args={[0.25, 0.3, 0.1, 12]} />
-                <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.8} />
-              </mesh>
-            </group>
-          ))}
-        </group>
-      )}
-
-      {type === 'refinery' && (
-        <group position={[0, 0, 0]}>
-          <mesh position={[-0.5, 0.3, 0]}>
-            <boxGeometry args={[2.0, 0.6, 2.4]} />
-            <meshStandardMaterial color="#1e293b" />
-            <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(2.0, 0.6, 2.4)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Tank Farm (Multiple Sizes) */}
-          <mesh position={[1.2, 0.9, -0.5]}>
-            <cylinderGeometry args={[0.7, 0.7, 1.8, 16]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.7, 0.7, 1.8, 16)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          <mesh position={[1.2, 0.6, 0.9]}>
-            <cylinderGeometry args={[0.5, 0.5, 1.2, 16]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          <mesh position={[0.2, 0.5, 1.2]}>
-            <cylinderGeometry args={[0.3, 0.3, 1.0, 16]} />
-            <meshStandardMaterial color="#0f172a" />
-            <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.3, 0.3, 1.0, 16)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          {/* Connecting Pipes */}
-          <mesh position={[1.2, 0.8, 0.2]}>
-            <cylinderGeometry args={[0.05, 0.05, 1.4, 8]} />
-            <meshStandardMaterial color="#06b6d4" />
-          </mesh>
-          <mesh position={[0.7, 0.6, 1.05]} rotation={[0, 0, Math.PI/2]}>
-            <cylinderGeometry args={[0.05, 0.05, 1.0, 8]} />
-            <meshStandardMaterial color="#06b6d4" />
-          </mesh>
-          {/* Tall Flare Stack */}
-          <mesh position={[-0.2, 1.2, -0.2]}>
-            <cylinderGeometry args={[0.08, 0.15, 2.0, 8]} />
-            <meshStandardMaterial color="#334155" />
-            <lineSegments><edgesGeometry args={[new THREE.CylinderGeometry(0.08, 0.15, 2.0, 8)]} /><lineBasicMaterial color="#06b6d4" /></lineSegments>
-          </mesh>
-          <mesh position={[-0.2, 2.3, -0.2]}>
-            <sphereGeometry args={[0.15, 8, 8]} />
-            <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={2.5} />
+          {/* Invisible Hit Testing Mesh for line clicks */}
+          <mesh 
+            ref={(el) => { if (el) hitMeshRefs.current[i] = el }}
+            rotation={[Math.PI / 2, 0, 0]} 
+            onClick={(e) => {
+              if (onClick) {
+                e.stopPropagation()
+                onClick()
+              }
+            }}
+          >
+            <cylinderGeometry args={[0.35, 0.35, 1, 4]} />
+            <meshBasicMaterial transparent opacity={0} />
           </mesh>
         </group>
-      )}
-
-      <Html position={[0, 2.8, 0]} center distanceFactor={15}>
-        <div className="bg-[#0f172a]/90 text-[#e2e8f0] border border-[#06b6d4] px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-sm backdrop-blur-md">
-          {name}
-          <div className="text-[8px] text-[#94a3b8]">{kw} kW</div>
-        </div>
-      </Html>
+      ))}
     </group>
   )
 }
+
+// --- Scene Drag Manager: Smooth Real-time Ground Plane Raycasting ---
+
+const SceneDragManager: React.FC<{
+  onDragMove: (id: string, x: number, y: number, z: number) => void
+  onDragEnd: (id: string, hasMoved: boolean) => void
+  dragStateRef: React.MutableRefObject<{
+    id: string
+    y: number
+    plane: THREE.Plane
+    offset: THREE.Vector3
+    startPos: [number, number, number]
+    currentPos: [number, number, number]
+    hasMoved: boolean
+  } | null>
+}> = ({ onDragMove, onDragEnd, dragStateRef }) => {
+  const { camera, raycaster, gl } = useThree()
+
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      const state = dragStateRef.current
+      if (!state) return
+
+      const rect = gl.domElement.getBoundingClientRect()
+      const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+      raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera)
+
+      const hit = new THREE.Vector3()
+      if (raycaster.ray.intersectPlane(state.plane, hit)) {
+        let newX = hit.x + state.offset.x
+        let newZ = hit.z + state.offset.z
+
+        // Grid arena boundary limits [-45, 45]
+        newX = Math.max(-45, Math.min(45, newX))
+        newZ = Math.max(-45, Math.min(45, newZ))
+
+        const dist = Math.hypot(newX - state.startPos[0], newZ - state.startPos[2])
+        if (dist > 0.08) {
+          state.hasMoved = true
+        }
+
+        state.currentPos = [newX, state.y, newZ]
+        onDragMove(state.id, newX, state.y, newZ)
+      }
+    }
+
+    const handlePointerUp = () => {
+      const state = dragStateRef.current
+      if (!state) return
+
+      const id = state.id
+      const hasMoved = state.hasMoved
+      dragStateRef.current = null
+      onDragEnd(id, hasMoved)
+    }
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('pointerup', handlePointerUp)
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', handlePointerUp)
+    }
+  }, [camera, raycaster, gl, onDragMove, onDragEnd, dragStateRef])
+
+  return null
+}
+
+// --- Main 3D Digital Twin Component ---
 
 export const Network3D: React.FC = () => {
-  const { network } = useGridStore()
+  const { network, updateNetwork } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
-  
-  const [orbitEnabled, setOrbitEnabled] = useState(true)
 
-  // Node refs for lines to track dynamically
-  const substationRef = useRef<THREE.Group>(null)
-  const b1Ref = useRef<THREE.Group>(null)
-  const b2Ref = useRef<THREE.Group>(null)
-  const b3Ref = useRef<THREE.Group>(null)
-  const b4Ref = useRef<THREE.Group>(null)
-  const solarRef = useRef<THREE.Group>(null)
-  const hqRef = useRef<THREE.Group>(null)
-  const batRef = useRef<THREE.Group>(null)
-  const factoryRef = useRef<THREE.Group>(null)
-  const refineryRef = useRef<THREE.Group>(null)
+  const orbitRef = useRef<any>(null)
+  const [positions, setPositions] = useState<Record<string, [number, number, number]>>({})
+  const positionsRef = useRef<Record<string, [number, number, number]>>({})
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [isDraggingNode, setIsDraggingNode] = useState(false)
+  const lastDragEndTimeRef = useRef<number>(0)
 
-  const b1 = network.buses.find((b) => b.id === 'B1') || network.buses[0]
-  const b2 = network.buses.find((b) => b.id === 'B2') || network.buses[1]
-  const b3 = network.buses.find((b) => b.id === 'B3') || network.buses[2]
-  const b4 = network.buses.find((b) => b.id === 'B4') || network.buses[3]
+  const dragStateRef = useRef<{
+    id: string
+    y: number
+    plane: THREE.Plane
+    offset: THREE.Vector3
+    startPos: [number, number, number]
+    currentPos: [number, number, number]
+    hasMoved: boolean
+  } | null>(null)
 
-  const f02 = network.feeders.find((f) => f.id === 'F-02')
-  const solar01 = network.solarUnits.find((s) => s.id === 'SOLAR-01') || network.solarUnits[0]
-  const bat01 = network.batteries.find((b) => b.id === 'BAT-01') || network.batteries[0]
-  const load01 = network.loads.find((l) => l.id === 'LOAD-01') || network.loads[0]
-  const load02 = network.loads.find((l) => l.id === 'LOAD-02') || network.loads[2]
-  const load03 = network.loads.find((l) => l.id === 'LOAD-03') || network.loads[1]
+  const [activeTool, setActiveTool] = useState<string | null>(null)
+  const [connectionSource, setConnectionSource] = useState<{type: string, id: string} | null>(null)
 
-  const isB3Critical = b3?.status === 'critical'
-  const isF02Critical = f02?.status === 'critical'
+  // Initialize and synchronize 3D positions with layout spacing
+  useEffect(() => {
+    if (dragStateRef.current) return // Do not clobber during active drag
+
+    const newPos: Record<string, [number, number, number]> = {}
+    if (network.substation) {
+      newPos[network.substation.id] = [
+        network.substation.position?.x ?? 0,
+        network.substation.position?.y ?? 0.6,
+        network.substation.position?.z ?? -10
+      ]
+    }
+
+    const defaultBusZ = [-5, 0, 6, 12]
+    network.buses.forEach((b, idx) => {
+      newPos[b.id] = [
+        b.position?.x ?? 0,
+        b.position?.y ?? 0,
+        b.position?.z ?? (defaultBusZ[idx] ?? (idx * 6))
+      ]
+    })
+
+    network.solarUnits.forEach((s, idx) => {
+      newPos[s.id] = [
+        s.position?.x ?? -7,
+        s.position?.y ?? 0,
+        s.position?.z ?? (idx === 0 ? 0 : 3)
+      ]
+    })
+
+    network.batteries.forEach((b) => {
+      newPos[b.id] = [
+        b.position?.x ?? -7,
+        b.position?.y ?? 0,
+        b.position?.z ?? 6
+      ]
+    })
+
+    const defaultLoadZ = [0, 6, 12]
+    network.loads.forEach((l, idx) => {
+      newPos[l.id] = [
+        l.position?.x ?? 7,
+        l.position?.y ?? 0,
+        l.position?.z ?? (defaultLoadZ[idx] ?? (idx * 6))
+      ]
+    })
+
+    setPositions(newPos)
+    positionsRef.current = newPos
+  }, [network])
+
+  // Fast drag move callback: updates positions state in real-time
+  const handleDragMove = useCallback((id: string, x: number, y: number, z: number) => {
+    positionsRef.current[id] = [x, y, z]
+    setPositions(prev => ({
+      ...prev,
+      [id]: [x, y, z]
+    }))
+  }, [])
+
+  // Drag release: commits new coordinates and persists to gridStore
+  const handleDragEnd = useCallback(async (id: string, hasMoved: boolean) => {
+    setDraggingId(null)
+    setIsDraggingNode(false)
+    if (orbitRef.current) orbitRef.current.enabled = true
+    document.body.style.cursor = 'default'
+
+    if (hasMoved) {
+      lastDragEndTimeRef.current = Date.now()
+      const finalPos = positionsRef.current[id]
+      if (!finalPos) return
+
+      const [x, y, z] = finalPos
+      const updatedNetwork = JSON.parse(JSON.stringify(network))
+      if (updatedNetwork.substation?.id === id) {
+        updatedNetwork.substation.position = { x, y, z }
+      }
+      const compLists = [
+        updatedNetwork.buses,
+        updatedNetwork.solarUnits,
+        updatedNetwork.batteries,
+        updatedNetwork.loads,
+      ]
+      compLists.forEach(list => {
+        const item = list.find((i: any) => i.id === id)
+        if (item) {
+          item.position = { x, y, z }
+        }
+      })
+
+      try {
+        await updateNetwork(updatedNetwork)
+      } catch (e) {
+        console.error("Failed to persist moved position", e)
+      }
+    }
+  }, [network, updateNetwork])
+
+  // Pointer down on component node: starts drag operation
+  const handleStartNodeDrag = (id: string, e: ThreeEvent<PointerEvent>) => {
+    if (activeTool) return // Tool mode (connect / delete) takes priority
+    if (e.button !== 0) return // Left mouse button only
+
+    e.stopPropagation()
+    if (orbitRef.current) orbitRef.current.enabled = false
+    setIsDraggingNode(true)
+    setDraggingId(id)
+    document.body.style.cursor = 'grabbing'
+
+    const currentPos = positionsRef.current[id] || [0, 0, 0]
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentPos[1])
+    const hit = new THREE.Vector3()
+    e.ray.intersectPlane(plane, hit)
+
+    dragStateRef.current = {
+      id,
+      y: currentPos[1],
+      plane,
+      offset: new THREE.Vector3(currentPos[0] - hit.x, 0, currentPos[2] - hit.z),
+      startPos: [...currentPos],
+      currentPos: [...currentPos],
+      hasMoved: false,
+    }
+  }
+
+  // Camera Controls
+  const handleRotateCamera = (deg: number) => {
+    if (!orbitRef.current) return
+    const controls = orbitRef.current
+    const rad = (deg * Math.PI) / 180
+    const cam = controls.object as THREE.PerspectiveCamera
+    const target = controls.target || new THREE.Vector3(0, 0, 0)
+    const offset = cam.position.clone().sub(target)
+    const newX = offset.x * Math.cos(rad) - offset.z * Math.sin(rad)
+    const newZ = offset.x * Math.sin(rad) + offset.z * Math.cos(rad)
+    cam.position.set(target.x + newX, cam.position.y, target.z + newZ)
+    controls.update()
+  }
+
+  const handleTiltCamera = (deltaY: number) => {
+    if (!orbitRef.current) return
+    const controls = orbitRef.current
+    const cam = controls.object as THREE.PerspectiveCamera
+    cam.position.y = Math.max(3, Math.min(30, cam.position.y + deltaY))
+    controls.update()
+  }
+
+  const handleZoomCamera = (delta: number) => {
+    if (!orbitRef.current) return
+    const controls = orbitRef.current
+    const cam = controls.object as THREE.PerspectiveCamera
+    const target = controls.target || new THREE.Vector3(0, 0, 0)
+    const dir = cam.position.clone().sub(target).normalize()
+    const newPos = cam.position.clone().addScaledVector(dir, delta)
+    const dist = newPos.distanceTo(target)
+    if (dist >= 3 && dist <= 80) {
+      cam.position.copy(newPos)
+      controls.update()
+    }
+  }
+
+  const handleResetCamera = () => {
+    if (!orbitRef.current) return
+    const controls = orbitRef.current
+    controls.target.set(0, 0, 0)
+    const cam = controls.object as THREE.PerspectiveCamera
+    cam.position.set(0, 14, 18)
+    controls.update()
+  }
+
+  // Deletion tool handler
+  const handleDeleteComponent = async (target: { type: string; id: string; data?: any }) => {
+    if (target.type === 'transformer') {
+      alert("Cannot delete primary substation!")
+      return
+    }
+    const updatedGrid = JSON.parse(JSON.stringify(network))
+    
+    if (target.type === 'bus') {
+      updatedGrid.buses = updatedGrid.buses.filter((b: any) => b.id !== target.id)
+      updatedGrid.feeders = updatedGrid.feeders.filter((f: any) => f.fromBus !== target.id && f.toBus !== target.id)
+      updatedGrid.solarUnits.forEach((s: any) => { if (s.busId === target.id) s.busId = '' })
+      updatedGrid.batteries.forEach((b: any) => { if (b.busId === target.id) b.busId = '' })
+      updatedGrid.loads.forEach((l: any) => { if (l.busId === target.id) l.busId = '' })
+    } else if (target.type === 'solar') {
+      updatedGrid.solarUnits = updatedGrid.solarUnits.filter((s: any) => s.id !== target.id)
+    } else if (target.type === 'battery') {
+      updatedGrid.batteries = updatedGrid.batteries.filter((b: any) => b.id !== target.id)
+    } else if (target.type === 'load') {
+      updatedGrid.loads = updatedGrid.loads.filter((l: any) => l.id !== target.id)
+    } else if (target.type === 'feeder') {
+      updatedGrid.feeders = updatedGrid.feeders.filter((f: any) => f.id !== target.id)
+    } else if (target.type === 'connection' && target.data) {
+      if (target.data.assetType === 'solar') {
+        const item = updatedGrid.solarUnits.find((s: any) => s.id === target.id)
+        if (item) item.busId = ''
+      } else if (target.data.assetType === 'load') {
+        const item = updatedGrid.loads.find((l: any) => l.id === target.id)
+        if (item) item.busId = ''
+      } else if (target.data.assetType === 'battery') {
+        const item = updatedGrid.batteries.find((b: any) => b.id === target.id)
+        if (item) item.busId = ''
+      }
+    }
+    
+    await updateNetwork(updatedGrid)
+  }
+
+  // Spawning new component onto grid floor
+  const handleSpawnComponent = async (tool: string, pos: [number, number, number]) => {
+    const updatedGrid = JSON.parse(JSON.stringify(network))
+    const p = { x: Math.round(pos[0] * 10) / 10, y: 0, z: Math.round(pos[2] * 10) / 10 }
+    const id = `${tool.split('-')[0].toUpperCase()}-${Math.floor(Math.random() * 10000)}`
+
+    if (tool === 'bus') {
+      updatedGrid.buses.push({
+        id,
+        name: `Bus ${updatedGrid.buses.length + 1}`,
+        voltage: 1.0,
+        voltageLimitMin: 0.95,
+        voltageLimitMax: 1.05,
+        loadKw: 0,
+        solarKw: 0,
+        lineLoadingPercent: 0,
+        temperatureC: 30,
+        status: 'normal',
+        connectedFeeders: [],
+        connectedAssets: {},
+        position: p
+      })
+    } else if (tool.startsWith('solar')) {
+      const isUtility = tool.includes('utility')
+      updatedGrid.solarUnits.push({
+        id, name: isUtility ? `[Utility] Solar Array` : `[Rooftop] Solar Panel`, busId: '', generationKw: isUtility ? 500 : 50, capacityKw: isUtility ? 500 : 50,
+        irradianceWm2: 800, curtailedKw: 0, status: 'normal', position: p
+      })
+    } else if (tool.startsWith('load')) {
+      let cap = 50, n = '[Residential] House'
+      if (tool.includes('factory')) { cap = 1000; n = '[Factory] Heavy Industry' }
+      if (tool.includes('commercial')) { cap = 300; n = '[Commercial] Office Block' }
+      updatedGrid.loads.push({
+        id, name: n, busId: '', powerKw: cap, powerFactor: 0.9, status: 'normal', position: p
+      })
+    } else if (tool === 'battery') {
+      updatedGrid.batteries.push({
+        id, name: `Battery Storage`, busId: '', powerKw: 0, maxDischargeKw: 100, maxChargeKw: 100,
+        socPercent: 50, capacityKwh: 500, status: 'normal', position: p
+      })
+    }
+    
+    setPositions(prev => ({ ...prev, [id]: [p.x, p.y, p.z] }))
+    positionsRef.current[id] = [p.x, p.y, p.z]
+
+    await updateNetwork(updatedGrid)
+  }
+
+  // Connection Tool: Connects Bus to Bus, Substation to Bus, or Asset to Bus
+  const handleCreateConnection = async (source: {type: string, id: string}, target: {type: string, id: string}) => {
+    const updatedGrid = JSON.parse(JSON.stringify(network))
+    
+    // Feeder Line between Bus/Substation and Bus/Substation
+    if ((source.type === 'bus' || source.type === 'transformer') && (target.type === 'bus' || target.type === 'transformer')) {
+      const fId = `F-${Math.floor(Math.random() * 10000)}`
+      updatedGrid.feeders.push({
+        id: fId,
+        name: `Feeder ${source.id}-${target.id}`,
+        fromBus: source.id,
+        toBus: target.id,
+        loadingPercent: 0,
+        loadingLimitPercent: 100,
+        capacityKw: 1000,
+        activePowerKw: 0,
+        reactivePowerKvar: 0,
+        status: 'normal',
+        isSwitchClosed: true
+      })
+    } 
+    // Asset to Bus (or Bus to Asset)
+    else {
+      let busId = source.type === 'bus' ? source.id : target.type === 'bus' ? target.id : null
+      let assetInfo = source.type !== 'bus' ? source : target.type !== 'bus' ? target : null
+      
+      if (busId && assetInfo) {
+        if (assetInfo.type === 'solar') {
+          const item = updatedGrid.solarUnits.find((s:any) => s.id === assetInfo.id)
+          if (item) item.busId = busId
+        } else if (assetInfo.type === 'load') {
+          const item = updatedGrid.loads.find((l:any) => l.id === assetInfo.id)
+          if (item) item.busId = busId
+        } else if (assetInfo.type === 'battery') {
+          const item = updatedGrid.batteries.find((b:any) => b.id === assetInfo.id)
+          if (item) item.busId = busId
+        }
+      } else {
+        alert("Invalid connection. Connect Bus to Bus / Substation (Feeder) or Asset to Bus.")
+        return
+      }
+    }
+
+    await updateNetwork(updatedGrid)
+  }
+
+  // Node Click: Inspect component or apply active tool
+  const handleNodeClick = (type: string, id: string, data: any) => {
+    // Avoid triggering if the user was dragging
+    if (Date.now() - lastDragEndTimeRef.current < 250) return
+
+    if (activeTool === 'connect') {
+      if (!connectionSource) {
+        setConnectionSource({ type, id })
+      } else {
+        if (connectionSource.id !== id) {
+          handleCreateConnection(connectionSource, { type, id })
+        }
+        setConnectionSource(null)
+        setActiveTool(null)
+      }
+    } else if (activeTool === 'delete') {
+      handleDeleteComponent({ type, id, data })
+    } else {
+      if (['bus', 'feeder', 'solar', 'battery', 'load', 'transformer'].includes(type)) {
+        setSelectedComponent({ type: type as any, id, data })
+      }
+    }
+  }
+
+  const tools = [
+    { id: 'connect', icon: '🔗', label: 'Connect' },
+    { id: 'bus', icon: '⚡', label: 'Bus Node' },
+    { id: 'load-residential', icon: '🏠', label: 'Residential' },
+    { id: 'load-commercial', icon: '🏢', label: 'Commercial' },
+    { id: 'load-factory', icon: '🏭', label: 'Factory' },
+    { id: 'solar-utility', icon: '☀️', label: 'Solar Utility' },
+    { id: 'solar-rooftop', icon: '🏡', label: 'Solar Roof' },
+    { id: 'battery', icon: '🔋', label: 'Battery' },
+    { id: 'delete', icon: '🗑️', label: 'Delete' },
+  ]
 
   return (
-    <div className="relative w-full aspect-[4/3] max-h-[640px] min-h-[420px] bg-slate-100 dark:bg-[#0B1220] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs transition-colors">
-      <div className="absolute top-3 left-3 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-700 dark:text-slate-300 pointer-events-none shadow-xs">
-        <span className="font-semibold text-sky-600 dark:text-sky-400">3D Isometric View:</span> Drag to orbit • Scroll to zoom
+    <div className="relative w-full h-[540px] bg-slate-100 dark:bg-[#0B1220] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs transition-colors select-none">
+      
+      {/* Visual Spawn & Edit Palette */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-700 dark:text-slate-300 shadow-sm font-semibold text-center mb-1">
+          {activeTool 
+            ? (activeTool === 'connect' 
+                ? (connectionSource ? 'Click target node' : 'Click source node') 
+                : (activeTool === 'delete' ? 'Click node to delete' : 'Click floor to spawn')) 
+            : 'Tool Palette'}
+        </div>
+        <div className="flex flex-col gap-1.5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+          {tools.map(t => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setActiveTool(activeTool === t.id ? null : t.id)
+                setConnectionSource(null)
+              }}
+              className={`group relative w-10 h-10 flex items-center justify-center rounded-md text-xl transition-all shadow-sm ${
+                activeTool === t.id 
+                  ? (t.id === 'delete' ? 'bg-rose-500 text-white ring-2 ring-rose-300 scale-110 z-20' : 'bg-sky-500 text-white ring-2 ring-sky-300 scale-110 z-20')
+                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              }`}
+            >
+              {t.icon}
+              <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                {t.label}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Canvas
-        camera={{ position: [0, 14, 18], fov: 45 }}
-        style={{ width: '100%', height: '100%' }}
-      >
+      <Canvas camera={{ position: [0, 14, 18], fov: 45 }} style={{ width: '100%', height: '100%', cursor: activeTool ? 'crosshair' : isDraggingNode ? 'grabbing' : 'default' }}>
         <ambientLight intensity={isDark ? 0.7 : 0.9} />
         <directionalLight position={[10, 20, 15]} intensity={isDark ? 1.0 : 1.3} />
         <pointLight position={[0, 5, 0]} intensity={0.5} color="#0284c7" />
 
         <OrbitControls
-          enableRotate={orbitEnabled}
-          enableZoom={orbitEnabled}
-          enablePan={orbitEnabled}
-          maxPolarAngle={Math.PI / 2.1}
-          minDistance={8}
-          maxDistance={30}
+          ref={orbitRef}
+          makeDefault
+          enableRotate={!isDraggingNode && !activeTool}
+          enableZoom={true}
+          enablePan={!isDraggingNode && !activeTool}
+          maxPolarAngle={Math.PI / 2.05}
+          minDistance={2}
+          maxDistance={120}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN,
+          }}
         />
 
-        {/* Ground Terrain Plane */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
-          <planeGeometry args={[45, 45]} />
+        {/* Global Real-time Drag Event Controller */}
+        <SceneDragManager
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+          dragStateRef={dragStateRef}
+        />
+
+        {/* Ground Floor Plane */}
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, -0.05, 0]}
+          onClick={(e) => {
+            if (Date.now() - lastDragEndTimeRef.current < 250) return
+            if (activeTool && activeTool !== 'connect' && activeTool !== 'delete') {
+              e.stopPropagation()
+              handleSpawnComponent(activeTool, [e.point.x, e.point.y, e.point.z])
+              setActiveTool(null)
+            }
+          }}
+        >
+          <planeGeometry args={[120, 120]} />
           <meshStandardMaterial color={isDark ? '#0c1322' : '#f1f5f9'} roughness={0.9} metalness={0.1} />
         </mesh>
+        <gridHelper args={[70, 70, isDark ? '#1e293b' : '#cbd5e1', isDark ? '#131e33' : '#e2e8f0']} position={[0, 0, 0]} />
 
-        {/* Grid lines */}
-        <gridHelper
-          args={[40, 40, isDark ? '#1e293b' : '#cbd5e1', isDark ? '#131e33' : '#e2e8f0']}
-          position={[0, 0, 0]}
-        />
+        {/* 1. Substation Transformer Node */}
+        {network.substation && positions[network.substation.id] && (
+          <Component3DNode
+            id={network.substation.id}
+            position={positions[network.substation.id]}
+            name={network.substation.name}
+            type="transformer"
+            onClick={() => handleNodeClick('transformer', network.substation.id, network.substation)}
+            onPointerDown={(e) => handleStartNodeDrag(network.substation.id, e)}
+            isDragging={draggingId === network.substation.id}
+            isConnectionSource={connectionSource?.id === network.substation.id}
+          />
+        )}
 
-        {/* Substation */}
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group ref={substationRef} position={[0, 0, -10]}>
-            <mesh
-              position={[0, 0.6, 0]}
-              onClick={() =>
-                setSelectedComponent({
-                  type: 'transformer',
-                  id: network.substation.id,
-                  data: network.substation,
-                })
-              }
-            >
-              <boxGeometry args={[3, 1.5, 3]} />
-              <meshStandardMaterial color="#1e293b" />
-              <lineSegments>
-                 <edgesGeometry args={[new THREE.BoxGeometry(3, 1.5, 3)]} />
-                 <lineBasicMaterial color="#06b6d4" />
-              </lineSegments>
-              {/* Substation Top Details */}
-              <mesh position={[-0.8, 1.0, 0]}>
-                <cylinderGeometry args={[0.2, 0.2, 0.6, 8]} />
-                <meshStandardMaterial color="#334155" />
-              </mesh>
-              <mesh position={[0.8, 1.0, 0]}>
-                <cylinderGeometry args={[0.2, 0.2, 0.6, 8]} />
-                <meshStandardMaterial color="#334155" />
-              </mesh>
+        {/* 2. Bus Nodes */}
+        {network.buses.map(b => positions[b.id] && (
+          <Bus3DNode
+            key={b.id}
+            id={b.id}
+            position={positions[b.id]}
+            name={b.name}
+            voltage={b.voltage}
+            isCritical={b.status === 'critical'}
+            isSelected={selectedComponent?.id === b.id}
+            onClick={() => handleNodeClick('bus', b.id, b)}
+            onPointerDown={(e) => handleStartNodeDrag(b.id, e)}
+            isDragging={draggingId === b.id}
+            isConnectionSource={connectionSource?.id === b.id}
+          />
+        ))}
 
-              <Html position={[0, 2.0, 0]} center distanceFactor={15}>
-                <div className="bg-[#0f172a]/90 text-[#e2e8f0] border border-[#06b6d4] px-2 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-sm backdrop-blur-md">
-                  Substation (33/11 kV)
-                </div>
-              </Html>
-            </mesh>
-          </group>
-        </DragControls>
+        {/* 3. Solar Unit Nodes */}
+        {network.solarUnits.map(s => positions[s.id] && (
+          <Component3DNode
+            key={s.id}
+            id={s.id}
+            position={positions[s.id]}
+            name={s.name}
+            type="solar"
+            kw={s.capacityKw}
+            onClick={() => handleNodeClick('solar', s.id, s)}
+            onPointerDown={(e) => handleStartNodeDrag(s.id, e)}
+            isDragging={draggingId === s.id}
+            isConnectionSource={connectionSource?.id === s.id}
+          />
+        ))}
 
-        {/* Transmission line from Substation to B1 */}
-        <Feeder3DLine startRef={substationRef} endRef={b1Ref} color="#0284c7" flowDirection="forward" />
+        {/* 4. Battery Storage Nodes */}
+        {network.batteries.map(bat => positions[bat.id] && (
+          <Component3DNode
+            key={bat.id}
+            id={bat.id}
+            position={positions[bat.id]}
+            name={bat.name}
+            type="battery"
+            kw={bat.capacityKwh}
+            onClick={() => handleNodeClick('battery', bat.id, bat)}
+            onPointerDown={(e) => handleStartNodeDrag(bat.id, e)}
+            isDragging={draggingId === bat.id}
+            isConnectionSource={connectionSource?.id === bat.id}
+          />
+        ))}
 
-        {/* Bus 1 */}
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[0, 0, -5]}>
-            <Bus3DNode
-              nodeRef={b1Ref}
-              name="B1"
-              voltage={b1.voltage}
-              isSelected={selectedComponent?.id === 'B1'}
-              onClick={() => setSelectedComponent({ type: 'bus', id: b1.id, data: b1 })}
+        {/* 5. Load Nodes */}
+        {network.loads.map(l => positions[l.id] && (
+          <Component3DNode
+            key={l.id}
+            id={l.id}
+            position={positions[l.id]}
+            name={l.name}
+            type="load"
+            kw={l.powerKw}
+            onClick={() => handleNodeClick('load', l.id, l)}
+            onPointerDown={(e) => handleStartNodeDrag(l.id, e)}
+            isDragging={draggingId === l.id}
+            isConnectionSource={connectionSource?.id === l.id}
+          />
+        ))}
+
+        {/* 6. Dynamic Feeder Lines connecting Bus <-> Bus / Substation */}
+        {network.feeders.map(f => {
+          if (!f.isSwitchClosed && !f.isReconfigurableAlternate) return null
+          const startPos = positions[f.fromBus]
+          const endPos = positions[f.toBus]
+          if (!startPos || !endPos) return null
+
+          return (
+            <DynamicFeederLine
+              key={f.id}
+              startPos={startPos}
+              endPos={endPos}
+              color={f.status === 'critical' ? '#dc2626' : '#0284c7'}
+              isCritical={f.status === 'critical'}
+              flowDirection={f.isSwitchClosed ? (f.activePowerKw > 0 ? "forward" : "none") : "none"}
+              flowMagnitude={Math.abs(f.activePowerKw || 0)}
+              onClick={() => handleNodeClick('feeder', f.id, f)}
             />
-          </group>
-        </DragControls>
+          )
+        })}
 
-        {/* Feeder Line from B1 to B2 */}
-        <Feeder3DLine startRef={b1Ref} endRef={b2Ref} color="#0284c7" flowDirection="forward" />
+        {/* 7. Dynamic Asset Lines: Solar <-> Bus */}
+        {network.solarUnits.map(s => {
+          if (!s.busId) return null
+          const startPos = positions[s.busId]
+          const endPos = positions[s.id]
+          if (!startPos || !endPos) return null
 
-        {/* Bus 2 */}
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[0, 0, 0]}>
-            <Bus3DNode
-              nodeRef={b2Ref}
-              name="B2"
-              voltage={b2.voltage}
-              isSelected={selectedComponent?.id === 'B2'}
-              onClick={() => setSelectedComponent({ type: 'bus', id: b2.id, data: b2 })}
+          return (
+            <DynamicFeederLine
+              key={`conn-${s.id}`}
+              startPos={startPos}
+              endPos={endPos}
+              color="#10b981"
+              flowDirection={s.generationKw > 0 ? "reverse" : "none"}
+              flowMagnitude={s.generationKw}
+              onClick={() => handleNodeClick('connection', s.id, { assetType: 'solar' })}
             />
-          </group>
-        </DragControls>
+          )
+        })}
 
-        {/* Branch: Solar Farm */}
-        <Feeder3DLine startRef={b2Ref} endRef={solarRef} color="#10b981" flowDirection={solar01.generationKw > 0 ? "reverse" : "none"} />
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[-7, 0, 0]}>
-            <SolarArray3D
-              nodeRef={solarRef}
-              onClick={() => setSelectedComponent({ type: 'solar', id: solar01.id, data: solar01 })}
+        {/* 8. Dynamic Asset Lines: Battery <-> Bus */}
+        {network.batteries.map(b => {
+          if (!b.busId) return null
+          const startPos = positions[b.busId]
+          const endPos = positions[b.id]
+          if (!startPos || !endPos) return null
+
+          return (
+            <DynamicFeederLine
+              key={`conn-${b.id}`}
+              startPos={startPos}
+              endPos={endPos}
+              color="#10b981"
+              flowDirection={b.powerKw < 0 ? "reverse" : b.powerKw > 0 ? "forward" : "none"}
+              flowMagnitude={Math.abs(b.powerKw)}
+              onClick={() => handleNodeClick('connection', b.id, { assetType: 'battery' })}
             />
-          </group>
-        </DragControls>
+          )
+        })}
 
-        {/* Branch: Load 1 (HQ) */}
-        <Feeder3DLine startRef={b2Ref} endRef={hqRef} color="#0284c7" flowDirection="forward" />
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[7, 0, 0]}>
-            <Building3D
-              nodeRef={hqRef}
-              name="Central HQ"
-              type="hq"
-              kw={load01.powerKw}
-              onClick={() => setSelectedComponent({ type: 'load', id: load01.id, data: load01 })}
+        {/* 9. Dynamic Asset Lines: Load <-> Bus */}
+        {network.loads.map(l => {
+          if (!l.busId) return null
+          const startPos = positions[l.busId]
+          const endPos = positions[l.id]
+          if (!startPos || !endPos) return null
+
+          return (
+            <DynamicFeederLine
+              key={`conn-${l.id}`}
+              startPos={startPos}
+              endPos={endPos}
+              color="#0284c7"
+              flowDirection="forward"
+              flowMagnitude={l.powerKw}
+              onClick={() => handleNodeClick('connection', l.id, { assetType: 'load' })}
             />
-          </group>
-        </DragControls>
-
-        {/* Feeder F-02 from B2 to B3 */}
-        <Feeder3DLine
-          startRef={b2Ref}
-          endRef={b3Ref}
-          color={isF02Critical ? '#dc2626' : '#0284c7'}
-          isCritical={isF02Critical}
-          flowDirection="forward"
-        />
-
-        {/* Bus 3 */}
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[0, 0, 6]}>
-            <Bus3DNode
-              nodeRef={b3Ref}
-              name="B3"
-              voltage={b3.voltage}
-              isCritical={isB3Critical}
-              isSelected={selectedComponent?.id === 'B3'}
-              onClick={() => setSelectedComponent({ type: 'bus', id: b3.id, data: b3 })}
-            />
-          </group>
-        </DragControls>
-
-        {/* Branch: Battery */}
-        <Feeder3DLine startRef={b3Ref} endRef={batRef} color="#10b981" flowDirection="reverse" />
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[-7, 0, 6]}>
-            <Battery3D
-              nodeRef={batRef}
-              onClick={() => setSelectedComponent({ type: 'battery', id: bat01.id, data: bat01 })}
-            />
-          </group>
-        </DragControls>
-
-        {/* Branch: Load 2 (Factory) */}
-        <Feeder3DLine startRef={b3Ref} endRef={factoryRef} color="#0284c7" flowDirection="forward" />
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[7, 0, 6]}>
-            <Building3D
-              nodeRef={factoryRef}
-              name="Northgate Factory"
-              type="factory"
-              kw={load02.powerKw}
-              onClick={() => setSelectedComponent({ type: 'load', id: load02.id, data: load02 })}
-            />
-          </group>
-        </DragControls>
-
-        {/* Feeder F-04 from B3 to B4 */}
-        <Feeder3DLine startRef={b3Ref} endRef={b4Ref} color="#0284c7" flowDirection="forward" />
-
-        {/* Bus 4 */}
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[0, 0, 12]}>
-            <Bus3DNode
-              nodeRef={b4Ref}
-              name="B4"
-              voltage={b4.voltage}
-              isSelected={selectedComponent?.id === 'B4'}
-              onClick={() => setSelectedComponent({ type: 'bus', id: b4.id, data: b4 })}
-            />
-          </group>
-        </DragControls>
-
-        {/* Branch: Load 3 (Refinery) */}
-        <Feeder3DLine startRef={b4Ref} endRef={refineryRef} color="#0284c7" flowDirection="forward" />
-        <DragControls axisLock="y" onDragStart={() => setOrbitEnabled(false)} onDragEnd={() => setOrbitEnabled(true)}>
-          <group position={[7, 0, 12]}>
-            <Building3D
-              nodeRef={refineryRef}
-              name="Westport Refinery"
-              type="refinery"
-              kw={load03.powerKw}
-              onClick={() => setSelectedComponent({ type: 'load', id: load03.id, data: load03 })}
-            />
-          </group>
-        </DragControls>
+          )
+        })}
       </Canvas>
+
+      {/* 3D Navigation Controls (Zoom / Rotate / Tilt / Reset) */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md select-none">
+        <button
+          onClick={() => handleZoomCamera(-3)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Zoom In (+)"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleZoomCamera(3)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Zoom Out (-)"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </button>
+        <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+        <button
+          onClick={() => handleRotateCamera(25)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Rotate Left"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleRotateCamera(-25)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Rotate Right"
+        >
+          <RotateCw className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleTiltCamera(2)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Tilt Up"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => handleTiltCamera(-2)}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Tilt Down"
+        >
+          <ArrowDown className="w-4 h-4" />
+        </button>
+        <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+        <button
+          onClick={handleResetCamera}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Reset 3D View"
+        >
+          <Compass className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Navigation & Interaction Help Badge */}
+      <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 bg-slate-900/80 text-slate-300 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-mono border border-slate-700/60 pointer-events-none select-none shadow-sm">
+        <span className="text-sky-400 font-bold">Drag node: Reposition & Move Wires</span>
+        <span>•</span>
+        <span>Left-click: Rotate</span>
+        <span>•</span>
+        <span>Scroll: Zoom</span>
+        <span>•</span>
+        <span>Right-click: Pan</span>
+      </div>
     </div>
   )
 }

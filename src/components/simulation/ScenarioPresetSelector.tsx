@@ -35,7 +35,7 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3.5">
       <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300">
         <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -53,11 +53,10 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
               key={p.id}
               type="button"
               onClick={() => onSelectPreset(p.id)}
-              className={`p-4 rounded-xl border text-left transition-colors flex flex-col justify-between shadow-sm ${
-                isSelected
-                  ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400 text-gray-900 dark:text-white'
-                  : 'bg-white dark:bg-[#0A2018] border-gray-100 dark:border-[#23483F] hover:border-emerald-200 dark:hover:border-[#2D5C51] text-gray-700 dark:text-gray-300'
-              }`}
+              className={`p-4 rounded-xl border text-left transition-colors flex flex-col justify-between shadow-sm ${isSelected
+                ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400 text-gray-900 dark:text-white'
+                : 'bg-white dark:bg-[#0A2018] border-gray-100 dark:border-[#23483F] hover:border-emerald-200 dark:hover:border-[#2D5C51] text-gray-700 dark:text-gray-300'
+                }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-1">

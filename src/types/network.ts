@@ -2,6 +2,12 @@ export type ComponentStatus = 'normal' | 'warning' | 'critical'
 
 export type ComponentType = 'bus' | 'feeder' | 'solar' | 'battery' | 'load' | 'transformer' | 'substation'
 
+export interface Position3D {
+  x: number
+  y: number
+  z: number
+}
+
 export interface Bus {
   id: string
   name: string
@@ -19,6 +25,7 @@ export interface Bus {
     battery?: string
     load?: string
   }
+  position?: Position3D
 }
 
 export interface Feeder {
@@ -45,6 +52,7 @@ export interface SolarUnit {
   irradianceWm2: number
   curtailedKw: number
   status: ComponentStatus
+  position?: Position3D
 }
 
 export interface Battery {
@@ -58,6 +66,7 @@ export interface Battery {
   capacityKwh: number
   status: ComponentStatus
   cycleCount: number
+  position?: Position3D
 }
 
 export interface Load {
@@ -67,6 +76,7 @@ export interface Load {
   powerKw: number
   powerFactor: number
   status: ComponentStatus
+  position?: Position3D
 }
 
 export interface Transformer {
@@ -78,9 +88,12 @@ export interface Transformer {
   loadingPercent: number
   temperatureC: number
   status: ComponentStatus
+  position?: Position3D
 }
 
 export interface GridNetwork {
+  id: string
+  name: string
   gridConnectionStatus: 'connected' | 'islanded'
   gridFrequencyHz: number
   substation: Transformer

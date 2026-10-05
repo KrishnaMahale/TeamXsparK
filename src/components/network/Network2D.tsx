@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Sun,
   BatteryCharging,
@@ -8,6 +8,11 @@ import {
   Zap,
   AlertTriangle,
   Radio,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  RotateCw,
+  Compass,
 } from 'lucide-react'
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
@@ -18,6 +23,58 @@ export const Network2D: React.FC = () => {
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
+
+  // Zoom, Pan & Rotate Navigation State
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [rotation, setRotation] = useState(0)
+  const [isPanning, setIsPanning] = useState(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Non-passive wheel listener to zoom smoothly without scrolling the page
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const factor = e.deltaY < 0 ? 1.12 : 0.89
+      setZoom((z) => Math.min(3.5, Math.max(0.4, +(z * factor).toFixed(2))))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only drag on canvas background, not on interactive component nodes
+    const target = e.target as HTMLElement
+    const isInteractive = target.closest('[data-component]') || target.closest('.cursor-pointer')
+    if (!isInteractive && e.button === 0) {
+      setIsPanning(true)
+      dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      })
+    }
+  }
+
+  const handleMouseUp = () => setIsPanning(false)
+
+  const handleZoomIn = () => setZoom((z) => Math.min(3.5, +(z * 1.2).toFixed(2)))
+  const handleZoomOut = () => setZoom((z) => Math.max(0.4, +(z * 0.83).toFixed(2)))
+  const handleRotateLeft = () => setRotation((r) => (r - 90 + 360) % 360)
+  const handleRotateRight = () => setRotation((r) => (r + 90) % 360)
+  const handleReset = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+    setRotation(0)
+  }
 
   const b1 = network.buses.find((b) => b.id === 'B1') || network.buses[0]
   const b2 = network.buses.find((b) => b.id === 'B2') || network.buses[1]
@@ -93,14 +150,79 @@ export const Network2D: React.FC = () => {
   }
 
   return (
-    <div className="relative w-full aspect-[4/3] max-h-[600px] min-h-[400px] flex items-center justify-center overflow-hidden bg-white dark:bg-[#0B1220] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4 transition-colors">
+    <div
+      ref={containerRef}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+      className="relative w-full h-[540px] flex items-center justify-center overflow-hidden bg-white dark:bg-[#0B1220] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4 transition-colors select-none"
+    >
       {/* Subtle Grid Background */}
-      <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03] bg-[radial-gradient(#0284C7_1px,transparent_1px)] dark:bg-[radial-gradient(#38BDF8_1px,transparent_1px)] bg-[size:24px_24px]" />
+      <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03] bg-[radial-gradient(#0284C7_1px,transparent_1px)] dark:bg-[radial-gradient(#38BDF8_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
+      {/* Live Telemetry Stream Chip (Top-Left HUD) */}
+      <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs text-xs select-none">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="font-semibold text-slate-700 dark:text-slate-300">LIVE</span>
+        <span className="text-slate-400 dark:text-slate-500">•</span>
+        <span className="font-mono text-slate-600 dark:text-slate-400">{currentTime}</span>
+        <span className="text-slate-400 dark:text-slate-500">•</span>
+        <span className={`font-mono font-bold ${netPower >= 0 ? 'text-amber-500' : 'text-sky-500'}`}>
+          NET: {netPower >= 0 ? '+' : ''}{Math.round(netPower)} kW
+        </span>
+      </div>
+
+      {/* Floating 2D Navigation Controls Bar (Top-Right HUD) */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-2 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md select-none">
+        <button
+          onClick={handleZoomIn}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Zoom In (+)"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </button>
+        <span className="text-[11px] font-mono font-medium text-slate-600 dark:text-slate-300 w-11 text-center select-none">
+          {Math.round(zoom * 100)}%
+        </span>
+        <button
+          onClick={handleZoomOut}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Zoom Out (-)"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </button>
+        <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+        <button
+          onClick={handleRotateLeft}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Rotate Counter-Clockwise (90°)"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleRotateRight}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Rotate Clockwise (90°)"
+        >
+          <RotateCw className="w-4 h-4" />
+        </button>
+        <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
+        <button
+          onClick={handleReset}
+          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          title="Reset View"
+        >
+          <Compass className="w-4 h-4" />
+        </button>
+      </div>
 
       <svg
         viewBox="0 0 920 620"
         className="w-full h-full object-contain select-none"
       >
+        <rect id="canvas-backdrop" width="920" height="620" fill="transparent" />
         <defs>
           <style>{`
             @keyframes flow-forward {
@@ -176,6 +298,13 @@ export const Network2D: React.FC = () => {
           </marker>
         </defs>
 
+        {/* Dynamic Zoom & Pan Transformed Group */}
+        <g
+          transform={`translate(${460 + pan.x}, ${310 + pan.y}) scale(${zoom}) rotate(${rotation}) translate(-460, -310)`}
+          style={{
+            transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+          }}
+        >
         {/* ===================================================
             FEEDER LINES & BRANCHES
             =================================================== */}
@@ -646,16 +775,7 @@ export const Network2D: React.FC = () => {
           {load03?.powerKw !== undefined ? Math.round(load03.powerKw) : 120} kW
         </text>
 
-        {/* LIVE TELEMETRY STREAM CHIP (TOP-RIGHT HUD) */}
-        <g transform="translate(680, 15)">
-          <rect x="0" y="0" width="225" height="30" rx="5" fill={hudBg} stroke={hudBorder} strokeWidth="1" />
-          <circle cx="16" cy="15" r="4.5" fill={successColor} />
-          <text x="28" y="19" fill={textMuted} fontSize="10" fontWeight="bold">
-            LIVE • {currentTime}
-          </text>
-          <text x="145" y="19" fill={netPower >= 0 ? warningColor : primaryColor} fontSize="10" fontWeight="bold" fontFamily="monospace">
-            NET: {netPower >= 0 ? '+' : ''}{Math.round(netPower)} kW
-          </text>
+        {/* Dynamic Zoom & Pan Transformed Group End */}
         </g>
 
         {/* Schematic Legend Watermark */}
@@ -674,6 +794,19 @@ export const Network2D: React.FC = () => {
           <text x="242" y="21" fill={textMuted} fontSize="10">Selected</text>
         </g>
       </svg>
+
+      {/* Navigation Help Badge */}
+      <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 bg-slate-900/70 text-slate-300 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-mono border border-slate-700/50 pointer-events-none select-none">
+        <span>Scroll: Zoom</span>
+        <span>•</span>
+        <span>Drag canvas: Pan</span>
+        {rotation !== 0 && (
+          <>
+            <span>•</span>
+            <span className="text-sky-400">Rotated {rotation}°</span>
+          </>
+        )}
+      </div>
     </div>
   )
 }

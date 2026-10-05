@@ -11,6 +11,7 @@ from app.engine.network_engine import NetworkEngine
 from app.engine.power_flow import PowerFlowEngine
 from app.engine.constraints import ConstraintChecker
 from app.core.exceptions import ResourceNotFoundException, ValidationException
+from app.db.repositories.network_repository import NetworkRepository
 
 # Module-level singletons to persist active simulation and active power-flow state
 _ACTIVE_SIMULATION: Optional[FullSimulationResult] = None
@@ -119,7 +120,13 @@ class SimulationService:
             raise ValidationException("Minimum voltage cannot be greater than or equal to maximum voltage.")
 
         sim_id = f"SIM-{uuid.uuid4().hex[:8].upper()}"
-        res = NetworkEngine.run_full_simulation(input_data)
+        
+        repo = NetworkRepository()
+        grid = await repo.get_grid(await repo.get_active_grid_id())
+        if not grid:
+            grid = await repo.get_network() # fallback
+
+        res = NetworkEngine.run_full_simulation(input_data, grid)
 
         # Match scenarioId to a recognized scenario if present, else None
         known_scenarios = {"NORMAL_DAY", "HIGH_SOLAR", "EVENING_PEAK", "HIGH_SOLAR_LOW_LOAD", "EXTREME_INFEASIBLE"}
@@ -164,8 +171,14 @@ class SimulationService:
 
         is_alt = active_input.networkConfig.feederTopology == "alternative"
         pf_engine = PowerFlowEngine(is_alternative_topology=is_alt)
+        
+        repo = NetworkRepository()
+        grid = await repo.get_grid(await repo.get_active_grid_id())
+        if not grid:
+            grid = await repo.get_network()
 
         buses, feeders, losses, tx_loading = pf_engine.solve(
+            grid=grid,
             solar_kw=solar_kw,
             load_kw=load_kw,
             installed_solar_capacity_kw=active_input.installedSolarCapacityKw,

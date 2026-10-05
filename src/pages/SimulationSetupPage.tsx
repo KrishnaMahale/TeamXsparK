@@ -133,7 +133,7 @@ export const SimulationSetupPage: React.FC = () => {
       }
     >
       {/* Stepper Navigation */}
-      <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0D2420] border border-gray-100 dark:border-[#23483F] shadow-sm transition-colors">
+      <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0D2420] border border-gray-100 dark:border-[#23483F] shadow-sm transition-colors mb-6 sm:mb-8">
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
           {steps.map((s) => {
             const isCurrent = currentStep === s.number

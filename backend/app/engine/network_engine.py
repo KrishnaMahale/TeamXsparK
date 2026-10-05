@@ -7,6 +7,7 @@ from app.schemas.simulation import (
     SimulationSummaryInfo,
 )
 from app.schemas.violation import GridViolation
+from app.schemas.network import GridNetwork
 from app.engine.power_flow import PowerFlowEngine
 from app.engine.constraints import ConstraintChecker
 from app.engine.actions import ActionEngine
@@ -14,7 +15,7 @@ from app.engine.actions import ActionEngine
 
 class NetworkEngine:
     @staticmethod
-    def run_full_simulation(input_data: SimulationInput) -> FullSimulationResult:
+    def run_full_simulation(input_data: SimulationInput, grid: GridNetwork) -> FullSimulationResult:
         time_step_results: Dict[str, PowerFlowResult] = {}
         all_violations: List[GridViolation] = []
 
@@ -37,6 +38,7 @@ class NetworkEngine:
             l_kw = load_times.get(t, input_data.currentLoadKw)
 
             buses, feeders, losses, tx_loading = pf_engine.solve(
+                grid=grid,
                 solar_kw=s_kw,
                 load_kw=l_kw,
                 installed_solar_capacity_kw=input_data.installedSolarCapacityKw,

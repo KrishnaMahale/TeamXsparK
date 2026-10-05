@@ -9,6 +9,12 @@ class BusConnectedAssets(BaseModel):
     load: Optional[str] = None
 
 
+class Position3D(BaseModel):
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+
+
 class Bus(BaseModel):
     id: str
     name: str
@@ -22,6 +28,7 @@ class Bus(BaseModel):
     status: ComponentStatus = ComponentStatus.NORMAL
     connectedFeeders: List[str] = Field(default_factory=list)
     connectedAssets: BusConnectedAssets = Field(default_factory=BusConnectedAssets)
+    position: Optional[Position3D] = None
 
 
 class Feeder(BaseModel):
@@ -48,6 +55,7 @@ class SolarUnit(BaseModel):
     irradianceWm2: float = 800.0
     curtailedKw: float = 0.0
     status: ComponentStatus = ComponentStatus.NORMAL
+    position: Optional[Position3D] = None
 
 
 class Battery(BaseModel):
@@ -61,6 +69,7 @@ class Battery(BaseModel):
     capacityKwh: float = 100.0
     status: ComponentStatus = ComponentStatus.NORMAL
     cycleCount: int = 100
+    position: Optional[Position3D] = None
 
 
 class Load(BaseModel):
@@ -70,6 +79,7 @@ class Load(BaseModel):
     powerKw: float
     powerFactor: float = 0.95
     status: ComponentStatus = ComponentStatus.NORMAL
+    position: Optional[Position3D] = None
 
 
 class Transformer(BaseModel):
@@ -81,9 +91,12 @@ class Transformer(BaseModel):
     loadingPercent: float = 50.0
     temperatureC: float = 35.0
     status: ComponentStatus = ComponentStatus.NORMAL
+    position: Optional[Position3D] = None
 
 
 class GridNetwork(BaseModel):
+    id: str = "default-grid"
+    name: str = "Default Grid"
     gridConnectionStatus: str = "connected"
     gridFrequencyHz: float = 50.0
     substation: Transformer
