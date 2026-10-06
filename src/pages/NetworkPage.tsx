@@ -16,7 +16,6 @@ import { DomesticHouseDetails } from '../components/domestic/DomesticHouseDetail
 import { DomesticVoltageProfileChart } from '../components/domestic/DomesticVoltageProfileChart'
 import { GridManagerPanel } from '../components/network/GridManagerPanel'
 import {
-  Share2,
   Box,
   Layers,
   Activity,
@@ -41,20 +40,20 @@ export const NetworkPage: React.FC = () => {
           : 'Interactive nodal power-flow schematic with branch impedance, voltage indicators, and tie-line switches'
       }
       actions={
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <GridTypeSwitcher />
           {gridType === 'industrial' && (
             <>
               <button
                 onClick={toggle3D}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shadow-xs ${
                   is3DEnabled
-                    ? 'bg-[#D1FAE5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#ECFDF5] border-emerald-300 dark:border-emerald-700 shadow-sm'
-                    : 'bg-white dark:bg-[#0D2420] text-gray-600 dark:text-gray-300 border-gray-100 dark:border-[#23483F] hover:bg-emerald-50 dark:hover:bg-[#183D36] shadow-sm'
+                    ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878]'
+                    : 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
                 }`}
               >
                 {is3DEnabled ? <Box className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
-                <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic (Default)'}</span>
+                <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic'}</span>
               </button>
               <Button
                 variant="secondary"
@@ -97,28 +96,28 @@ export const NetworkPage: React.FC = () => {
               <CardHeader
                 title="Operating Constraints"
                 subtitle="IEEE 1547 / IEC statutory bounds"
-                icon={<Activity className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+                icon={<Activity className="w-4 h-4 text-[#A0C878]" />}
               />
-              <CardContent className="space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">Voltage Bounds:</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-medium">
+              <CardContent className="space-y-2.5 text-xs text-[#506052] dark:text-[#C2CCC0]">
+                <div className="flex justify-between py-1.5 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
+                  <span className="text-[#788477] dark:text-[#859483]">Voltage Bounds:</span>
+                  <span className="font-mono text-[#26352A] dark:text-[#F2F5ED] font-semibold">
                     {input.networkConfig.voltageMinPu.toFixed(2)} - {input.networkConfig.voltageMaxPu.toFixed(2)} pu
                   </span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">Feeder Loading Limit:</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-medium">{input.networkConfig.feederLoadingLimitPercent}%</span>
+                <div className="flex justify-between py-1.5 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
+                  <span className="text-[#788477] dark:text-[#859483]">Feeder Loading Limit:</span>
+                  <span className="font-mono text-[#26352A] dark:text-[#F2F5ED] font-semibold">{input.networkConfig.feederLoadingLimitPercent}%</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-500 dark:text-slate-400">Active Topology:</span>
+                <div className="flex justify-between py-1.5 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
+                  <span className="text-[#788477] dark:text-[#859483]">Active Topology:</span>
                   <Badge variant={input.networkConfig.feederTopology === 'alternative' ? 'primary' : 'neutral'} size="sm">
                     {input.networkConfig.feederTopology.toUpperCase()}
                   </Badge>
                 </div>
                 <div className="flex justify-between py-1.5">
-                  <span className="text-slate-500 dark:text-slate-400">Active Violations:</span>
-                  <span className={`font-bold font-mono ${violationSummary.critical > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  <span className="text-[#788477] dark:text-[#859483]">Active Violations:</span>
+                  <span className={`font-bold font-mono ${violationSummary.critical > 0 ? 'text-red-700 dark:text-red-400' : 'text-[#A0C878]'}`}>
                     {violationSummary.total} Issues
                   </span>
                 </div>
@@ -130,3 +129,5 @@ export const NetworkPage: React.FC = () => {
     </PageContainer>
   )
 }
+
+export default NetworkPage

@@ -306,16 +306,16 @@ export const GridManagerPanel: React.FC = () => {
   const totalLoadKw = network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
 
   return (
-    <Card className="mb-4 overflow-hidden border-emerald-500/20 shadow-sm">
+    <Card className="mb-4 overflow-hidden border-[#DDD9C9] dark:border-[#2A3A2C] shadow-sm">
       <CardHeader
         title={
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">Grid Manager</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Grid Active" />
+            <span className="font-semibold text-sm text-[#26352A] dark:text-[#E8F0E6]">Grid Manager</span>
+            <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" title="Grid Active" />
           </div>
         }
-        subtitle="Topology modeling, sandbox cloning & equipment insertion"
-        icon={<Settings className="w-4 h-4 text-emerald-500" />}
+        subtitle="Model topologies & sandbox"
+        icon={<Settings className="w-4 h-4 text-[#A0C878]" />}
         action={
           <Badge variant={network.id === 'default-grid' ? 'neutral' : 'primary'} size="sm">
             {network.id}
@@ -330,7 +330,7 @@ export const GridManagerPanel: React.FC = () => {
             value={network.id}
             onChange={(e) => handleSelectGrid(e.target.value)}
             disabled={isLoadingGrids}
-            className="flex-1 min-w-0 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs py-2 px-3 text-slate-800 dark:text-slate-200 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
+            className="flex-1 min-w-0 bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] rounded-lg text-xs py-2 px-3 text-[#26352A] dark:text-[#E8F0E6] font-medium focus:ring-2 focus:ring-[#A0C878] focus:outline-none transition-all"
           >
             {grids && grids.length > 0 ? (
               grids.map((g) => (
@@ -377,63 +377,63 @@ export const GridManagerPanel: React.FC = () => {
 
         {/* Row 2: Grid Metrics HUD */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
+          <div className="bg-[#FFFDF6] dark:bg-[#151F17] p-2 rounded-lg border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <div className="text-[10px] text-[#788477] font-medium flex items-center justify-center gap-1">
               <Zap className="w-3 h-3 text-amber-500" /> Buses
             </div>
-            <div className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">
+            <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#E8F0E6] mt-0.5">
               {network.buses.length}
             </div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
-              <GitBranch className="w-3 h-3 text-sky-500" /> Feeders
+          <div className="bg-[#FFFDF6] dark:bg-[#151F17] p-2 rounded-lg border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <div className="text-[10px] text-[#788477] font-medium flex items-center justify-center gap-1">
+              <GitBranch className="w-3 h-3 text-[#A0C878]" /> Feeders
             </div>
-            <div className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">
+            <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#E8F0E6] mt-0.5">
               {network.feeders.length}
             </div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
+          <div className="bg-[#FFFDF6] dark:bg-[#151F17] p-2 rounded-lg border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <div className="text-[10px] text-[#788477] font-medium flex items-center justify-center gap-1">
               <Sun className="w-3 h-3 text-amber-500" /> Solar
             </div>
-            <div className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">
-              {totalSolarKw} <span className="text-[10px] font-normal text-slate-400">kW</span>
+            <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#E8F0E6] mt-0.5">
+              {totalSolarKw} <span className="text-[10px] font-normal text-[#788477]">kW</span>
             </div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
-              <BatteryMedium className="w-3 h-3 text-emerald-500" /> BESS
+          <div className="bg-[#FFFDF6] dark:bg-[#151F17] p-2 rounded-lg border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <div className="text-[10px] text-[#788477] font-medium flex items-center justify-center gap-1">
+              <BatteryMedium className="w-3 h-3 text-[#A0C878]" /> BESS
             </div>
-            <div className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">
-              {totalBatteryKwh} <span className="text-[10px] font-normal text-slate-400">kWh</span>
+            <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#E8F0E6] mt-0.5">
+              {totalBatteryKwh} <span className="text-[10px] font-normal text-[#788477]">kWh</span>
             </div>
           </div>
-          <div className="col-span-2 sm:col-span-1 bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] text-slate-400 font-medium flex items-center justify-center gap-1">
-              <Building className="w-3 h-3 text-blue-500" /> Load
+          <div className="col-span-2 sm:col-span-1 bg-[#FFFDF6] dark:bg-[#151F17] p-2 rounded-lg border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <div className="text-[10px] text-[#788477] font-medium flex items-center justify-center gap-1">
+              <Building className="w-3 h-3 text-amber-600" /> Load
             </div>
-            <div className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">
-              {totalLoadKw} <span className="text-[10px] font-normal text-slate-400">kW</span>
+            <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#E8F0E6] mt-0.5">
+              {totalLoadKw} <span className="text-[10px] font-normal text-[#788477]">kW</span>
             </div>
           </div>
         </div>
 
         {/* Row 3: Component Insertion Toolbar */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span>Add Equipment To Topology:</span>
+          <div className="flex items-center justify-between text-[11px] text-[#506052] dark:text-[#A0B0A2] font-medium">
+            <span>Add Equipment:</span>
             <button
               onClick={() => setShowComponentList(!showComponentList)}
-              className="text-emerald-600 dark:text-emerald-400 hover:underline text-[10px] cursor-pointer"
+              className="text-[#506052] dark:text-[#A0C878] hover:text-[#26352A] font-semibold hover:underline text-[10px] cursor-pointer"
             >
-              {showComponentList ? 'Hide Assets List' : `View All Assets (${network.buses.length + network.feeders.length + network.solarUnits.length + network.batteries.length + network.loads.length})`}
+              {showComponentList ? 'Hide Assets' : `All Assets (${network.buses.length + network.feeders.length + network.solarUnits.length + network.batteries.length + network.loads.length})`}
             </button>
           </div>
           <div className="grid grid-cols-5 gap-1.5">
             <button
               onClick={openAddBus}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all text-center group cursor-pointer"
+              className="flex flex-col items-center justify-center p-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] hover:bg-[#DDEB9D]/30 text-[#26352A] dark:text-[#E8F0E6] transition-all text-center group cursor-pointer"
               title="Add Bus Node"
             >
               <Zap className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-110 transition-transform" />
@@ -443,17 +443,17 @@ export const GridManagerPanel: React.FC = () => {
             <button
               onClick={openAddFeeder}
               disabled={network.buses.length < 1}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="flex flex-col items-center justify-center p-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] hover:bg-[#DDEB9D]/30 text-[#26352A] dark:text-[#E8F0E6] transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               title="Add Feeder Branch"
             >
-              <GitBranch className="w-4 h-4 text-sky-500 mb-1 group-hover:scale-110 transition-transform" />
+              <GitBranch className="w-4 h-4 text-[#A0C878] mb-1 group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-semibold">+ Line</span>
             </button>
 
             <button
               onClick={openAddSolar}
               disabled={network.buses.length === 0}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="flex flex-col items-center justify-center p-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] hover:bg-[#DDEB9D]/30 text-[#26352A] dark:text-[#E8F0E6] transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               title="Add Solar PV Generation"
             >
               <Sun className="w-4 h-4 text-amber-500 mb-1 group-hover:scale-110 transition-transform" />
@@ -463,20 +463,20 @@ export const GridManagerPanel: React.FC = () => {
             <button
               onClick={openAddBattery}
               disabled={network.buses.length === 0}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="flex flex-col items-center justify-center p-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] hover:bg-[#DDEB9D]/30 text-[#26352A] dark:text-[#E8F0E6] transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               title="Add Battery Energy Storage"
             >
-              <BatteryMedium className="w-4 h-4 text-emerald-500 mb-1 group-hover:scale-110 transition-transform" />
+              <BatteryMedium className="w-4 h-4 text-[#A0C878] mb-1 group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-semibold">+ BESS</span>
             </button>
 
             <button
               onClick={openAddLoad}
               disabled={network.buses.length === 0}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 text-slate-700 dark:text-slate-200 transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="flex flex-col items-center justify-center p-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] hover:bg-[#DDEB9D]/30 text-[#26352A] dark:text-[#E8F0E6] transition-all text-center group disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               title="Add Electrical Load Center"
             >
-              <Building className="w-4 h-4 text-blue-500 mb-1 group-hover:scale-110 transition-transform" />
+              <Building className="w-4 h-4 text-amber-600 mb-1 group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-semibold">+ Load</span>
             </button>
           </div>
@@ -639,13 +639,13 @@ export const GridManagerPanel: React.FC = () => {
 
         {/* 3D Builder Callout */}
         {!is3DEnabled && (
-          <div className="flex items-center justify-between p-2.5 bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-xs">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
-              <Box className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="text-[11px] leading-tight">Switch to 3D Digital Twin to drag, connect, and position nodes.</span>
+          <div className="flex items-center justify-between p-2.5 bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg text-xs">
+            <div className="flex items-center gap-2 text-[#506052] dark:text-[#C2CCC0]">
+              <Box className="w-4 h-4 text-[#A0C878] shrink-0" />
+              <span className="text-[11px]">3D Digital Twin available for spatial node editing</span>
             </div>
-            <Button size="sm" variant="outline" onClick={toggle3D} className="text-xs shrink-0 py-1 px-2.5">
-              Launch 3D View
+            <Button size="sm" variant="secondary" onClick={toggle3D} className="text-xs shrink-0 py-1 px-2.5">
+              3D View
             </Button>
           </div>
         )}

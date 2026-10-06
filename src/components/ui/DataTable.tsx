@@ -26,16 +26,16 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/30">
+      <div className="p-8 text-center text-sm text-[#788477] dark:text-[#859483] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20]">
         {emptyMessage}
       </div>
     )
   }
 
   return (
-    <div className={`overflow-x-auto rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/70 shadow-xs ${className}`}>
+    <div className={`overflow-x-auto rounded-xl border border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FAF6E9] dark:bg-[#1E2B20] shadow-xs ${className}`}>
       <table className="w-full text-left text-xs border-collapse">
-        <thead className="bg-slate-50 dark:bg-slate-950/80 text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+        <thead className="bg-[#F3EEDC] dark:bg-[#18231A] text-[#506052] dark:text-[#C2CCC0] font-bold uppercase tracking-wider border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
           <tr>
             {columns.map((col) => (
               <th key={col.key} className={`py-3 px-4 ${col.className || ''}`}>
@@ -44,19 +44,19 @@ export function DataTable<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono">
+        <tbody className="divide-y divide-[#DDD9C9]/60 dark:divide-[#2C3C2E] font-mono">
           {data.map((item) => (
             <tr
               key={keyExtractor(item)}
               onClick={() => onRowClick && onRowClick(item)}
               className={`transition-colors ${
                 onRowClick
-                  ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                  : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'
+                  ? 'cursor-pointer hover:bg-[#DDEB9D]/30 dark:hover:bg-[#2D3E2F]/40'
+                  : 'hover:bg-[#FFFDF6]/60 dark:hover:bg-[#263629]/30'
               }`}
             >
               {columns.map((col) => (
-                <td key={col.key} className={`py-3 px-4 text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
+                <td key={col.key} className={`py-3 px-4 text-[#26352A] dark:text-[#F2F5ED] ${col.className || ''}`}>
                   {col.render ? col.render(item) : (item as any)[col.key]}
                 </td>
               ))}
@@ -67,3 +67,5 @@ export function DataTable<T>({
     </div>
   )
 }
+
+export default DataTable

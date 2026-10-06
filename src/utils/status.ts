@@ -5,30 +5,30 @@ export const getStatusColor = (status: ComponentStatus | ViolationSeverity | 'in
   switch (status) {
     case 'critical':
       return {
-        text: 'text-rose-400',
-        bg: 'bg-rose-500/10',
-        border: 'border-rose-500/30',
-        glow: 'shadow-[0_0_15px_rgba(244,63,94,0.4)]',
-        badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-        hex: '#ef4444',
+        text: 'text-red-600 dark:text-red-400',
+        bg: 'bg-red-500/10',
+        border: 'border-red-500/30',
+        glow: 'shadow-[0_0_12px_rgba(220,38,38,0.3)]',
+        badge: 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border-red-300 dark:border-red-800',
+        hex: '#DC2626',
       }
     case 'warning':
       return {
-        text: 'text-amber-400',
+        text: 'text-amber-600 dark:text-amber-400',
         bg: 'bg-amber-500/10',
         border: 'border-amber-500/30',
-        glow: 'shadow-[0_0_15px_rgba(245,158,11,0.4)]',
-        badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-        hex: '#f59e0b',
+        glow: 'shadow-[0_0_12px_rgba(217,119,6,0.3)]',
+        badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+        hex: '#D97706',
       }
     case 'infeasible':
       return {
-        text: 'text-red-400',
+        text: 'text-red-600 dark:text-red-400',
         bg: 'bg-red-500/15',
         border: 'border-red-500/40',
-        glow: 'shadow-[0_0_15px_rgba(239,68,68,0.5)]',
-        badge: 'bg-red-500/25 text-red-300 border-red-500/50',
-        hex: '#dc2626',
+        glow: 'shadow-[0_0_12px_rgba(220,38,38,0.3)]',
+        badge: 'bg-red-100 text-red-800 dark:bg-red-950/70 dark:text-red-300 border-red-300 dark:border-red-800',
+        hex: '#DC2626',
       }
     case 'normal':
     case 'optimal':
@@ -36,12 +36,12 @@ export const getStatusColor = (status: ComponentStatus | ViolationSeverity | 'in
     case 'resolved':
     default:
       return {
-        text: 'text-emerald-400',
-        bg: 'bg-emerald-500/10',
-        border: 'border-emerald-500/30',
-        glow: 'shadow-[0_0_15px_rgba(16,185,129,0.3)]',
-        badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-        hex: '#10b981',
+        text: 'text-[#26352A] dark:text-[#A0C878]',
+        bg: 'bg-[#DDEB9D]/30',
+        border: 'border-[#A0C878]/40',
+        glow: 'shadow-[0_0_12px_rgba(160,200,120,0.25)]',
+        badge: 'bg-[#DDEB9D]/60 text-[#26352A] dark:bg-[#2D3E2F] dark:text-[#DDEB9D] border-[#C9C7B5] dark:border-[#3B4E3E]',
+        hex: '#A0C878',
       }
   }
 }

@@ -11,36 +11,36 @@ export const GridTypeSwitcher: React.FC<GridTypeSwitcherProps> = ({ className = 
 
   return (
     <div
-      className={`p-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 transition-colors ${className}`}
+      className={`p-1.5 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-2 transition-colors ${className}`}
     >
-      <div className="flex items-center gap-2 px-3 py-1 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider shrink-0">
-        <Cpu className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+      <div className="flex items-center gap-1.5 px-2.5 py-1 text-[#788477] dark:text-[#859483] text-xs font-semibold uppercase tracking-wider shrink-0">
+        <Cpu className="w-4 h-4 text-[#A0C878]" />
         <span>Grid Model:</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 flex-1">
         {/* Option 1: Industrial Centralized Grid */}
         <button
           onClick={() => setGridType('industrial')}
-          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all border text-left ${
+          className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all border text-left ${
             gridType === 'industrial'
-              ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-900 dark:text-sky-100 border-sky-400 dark:border-sky-500/80 shadow-xs ring-1 ring-sky-400/40'
-              : 'bg-slate-50/70 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] shadow-xs'
+              : 'bg-[#FFFDF6] dark:bg-[#151F17] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/40'
           }`}
         >
           <div
-            className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
+            className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${
               gridType === 'industrial'
-                ? 'bg-sky-600 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                ? 'bg-[#A0C878] text-[#26352A]'
+                : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]'
             }`}
           >
-            <Factory className="w-4 h-4" />
+            <Factory className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="truncate font-bold">Industrial Centralized Grid</div>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-              11 kV • Concentrated Solar Farm & Substation
+            <div className="truncate font-bold">Industrial Grid</div>
+            <div className="text-[10px] text-[#788477] dark:text-[#859483] truncate">
+              11 kV Concentrated Substation
             </div>
           </div>
         </button>
@@ -48,25 +48,25 @@ export const GridTypeSwitcher: React.FC<GridTypeSwitcherProps> = ({ className = 
         {/* Option 2: Domestic Rooftop Solar Grid */}
         <button
           onClick={() => setGridType('domestic')}
-          className={`flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all border text-left ${
+          className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all border text-left ${
             gridType === 'domestic'
-              ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-950 dark:text-amber-100 border-amber-400 dark:border-amber-500/80 shadow-xs ring-1 ring-amber-400/40'
-              : 'bg-slate-50/70 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] shadow-xs'
+              : 'bg-[#FFFDF6] dark:bg-[#151F17] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/40'
           }`}
         >
           <div
-            className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${
+            className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${
               gridType === 'domestic'
-                ? 'bg-amber-600 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                ? 'bg-[#A0C878] text-[#26352A]'
+                : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]'
             }`}
           >
-            <Home className="w-4 h-4" />
+            <Home className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
-            <div className="truncate font-bold">Domestic Rooftop Solar Grid</div>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-              230V LV • Multiple Rooftop Solar Homes & Street TX
+            <div className="truncate font-bold">Domestic Rooftop Solar</div>
+            <div className="text-[10px] text-[#788477] dark:text-[#859483] truncate">
+              230V LV Residential Feeder
             </div>
           </div>
         </button>
@@ -74,3 +74,5 @@ export const GridTypeSwitcher: React.FC<GridTypeSwitcherProps> = ({ className = 
     </div>
   )
 }
+
+export default GridTypeSwitcher

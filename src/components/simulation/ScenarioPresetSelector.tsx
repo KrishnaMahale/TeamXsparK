@@ -53,22 +53,22 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
               key={p.id}
               type="button"
               onClick={() => onSelectPreset(p.id)}
-              className={`p-4 rounded-xl border text-left transition-colors flex flex-col justify-between shadow-sm ${isSelected
-                ? 'bg-[#ECFDF5] dark:bg-[#064E3B] border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400 text-gray-900 dark:text-white'
-                : 'bg-white dark:bg-[#0A2018] border-gray-100 dark:border-[#23483F] hover:border-emerald-200 dark:hover:border-[#2D5C51] text-gray-700 dark:text-gray-300'
+              className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between shadow-sm cursor-pointer ${isSelected
+                ? 'bg-[#DDEB9D]/30 dark:bg-[#A0C878]/15 border-[#A0C878] dark:border-[#A0C878] ring-1 ring-[#A0C878] text-[#26352A] dark:text-[#E8F0E6]'
+                : 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#DDD9C9] dark:border-[#2A3A2C] hover:border-[#A0C878] text-[#506052] dark:text-[#A0B0A2]'
                 }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-1">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white leading-tight">{p.name}</span>
+                  <span className="text-xs font-bold text-[#26352A] dark:text-[#E8F0E6] leading-tight">{p.name}</span>
                   <Badge variant={getVariant(p.status)} size="sm">
                     {getBadgeLabel(p)}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 leading-relaxed">{p.description}</p>
+                <p className="text-[11px] text-[#788477] mt-1 line-clamp-2 leading-relaxed">{p.description}</p>
               </div>
 
-              <div className="mt-2.5 pt-2 border-t border-gray-100 dark:border-[#23483F] flex items-center justify-between text-[10px] font-mono text-gray-600 dark:text-gray-400">
+              <div className="mt-2.5 pt-2 border-t border-[#DDD9C9]/60 dark:border-[#2A3A2C] flex items-center justify-between text-[10px] font-mono text-[#506052] dark:text-[#A0B0A2]">
                 <span>PV: {p.solarKw} kW</span>
                 <span>Load: {p.loadKw} kW</span>
                 <span>SOC: {p.batterySocPercent}%</span>

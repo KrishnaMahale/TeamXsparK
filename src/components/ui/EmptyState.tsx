@@ -24,30 +24,32 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <div
       className={`flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed transition-colors ${
         isSuccess
-          ? 'border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/20'
-          : 'border-slate-300 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40'
+          ? 'border-[#A0C878] bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40'
+          : 'border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FAF6E9] dark:bg-[#1E2B20]'
       } ${className}`}
     >
       <div
-        className={`p-3 rounded-full mb-3 ${
+        className={`p-3 rounded-lg mb-3 ${
           isSuccess
-            ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
-            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+            ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#A0C878]'
+            : 'bg-[#F3EEDC] dark:bg-[#263629] text-[#506052] dark:text-[#C2CCC0]'
         }`}
       >
         {icon || (isSuccess ? <ShieldCheck className="w-7 h-7" /> : <Info className="w-7 h-7" />)}
       </div>
       <h4
-        className={`text-sm font-semibold tracking-wide ${
-          isSuccess ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-200'
+        className={`text-sm font-bold tracking-wide ${
+          isSuccess ? 'text-[#26352A] dark:text-[#F2F5ED]' : 'text-[#26352A] dark:text-[#F2F5ED]'
         }`}
       >
         {title}
       </h4>
       {description && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">{description}</p>
+        <p className="text-xs text-[#788477] dark:text-[#859483] mt-1 max-w-sm">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>
   )
 }
+
+export default EmptyState

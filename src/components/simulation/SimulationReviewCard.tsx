@@ -29,7 +29,7 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
       <CardHeader
         title="Simulation Review & Execution"
         subtitle="Verify configured parameters before dispatching power-flow solver"
-        icon={<CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+        icon={<CheckCircle2 className="w-4 h-4 text-[#A0C878]" />}
         action={
           <Badge variant={isValid ? 'success' : 'danger'}>
             {isValid ? 'Ready to Simulate' : `${validationErrors.length} Errors Found`}
@@ -39,42 +39,42 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
       <CardContent className="space-y-4">
         {/* Verification Matrix */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans block">Scenario</span>
-            <span className="text-slate-900 dark:text-white font-bold text-sm block mt-0.5 truncate font-sans">
+          <div className="p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <span className="text-[10px] text-[#788477] uppercase font-sans block">Scenario</span>
+            <span className="text-[#26352A] dark:text-[#E8F0E6] font-bold text-sm block mt-0.5 truncate font-sans">
               {input.scenarioName}
             </span>
-            <span className="text-[10px] text-sky-700 dark:text-sky-400 block mt-0.5 font-sans">
+            <span className="text-[10px] text-[#506052] dark:text-[#A0B0A2] block mt-0.5 font-sans">
               {input.simulationDuration} ({dataPointsCount} intervals)
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans block">Solar Generation</span>
+          <div className="p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <span className="text-[10px] text-[#788477] uppercase font-sans block">Solar Generation</span>
             <span className="text-amber-600 dark:text-amber-400 font-bold text-sm block mt-0.5">
               Peak: {peakSolar} kW
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+            <span className="text-[10px] text-[#788477] block mt-0.5">
               Rated: {input.installedSolarCapacityKw} kW
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans block">Feeder Demand</span>
-            <span className="text-sky-700 dark:text-sky-300 font-bold text-sm block mt-0.5">
+          <div className="p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <span className="text-[10px] text-[#788477] uppercase font-sans block">Feeder Demand</span>
+            <span className="text-[#26352A] dark:text-[#E8F0E6] font-bold text-sm block mt-0.5">
               Peak: {peakLoad} kW
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+            <span className="text-[10px] text-[#788477] block mt-0.5">
               Current: {input.currentLoadKw} kW
             </span>
           </div>
 
-          <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-sans block">Battery & Limits</span>
-            <span className="text-slate-800 dark:text-slate-200 font-bold text-sm block mt-0.5">
+          <div className="p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C]">
+            <span className="text-[10px] text-[#788477] uppercase font-sans block">Battery & Limits</span>
+            <span className="text-[#26352A] dark:text-[#E8F0E6] font-bold text-sm block mt-0.5">
               {input.batteryConfig.capacityKwh} kWh • SOC {input.batteryConfig.initialSocPercent}%
             </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">
+            <span className="text-[10px] text-[#788477] block mt-0.5">
               V-Bounds: {input.networkConfig.voltageMinPu} - {input.networkConfig.voltageMaxPu} pu
             </span>
           </div>
@@ -97,8 +97,8 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
 
         {/* Primary Action Button */}
         <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+          <div className="text-xs text-[#788477] flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-[#A0C878]" />
             <span>Power flow calculations will evaluate all time steps and detect constraint violations.</span>
           </div>
 
@@ -107,7 +107,7 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
             variant="primary"
             isLoading={isRunning}
             disabled={!isValid}
-            leftIcon={<Play className="w-4 h-4 fill-white" />}
+            leftIcon={<Play className="w-4 h-4 fill-current" />}
             onClick={onRunSimulation}
             className="w-full sm:w-auto px-8 font-bold tracking-wide"
           >

@@ -17,39 +17,41 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variantStyles = {
     primary:
-      'bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800/60',
+      'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#DDEB9D] border-[#C9C7B5] dark:border-[#3B4E3E]',
     success:
-      'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+      'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#DDEB9D] border-[#C9C7B5] dark:border-[#3B4E3E]',
     warning:
-      'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+      'bg-amber-100/80 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800',
     danger:
-      'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60',
+      'bg-red-100/80 dark:bg-red-950/60 text-red-900 dark:text-red-200 border-red-300 dark:border-red-800',
     neutral:
-      'bg-[#ECFDF5] dark:bg-[#0D2420] text-[#365A4D] dark:text-[#A7C4B8] border-[#D1E7DD] dark:border-[#23483F]',
+      'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E]',
     purple:
-      'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60',
+      'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#26352A] dark:text-[#DDEB9D] border-[#DDD9C9] dark:border-[#2C3C2E]',
   }
 
   const dotColors = {
-    primary: 'bg-teal-500',
-    success: 'bg-emerald-500',
+    primary: 'bg-[#A0C878]',
+    success: 'bg-[#A0C878]',
     warning: 'bg-amber-500',
-    danger: 'bg-red-500',
-    neutral: 'bg-[#6B8178]',
-    purple: 'bg-purple-500',
+    danger: 'bg-red-600',
+    neutral: 'bg-[#788477]',
+    purple: 'bg-[#A0C878]',
   }
 
   const sizeStyles = {
-    sm: 'text-[11px] px-2 py-0.5 rounded-md font-medium',
-    md: 'text-xs px-2.5 py-1 rounded-md font-medium',
+    sm: 'text-[11px] px-2 py-0.5 rounded-md font-semibold',
+    md: 'text-xs px-2.5 py-1 rounded-md font-semibold',
   }
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border tracking-wide uppercase ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 border tracking-wider uppercase ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
-      {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColors[variant]}`} />}
+      {dot && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColors[variant]}`} />}
       {children}
     </span>
   )
 }
+
+export default Badge

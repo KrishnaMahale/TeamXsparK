@@ -21,7 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-xl transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed select-none'
+    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A0C878] disabled:opacity-50 disabled:cursor-not-allowed select-none'
 
   const sizeStyles = {
     sm: 'text-xs px-3 py-1.5 gap-1.5',
@@ -31,17 +31,17 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
+      'bg-[#A0C878] hover:bg-[#8EB864] active:bg-[#7FA557] text-[#26352A] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
     secondary:
-      'bg-white dark:bg-[#12332D] hover:bg-emerald-50 dark:hover:bg-[#183D36] text-emerald-800 dark:text-emerald-200 border border-[#A7CDBD] dark:border-[#2D5C51] focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
+      'bg-[#FAF6E9] dark:bg-[#1E2B20] hover:bg-[#DDEB9D] dark:hover:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
     success:
-      'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-sm focus:ring-emerald-500 focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
+      'bg-[#A0C878] hover:bg-[#8EB864] active:bg-[#7FA557] text-[#26352A] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
     danger:
-      'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-sm focus:ring-red-500 focus:ring-offset-white dark:focus:ring-offset-[#0D2420]',
+      'bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] text-white shadow-xs focus:ring-red-500 focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
     ghost:
-      'bg-transparent hover:bg-emerald-50 dark:hover:bg-[#183D36] text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100',
+      'bg-transparent hover:bg-[#DDEB9D]/50 dark:hover:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED]',
     outline:
-      'bg-transparent border border-emerald-600 dark:border-emerald-400 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-[#064E3B]',
+      'bg-transparent border border-[#A0C878] text-[#26352A] dark:text-[#A0C878] hover:bg-[#DDEB9D]/30 dark:hover:bg-[#2D3E2F]/40',
   }
 
   return (
@@ -60,3 +60,5 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   )
 }
+
+export default Button

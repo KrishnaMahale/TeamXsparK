@@ -4,117 +4,165 @@
 @layer base {
   :root {
     /* ======================================================
-       EcoTech Green — Light Theme (Default)
-       Renewable Energy / Smart Grid Digital Twin
+       TeamXsparK — Final Global Theme (Light Mode)
+       Warm White + Cream + Soft Sage + Natural Green
     ====================================================== */
 
-    /* Application Backgrounds */
-    --background: #F0FDF4;
-    --surface: #FFFFFF;
-    --surface-secondary: #ECFDF5;
-    --surface-elevated: #FFFFFF;
-    --surface-hover: #D1FAE5;
-
-    /* Primary — Emerald */
-    --primary: #059669;
-    --primary-hover: #047857;
-    --primary-active: #065F46;
-    --primary-soft: #D1FAE5;
-
-    /* Secondary — Teal */
-    --secondary: #0D9488;
-    --secondary-hover: #0F766E;
-    --secondary-soft: #CCFBF1;
-
-    /* Solar — Yellow */
-    --solar: #EAB308;
-    --solar-hover: #CA8A04;
-    --solar-soft: #FEF9C3;
-
-    /* Status tokens */
-    --success: #059669;
-    --success-soft: #D1FAE5;
-    --warning: #F59E0B;
-    --warning-soft: #FEF3C7;
-    --danger: #DC2626;
-    --danger-soft: #FEE2E2;
+    /* Semantic Primary Palette Tokens */
+    --color-bg: #FFFDF6;
+    --color-surface: #FAF6E9;
+    --color-surface-secondary: #F3EEDC;
+    --color-surface-elevated: #FAF6E9;
+    --color-highlight: #DDEB9D;
+    --color-primary: #A0C878;
+    --color-primary-hover: #8EB864;
+    --color-primary-active: #7FA557;
 
     /* Typography */
-    --text-primary: #14532D;
-    --text-secondary: #365A4D;
-    --text-muted: #6B8178;
+    --color-text: #26352A;
+    --color-text-secondary: #506052;
+    --color-text-muted: #788477;
 
     /* Borders */
-    --border: #D1E7DD;
-    --border-strong: #A7CDBD;
+    --color-border: #DDD9C9;
+    --color-border-strong: #C9C7B5;
+
+    /* Status Tokens */
+    --color-success: #A0C878;
+    --color-warning: #D97706;
+    --color-danger: #DC2626;
+    --color-solar: #B09B29;
+
+    /* Backward Compatible Aliases */
+    --background: var(--color-bg);
+    --surface: var(--color-surface);
+    --surface-secondary: var(--color-surface-secondary);
+    --surface-elevated: var(--color-surface);
+    --surface-hover: var(--color-highlight);
+
+    --primary: var(--color-primary);
+    --primary-hover: var(--color-primary-hover);
+    --primary-active: var(--color-primary-active);
+    --primary-soft: var(--color-highlight);
+
+    --secondary: var(--color-primary);
+    --secondary-hover: var(--color-primary-hover);
+    --secondary-soft: var(--color-highlight);
+
+    --solar: var(--color-solar);
+    --solar-hover: #988521;
+    --solar-soft: #FDF9D9;
+
+    --success: var(--color-success);
+    --success-soft: var(--color-highlight);
+    --warning: var(--color-warning);
+    --warning-soft: #FEF3C7;
+    --danger: var(--color-danger);
+    --danger-soft: #FEE2E2;
+
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-secondary);
+    --text-muted: var(--color-text-muted);
+
+    --border: var(--color-border);
+    --border-strong: var(--color-border-strong);
 
     /* Chart tokens */
-    --chart-grid: #E8F5EE;
-    --chart-tooltip-bg: #FFFFFF;
-    --chart-tooltip-border: #D1E7DD;
-    --chart-tooltip-text: #14532D;
+    --chart-grid: #DDD9C9;
+    --chart-tooltip-bg: #FAF6E9;
+    --chart-tooltip-border: #DDD9C9;
+    --chart-tooltip-text: #26352A;
 
     /* Network canvas */
-    --network-bg: #F0FDF4;
-    --network-grid: rgba(5, 150, 105, 0.06);
+    --network-bg: #FFFDF6;
+    --network-grid: rgba(160, 200, 120, 0.12);
   }
 
   .dark,
   [data-theme='dark'] {
     /* ======================================================
-       EcoTech Green — Dark Theme
-       Professional Grid Control Room
+       TeamXsparK — Final Global Theme (Dark Mode)
+       Warm Slate/Green Earth + Cream Accents
     ====================================================== */
 
-    --background: #071A17;
-    --surface: #0D2420;
-    --surface-secondary: #0A2018;
-    --surface-elevated: #12332D;
-    --surface-hover: #183D36;
+    --color-bg: #151F17;
+    --color-surface: #1E2B20;
+    --color-surface-secondary: #263629;
+    --color-surface-elevated: #223124;
+    --color-highlight: #2D3E2F;
+    --color-primary: #A0C878;
+    --color-primary-hover: #B2D88C;
+    --color-primary-active: #8EB864;
 
-    --primary: #34D399;
-    --primary-hover: #10B981;
-    --primary-active: #059669;
-    --primary-soft: #064E3B;
+    --color-text: #F2F5ED;
+    --color-text-secondary: #C2CCC0;
+    --color-text-muted: #859483;
 
-    --secondary: #2DD4BF;
-    --secondary-hover: #14B8A6;
-    --secondary-soft: #042F2E;
+    --color-border: #2C3C2E;
+    --color-border-strong: #3B4E3E;
 
-    --solar: #FACC15;
+    --color-success: #A0C878;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-solar: #D4B838;
+
+    /* Backward Compatible Aliases */
+    --background: var(--color-bg);
+    --surface: var(--color-surface);
+    --surface-secondary: var(--color-surface-secondary);
+    --surface-elevated: var(--color-surface-elevated);
+    --surface-hover: var(--color-highlight);
+
+    --primary: var(--color-primary);
+    --primary-hover: var(--color-primary-hover);
+    --primary-active: var(--color-primary-active);
+    --primary-soft: var(--color-highlight);
+
+    --secondary: var(--color-primary);
+    --secondary-hover: var(--color-primary-hover);
+    --secondary-soft: var(--color-highlight);
+
+    --solar: var(--color-solar);
     --solar-hover: #EAB308;
-    --solar-soft: #1C1400;
+    --solar-soft: #2E280C;
 
-    --success: #34D399;
-    --success-soft: #064E3B;
-    --warning: #FBBF24;
-    --warning-soft: #451A03;
-    --danger: #F87171;
-    --danger-soft: #450A0A;
+    --success: var(--color-success);
+    --success-soft: #1E3321;
+    --warning: var(--color-warning);
+    --warning-soft: #382408;
+    --danger: var(--color-danger);
+    --danger-soft: #381212;
 
-    --text-primary: #ECFDF5;
-    --text-secondary: #A7C4B8;
-    --text-muted: #6B8E82;
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-secondary);
+    --text-muted: var(--color-text-muted);
 
-    --border: #23483F;
-    --border-strong: #2D5C51;
+    --border: var(--color-border);
+    --border-strong: var(--color-border-strong);
 
-    --chart-grid: #142D27;
-    --chart-tooltip-bg: #0D2420;
-    --chart-tooltip-border: #23483F;
-    --chart-tooltip-text: #ECFDF5;
+    --chart-grid: #2C3C2E;
+    --chart-tooltip-bg: #1E2B20;
+    --chart-tooltip-border: #2C3C2E;
+    --chart-tooltip-text: #F2F5ED;
 
-    --network-bg: #071A17;
-    --network-grid: rgba(52, 211, 153, 0.04);
+    --network-bg: #151F17;
+    --network-grid: rgba(160, 200, 120, 0.08);
   }
 }
 
 /* ======================================================
-   Base
+   Base HTML Styling
 ====================================================== */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  background-color: var(--background);
-  color: var(--text-primary);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -130,21 +178,21 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: var(--color-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--color-border-strong);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--color-text-muted);
 }
 
 /* ======================================================
    Focus ring — accessible, green-themed
 ====================================================== */
 *:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }

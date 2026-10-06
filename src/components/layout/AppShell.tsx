@@ -5,20 +5,22 @@ import { Sidebar } from './Sidebar'
 
 export const AppShell: React.FC = () => {
   return (
-    <div className="flex h-screen w-screen bg-[#E5E7EB] dark:bg-[#071A17] text-[#14532D] dark:text-[#ECFDF5] overflow-hidden select-none transition-colors duration-200 p-4 gap-4">
-      {/* Left Sidebar */}
+    <div className="flex h-screen w-screen bg-[#FFFDF6] dark:bg-[#151F17] text-[#26352A] dark:text-[#F2F5ED] overflow-hidden select-none transition-colors duration-200">
+      {/* Left Sidebar - Integrated into Shell */}
       <Sidebar />
 
-      {/* Main Layout Area (Rounded white container) */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-[#0A2018] rounded-[24px] overflow-hidden shadow-sm relative border border-white/50 dark:border-white/5">
+      {/* Main Full-Screen Layout Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#FFFDF6] dark:bg-[#151F17]">
         {/* Top Header */}
         <Header />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative flex flex-col bg-[#FFFDF6] dark:bg-[#151F17]">
           <Outlet />
         </main>
       </div>
     </div>
   )
 }
+
+export default AppShell

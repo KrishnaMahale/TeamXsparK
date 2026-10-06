@@ -41,132 +41,136 @@ export const ScenariosPage: React.FC = () => {
         </Button>
       }
     >
-      {/* Information Header */}
-      <div className="p-4 rounded-xl bg-white dark:bg-[#0D2420] border border-[#D1E7DD] dark:border-[#23483F] text-xs text-[#365A4D] dark:text-[#A7C4B8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm transition-colors">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
-          <span>
-            Selecting a scenario populates the simulation inputs for inspection and editing before running.
+      <div className="space-y-6">
+        {/* Information Header */}
+        <div className="p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-xs text-[#506052] dark:text-[#C2CCC0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs transition-colors">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#A0C878]" />
+            <span>
+              Selecting a scenario populates the simulation inputs for inspection and editing before running.
+            </span>
+          </div>
+          <span className="text-[11px] text-[#26352A] dark:text-[#A0C878] font-mono font-bold">
+            Select Scenario → Inspect/Edit Data → Run Simulation
           </span>
         </div>
-        <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-medium">
-          Select Scenario → Inspect/Edit Data → Run Simulation
-        </span>
-      </div>
 
-      {/* Scenario Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {scenarios.map((scenario) => {
-          const isSelected = selectedScenario.id === scenario.id
-          const isInfeasible = scenario.id === 'EXTREME_INFEASIBLE'
+        {/* Scenario Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {scenarios.map((scenario) => {
+            const isSelected = selectedScenario.id === scenario.id
+            const isInfeasible = scenario.id === 'EXTREME_INFEASIBLE'
 
-          return (
-            <div
-              key={scenario.id}
-              className={`p-5 rounded-xl border flex flex-col justify-between transition-colors shadow-sm ${
-                isSelected
-                  ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-400 dark:border-emerald-600 ring-1 ring-emerald-400'
-                  : isInfeasible
-                  ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-300 dark:border-rose-900/60 hover:border-rose-400'
-                  : 'bg-white dark:bg-[#0D2420] border-[#D1E7DD] dark:border-[#23483F] hover:border-emerald-300 dark:hover:border-emerald-700'
-              }`}
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-bold text-[#14532D] dark:text-emerald-100 tracking-tight">
-                      {scenario.name}
-                    </h3>
-                    <span className="text-[11px] font-mono text-teal-700 dark:text-teal-400 mt-0.5 block">
-                      Time Snapshot: {scenario.simulatedTime}
-                    </span>
+            return (
+              <div
+                key={scenario.id}
+                className={`p-5 rounded-xl border flex flex-col justify-between transition-colors shadow-xs ${
+                  isSelected
+                    ? 'bg-[#DDEB9D]/35 dark:bg-[#2D3E2F]/60 border-[#A0C878] ring-1 ring-[#A0C878]'
+                    : isInfeasible
+                    ? 'bg-red-50/60 dark:bg-red-950/20 border-red-300 dark:border-red-900/60 hover:border-red-400'
+                    : 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#DDD9C9] dark:border-[#2C3C2E] hover:border-[#A0C878]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-tight">
+                        {scenario.name}
+                      </h3>
+                      <span className="text-[11px] font-mono text-[#788477] dark:text-[#859483] mt-0.5 block">
+                        Time Snapshot: {scenario.simulatedTime}
+                      </span>
+                    </div>
+                    <Badge
+                      variant={
+                        scenario.status === 'optimal'
+                          ? 'success'
+                          : scenario.status === 'warning'
+                          ? 'warning'
+                          : 'danger'
+                      }
+                      size="sm"
+                    >
+                      {scenario.status.toUpperCase()}
+                    </Badge>
                   </div>
-                  <Badge
-                    variant={
-                      scenario.status === 'optimal'
-                        ? 'success'
-                        : scenario.status === 'warning'
-                        ? 'warning'
-                        : 'danger'
-                    }
+
+                  <p className="text-xs text-[#506052] dark:text-[#C2CCC0] mt-3 leading-relaxed">
+                    {scenario.description}
+                  </p>
+
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-3 gap-2 mt-4 p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-center shadow-xs">
+                    <div>
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-[#788477] dark:text-[#859483] mb-0.5 font-medium">
+                        <Sun className="w-3 h-3 text-[#B09B29]" />
+                        <span>Solar</span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-[#B09B29] dark:text-[#D4B838]">
+                        {scenario.solarKw} kW
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-[#788477] dark:text-[#859483] mb-0.5 font-medium">
+                        <Zap className="w-3 h-3 text-[#A0C878]" />
+                        <span>Load</span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                        {scenario.loadKw} kW
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-center gap-1 text-[10px] text-[#788477] dark:text-[#859483] mb-0.5 font-medium">
+                        <BatteryMedium className="w-3 h-3 text-[#A0C878]" />
+                        <span>SOC</span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                        {scenario.batterySocPercent}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Expected Violations Note */}
+                  <div className="mt-3 flex items-center gap-2 text-xs">
+                    {scenario.violationsExpected > 0 ? (
+                      <>
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                          {scenario.violationsExpected} Violations Expected
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#A0C878] shrink-0" />
+                        <span className="text-[#26352A] dark:text-[#A0C878] font-semibold">
+                          Normal Stable Grid
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-[#DDD9C9] dark:border-[#2C3C2E]">
+                  <Button
+                    variant={isSelected ? 'primary' : 'secondary'}
                     size="sm"
+                    rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                    className="w-full text-xs"
+                    onClick={() => handleSelectAndConfigure(scenario)}
                   >
-                    {scenario.status.toUpperCase()}
-                  </Badge>
-                </div>
-
-                <p className="text-xs text-[#365A4D] dark:text-[#A7C4B8] mt-3 leading-relaxed">
-                  {scenario.description}
-                </p>
-
-                {/* Key Metrics */}
-                <div className="grid grid-cols-3 gap-2 mt-4 p-3 rounded-lg bg-[#ECFDF5] dark:bg-[#0A2018] border border-[#D1E7DD] dark:border-[#23483F] text-center">
-                  <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-[#6B8178] dark:text-[#6B8E82] mb-0.5">
-                      <Sun className="w-3 h-3 text-yellow-500" />
-                      <span>Solar</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-yellow-600 dark:text-yellow-400">
-                      {scenario.solarKw} kW
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-[#6B8178] dark:text-[#6B8E82] mb-0.5">
-                      <Zap className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-                      <span>Load</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-teal-700 dark:text-teal-300">
-                      {scenario.loadKw} kW
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">
-                      <BatteryMedium className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      <span>SOC</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
-                      {scenario.batterySocPercent}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Expected Violations Note */}
-                <div className="mt-3 flex items-center gap-2 text-xs">
-                  {scenario.violationsExpected > 0 ? (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span className="text-amber-700 dark:text-amber-300 font-medium">
-                        {scenario.violationsExpected} Violations Expected
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span className="text-emerald-700 dark:text-emerald-300 font-medium">
-                        Normal Stable Grid
-                      </span>
-                    </>
-                  )}
+                    Configure & Inspect Scenario
+                  </Button>
                 </div>
               </div>
-
-              <div className="mt-5 pt-3 border-t border-[#D1E7DD] dark:border-[#23483F]">
-                <Button
-                  variant={isSelected ? 'primary' : 'secondary'}
-                  size="sm"
-                  rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-                  className="w-full text-xs"
-                  onClick={() => handleSelectAndConfigure(scenario)}
-                >
-                  Configure & Inspect Scenario
-                </Button>
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     </PageContainer>
   )
 }
+
+export default ScenariosPage

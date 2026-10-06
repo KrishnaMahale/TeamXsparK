@@ -64,12 +64,12 @@ export const ForecastsPage: React.FC = () => {
   const peakSolar = Math.max(...mergedDataPoints.map((d) => d.solarGenerationKw), 0)
   const peakLoad = Math.max(...mergedDataPoints.map((d) => d.loadDemandKw), 0)
 
-  // Chart theme tokens — EcoTech palette
-  const gridStroke = isDark ? '#142D27' : '#E8F5EE'
-  const axisStroke = isDark ? '#6B8E82' : '#6B8178'
-  const tooltipBg = isDark ? '#0D2420' : '#FFFFFF'
-  const tooltipBorder = isDark ? '#23483F' : '#D1E7DD'
-  const tooltipText = isDark ? '#ECFDF5' : '#14532D'
+  // Chart theme tokens — TeamXsparK palette
+  const gridStroke = isDark ? '#2C3C2E' : '#DDD9C9'
+  const axisStroke = isDark ? '#859483' : '#788477'
+  const tooltipBg = isDark ? '#1E2B20' : '#FAF6E9'
+  const tooltipBorder = isDark ? '#2C3C2E' : '#DDD9C9'
+  const tooltipText = isDark ? '#F2F5ED' : '#26352A'
 
   return (
     <PageContainer
@@ -89,171 +89,175 @@ export const ForecastsPage: React.FC = () => {
         </div>
       }
     >
-      {/* 1. Forecast Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        {/* 1. Forecast Metrics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Peak Solar Generation</div>
+              <div className="text-xl font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1">{peakSolar} kW</div>
+              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">Capacity: {input.installedSolarCapacityKw} kW</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Peak Load Demand</div>
+              <div className="text-xl font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">{peakLoad} kW</div>
+              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">Peak Load: {input.peakLoadKw} kW</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Solar Model Accuracy</div>
+              <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
+                {metrics?.solarAccuracyPercent ? `${metrics.solarAccuracyPercent}%` : '92.4%'}
+              </div>
+              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">
+                {metrics?.modelType || 'Random Forest Regressor'} (MAE 4.8 kW)
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Load Model Accuracy</div>
+              <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
+                {metrics?.loadAccuracyPercent ? `${metrics.loadAccuracyPercent}%` : '89.6%'}
+              </div>
+              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">
+                {metrics?.modelType || 'Random Forest Regressor'} (MAE 6.2 kW)
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 2. Forecast Line Chart */}
         <Card>
+          <CardHeader
+            title="24-Hour Solar & Load Lookahead Profile"
+            subtitle="Observed/Input profiles vs. Random Forest ML forecasts across temporal horizon"
+            icon={<TrendingUp className="w-4 h-4 text-[#A0C878]" />}
+            action={
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[#506052] dark:text-[#C2CCC0]">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-0.5 bg-[#B09B29] inline-block" />
+                  <span>Observed Solar</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-0.5 bg-[#B09B29]/60 inline-block border-t border-dashed border-[#B09B29]" />
+                  <span>Predicted Solar</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-0.5 bg-[#A0C878] inline-block" />
+                  <span>Observed Load</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-0.5 bg-[#506052] inline-block border-t border-dashed border-[#506052]" />
+                  <span>Predicted Load</span>
+                </span>
+              </div>
+            }
+          />
           <CardContent className="p-4">
-            <div className="text-xs text-[#6B8178] dark:text-[#6B8E82]">Peak Solar Generation</div>
-            <div className="text-xl font-bold font-mono text-yellow-600 dark:text-yellow-400 mt-1">{peakSolar} kW</div>
-            <div className="text-[11px] text-[#6B8178] dark:text-[#6B8E82] mt-0.5">Capacity: {input.installedSolarCapacityKw} kW</div>
+            <div className="w-full h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={mergedDataPoints} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                  <XAxis dataKey="time" stroke={axisStroke} fontSize={11} tickLine={false} />
+                  <YAxis stroke={axisStroke} fontSize={11} tickLine={false} unit=" kW" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: tooltipBg,
+                      borderColor: tooltipBorder,
+                      borderRadius: '8px',
+                      color: tooltipText,
+                      fontSize: '12px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="solarGenerationKw"
+                    name="Observed Solar (kW)"
+                    stroke="#B09B29"
+                    strokeWidth={2.5}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="predictedSolarKw"
+                    name="Predicted Solar (kW)"
+                    stroke="#B09B29"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="loadDemandKw"
+                    name="Observed Demand (kW)"
+                    stroke="#A0C878"
+                    strokeWidth={2.5}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="predictedLoadKw"
+                    name="Predicted Demand (kW)"
+                    stroke="#506052"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
+        {/* 3. Hourly Forecast Table */}
         <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-[#6B8178] dark:text-[#6B8E82]">Peak Load Demand</div>
-            <div className="text-xl font-bold font-mono text-teal-700 dark:text-teal-300 mt-1">{peakLoad} kW</div>
-            <div className="text-[11px] text-[#6B8178] dark:text-[#6B8E82] mt-0.5">Peak Load: {input.peakLoadKw} kW</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-slate-500 dark:text-slate-400">Solar Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-              {metrics?.solarAccuracyPercent ? `${metrics.solarAccuracyPercent}%` : '92.4%'}
-            </div>
-            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-              {metrics?.modelType || 'Random Forest Regressor'} (MAE 4.8 kW)
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-slate-500 dark:text-slate-400">Load Model Accuracy</div>
-            <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-              {metrics?.loadAccuracyPercent ? `${metrics.loadAccuracyPercent}%` : '89.6%'}
-            </div>
-            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-              {metrics?.modelType || 'Random Forest Regressor'} (MAE 6.2 kW)
-            </div>
+          <CardHeader
+            title="Hourly Time-Series Breakdown"
+            subtitle="Tabular listing of observed inputs and forecasted outputs"
+            icon={<Zap className="w-4 h-4 text-[#A0C878]" />}
+          />
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-xs text-left border-collapse min-w-[700px]">
+              <thead className="bg-[#F3EEDC] dark:bg-[#18231A] text-[#788477] dark:text-[#859483] uppercase text-[10px] tracking-wider border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
+                <tr>
+                  <th className="py-3 px-4">Time</th>
+                  <th className="py-3 px-4">Observed Solar (kW)</th>
+                  <th className="py-3 px-4">Predicted Solar (kW)</th>
+                  <th className="py-3 px-4">Observed Load (kW)</th>
+                  <th className="py-3 px-4">Predicted Load (kW)</th>
+                  <th className="py-3 px-4">Net Balance (kW)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#DDD9C9] dark:divide-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+                {mergedDataPoints.map((row) => (
+                  <tr key={row.time} className="hover:bg-[#DDEB9D]/30 dark:hover:bg-[#2D3E2F]/40 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">{row.time}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-[#B09B29] dark:text-[#D4B838]">{row.solarGenerationKw}</td>
+                    <td className="py-3 px-4 font-mono text-[#788477] dark:text-[#859483]">{row.predictedSolarKw}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">{row.loadDemandKw}</td>
+                    <td className="py-3 px-4 font-mono text-[#788477] dark:text-[#859483]">{row.predictedLoadKw}</td>
+                    <td className="py-3 px-4 font-mono font-bold">
+                      <span className={row.netPowerKw >= 0 ? 'text-[#26352A] dark:text-[#A0C878]' : 'text-[#788477] dark:text-[#859483]'}>
+                        {row.netPowerKw >= 0 ? `+${row.netPowerKw}` : row.netPowerKw} kW
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </CardContent>
         </Card>
       </div>
-
-      {/* 2. Forecast Line Chart */}
-      <Card>
-        <CardHeader
-          title="24-Hour Solar & Load Lookahead Profile"
-          subtitle="Observed/Input profiles vs. Random Forest ML forecasts across temporal horizon"
-          icon={<TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-          action={
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-amber-500 inline-block" />
-                <span>Observed Solar</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-amber-500/60 inline-block border-t border-dashed border-amber-500" />
-                <span>Predicted Solar</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-sky-600 dark:bg-sky-400 inline-block" />
-                <span>Observed Load</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-0.5 bg-sky-500/60 inline-block border-t border-dashed border-sky-400" />
-                <span>Predicted Load</span>
-              </span>
-            </div>
-          }
-        />
-        <CardContent className="p-4">
-          <div className="w-full h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mergedDataPoints} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="time" stroke={axisStroke} fontSize={11} tickLine={false} />
-                <YAxis stroke={axisStroke} fontSize={11} tickLine={false} unit=" kW" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: tooltipBg,
-                    borderColor: tooltipBorder,
-                    borderRadius: '8px',
-                    color: tooltipText,
-                    fontSize: '12px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="solarGenerationKw"
-                  name="Observed Solar (kW)"
-                  stroke="#EAB308"
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="predictedSolarKw"
-                  name="Predicted Solar (kW)"
-                  stroke="#EAB308"
-                  strokeWidth={1.5}
-                  strokeDasharray="4 4"
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="loadDemandKw"
-                  name="Observed Demand (kW)"
-                  stroke="#059669"
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="predictedLoadKw"
-                  name="Predicted Demand (kW)"
-                  stroke="#0D9488"
-                  strokeWidth={1.5}
-                  strokeDasharray="4 4"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 3. Hourly Forecast Table */}
-      <Card>
-        <CardHeader
-          title="Hourly Time-Series Breakdown"
-          subtitle="Tabular listing of observed inputs and forecasted outputs"
-          icon={<Zap className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-        />
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse min-w-[700px]">
-            <thead className="bg-[#ECFDF5] dark:bg-[#0A2018] text-[#6B8178] dark:text-[#6B8E82] uppercase text-[10px] tracking-wider border-b border-[#D1E7DD] dark:border-[#23483F]">
-              <tr>
-                <th className="py-3 px-4">Time</th>
-                <th className="py-3 px-4">Observed Solar (kW)</th>
-                <th className="py-3 px-4">Predicted Solar (kW)</th>
-                <th className="py-3 px-4">Observed Load (kW)</th>
-                <th className="py-3 px-4">Predicted Load (kW)</th>
-                <th className="py-3 px-4">Net Balance (kW)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#D1E7DD] dark:divide-[#23483F] text-[#14532D] dark:text-emerald-100">
-              {mergedDataPoints.map((row) => (
-                <tr key={row.time} className="hover:bg-[#ECFDF5] dark:hover:bg-[#183D36] transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-teal-700 dark:text-teal-400">{row.time}</td>
-                  <td className="py-3 px-4 font-mono font-bold text-yellow-600 dark:text-yellow-400">{row.solarGenerationKw}</td>
-                  <td className="py-3 px-4 font-mono text-yellow-700/80 dark:text-yellow-300/80">{row.predictedSolarKw}</td>
-                  <td className="py-3 px-4 font-mono font-bold text-teal-700 dark:text-teal-300">{row.loadDemandKw}</td>
-                  <td className="py-3 px-4 font-mono text-teal-600/80 dark:text-teal-300/80">{row.predictedLoadKw}</td>
-                  <td className="py-3 px-4 font-mono font-bold">
-                    <span className={row.netPowerKw >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}>
-                      {row.netPowerKw >= 0 ? `+${row.netPowerKw}` : row.netPowerKw} kW
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
     </PageContainer>
   )
 }
+
+export default ForecastsPage

@@ -119,7 +119,7 @@ export const SimulationSetupPage: React.FC = () => {
       title="Simulation Setup"
       subtitle="Configure renewable generation and electricity demand before running the digital twin"
       actions={
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <CSVUploader onImport={importCsvData} />
           <Button
             variant="secondary"
@@ -133,8 +133,8 @@ export const SimulationSetupPage: React.FC = () => {
       }
     >
       {/* Stepper Navigation */}
-      <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#0D2420] border border-gray-100 dark:border-[#23483F] shadow-sm transition-colors mb-6 sm:mb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
+      <div className="p-3 sm:p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs transition-colors mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
           {steps.map((s) => {
             const isCurrent = currentStep === s.number
             const isCompleted = currentStep > s.number
@@ -143,28 +143,28 @@ export const SimulationSetupPage: React.FC = () => {
               <button
                 key={s.number}
                 onClick={() => setCurrentStep(s.number)}
-                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors border shadow-sm ${
+                className={`flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg text-left transition-colors border shadow-xs ${
                   isCurrent
-                    ? 'bg-[#ECFDF5] dark:bg-[#064E3B] text-[#14532D] dark:text-[#ECFDF5] border-emerald-300 dark:border-emerald-700 ring-1 ring-emerald-400'
+                    ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] ring-1 ring-[#A0C878]'
                     : isCompleted
-                    ? 'bg-[#F0FDF4] dark:bg-[#0A2018] text-[#14532D] dark:text-[#ECFDF5] border-emerald-200 dark:border-[#2D5C51] hover:bg-[#D1FAE5] dark:hover:bg-[#183D36]'
-                    : 'bg-gray-50 dark:bg-[#12332D] text-gray-500 dark:text-[#6B8E82] border-gray-200 dark:border-[#23483F] hover:text-gray-900 dark:hover:text-emerald-100'
+                    ? 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#26352A] dark:text-[#F2F5ED] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
+                    : 'bg-[#FFFDF6] dark:bg-[#151F17] text-[#788477] dark:text-[#859483] border-[#DDD9C9] dark:border-[#2C3C2E] hover:text-[#26352A]'
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
+                  className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
                     isCurrent
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-[#A0C878] text-[#26352A]'
                       : isCompleted
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-gray-200 dark:bg-[#23483F] text-gray-600 dark:text-[#A7C4B8]'
+                      ? 'bg-[#A0C878] text-[#26352A]'
+                      : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]'
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : `0${s.number}`}
+                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : `0${s.number}`}
                 </div>
                 <div className="min-w-0 hidden sm:block">
                   <div className="text-xs font-bold uppercase truncate">{s.title}</div>
-                  <div className={`text-[10px] truncate ${isCurrent ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <div className={`text-[10px] truncate ${isCurrent ? 'text-[#26352A] dark:text-[#A0C878] font-semibold' : 'text-[#788477] dark:text-[#859483]'}`}>
                     {s.subtitle}
                   </div>
                 </div>
@@ -186,45 +186,45 @@ export const SimulationSetupPage: React.FC = () => {
             <CardHeader
               title="Scenario Information"
               subtitle="Define metadata and temporal resolution parameters"
-              icon={<SlidersHorizontal className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+              icon={<SlidersHorizontal className="w-4 h-4 text-[#A0C878]" />}
             />
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Scenario Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
                     Scenario Name
                   </label>
                   <input
                     type="text"
                     value={input.scenarioName}
                     onChange={(e) => updateInput({ scenarioName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#0A2018] border border-gray-200 dark:border-[#23483F] text-gray-900 dark:text-[#ECFDF5] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
                   />
                 </div>
 
                 {/* Simulation Date */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
                     Simulation Date
                   </label>
                   <input
                     type="text"
                     value={input.simulationDate}
                     onChange={(e) => updateInput({ simulationDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#0A2018] border border-gray-200 dark:border-[#23483F] text-gray-900 dark:text-[#ECFDF5] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
                   />
                 </div>
 
                 {/* Duration */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
                     Simulation Duration
                   </label>
                   <select
                     value={input.simulationDuration}
                     onChange={(e) => updateInput({ simulationDuration: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#0A2018] border border-gray-200 dark:border-[#23483F] text-gray-900 dark:text-[#ECFDF5] text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
                   >
                     <option value="6 hours">6 hours (Peak Window)</option>
                     <option value="12 hours">12 hours (Daytime)</option>
@@ -234,13 +234,13 @@ export const SimulationSetupPage: React.FC = () => {
 
                 {/* Time Resolution */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
                     Time Resolution
                   </label>
                   <select
                     value={input.timeResolution}
                     onChange={(e) => updateInput({ timeResolution: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#0A2018] border border-gray-200 dark:border-[#23483F] text-gray-900 dark:text-[#ECFDF5] text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
                   >
                     <option value="15 minutes">15 minutes (High-Fidelity)</option>
                     <option value="30 minutes">30 minutes</option>
@@ -251,7 +251,7 @@ export const SimulationSetupPage: React.FC = () => {
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block">
+                <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
                   Scenario Description
                 </label>
                 <input
@@ -259,7 +259,7 @@ export const SimulationSetupPage: React.FC = () => {
                   placeholder="Operational description or test objectives..."
                   value={input.scenarioDescription || ''}
                   onChange={(e) => updateInput({ scenarioDescription: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#0A2018] border border-gray-200 dark:border-[#23483F] text-gray-900 dark:text-[#ECFDF5] text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
                 />
               </div>
             </CardContent>
@@ -415,7 +415,7 @@ export const SimulationSetupPage: React.FC = () => {
             <CardHeader
               title="Digital Twin Simulation Progress"
               subtitle="Solving nodal AC power flow across configured timeline"
-              icon={<Zap className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
+              icon={<Zap className="w-4 h-4 text-[#A0C878]" />}
             />
             <CardContent className="space-y-6 py-6">
               <div className="space-y-3">
@@ -428,37 +428,37 @@ export const SimulationSetupPage: React.FC = () => {
                       key={step.id}
                       className={`p-3.5 rounded-lg border flex items-center justify-between transition-colors ${
                         isDone
-                          ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                          ? 'bg-[#DDEB9D]/35 dark:bg-[#2D3E2F]/40 border-[#A0C878] text-[#26352A] dark:text-[#F2F5ED]'
                           : isProcessing
-                          ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 dark:border-sky-600 text-sky-900 dark:text-sky-100 ring-1 ring-sky-400'
-                          : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-500'
+                          ? 'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F]/80 border-[#A0C878] text-[#26352A] dark:text-[#F2F5ED] ring-1 ring-[#A0C878]'
+                          : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2C3C2E] text-[#788477]'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                             isDone
-                              ? 'bg-emerald-600 text-white'
+                              ? 'bg-[#A0C878] text-[#26352A]'
                               : isProcessing
-                              ? 'bg-sky-600 text-white animate-pulse'
-                              : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                              ? 'bg-[#A0C878] text-[#26352A] animate-pulse'
+                              : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052]'
                           }`}
                         >
                           {isDone ? '✓' : idx + 1}
                         </div>
                         <div>
-                          <div className="text-xs font-bold text-slate-900 dark:text-white">{step.title}</div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400">{step.subtitle}</div>
+                          <div className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED]">{step.title}</div>
+                          <div className="text-[11px] text-[#788477] dark:text-[#859483]">{step.subtitle}</div>
                         </div>
                       </div>
 
                       <div className="text-xs font-mono font-medium">
                         {isDone ? (
-                          <span className="text-emerald-700 dark:text-emerald-400 font-bold">Complete</span>
+                          <span className="text-[#A0C878] font-bold">Complete</span>
                         ) : isProcessing ? (
-                          <span className="text-sky-700 dark:text-sky-400 font-bold">Processing...</span>
+                          <span className="text-[#26352A] dark:text-[#A0C878] font-bold">Processing...</span>
                         ) : (
-                          <span className="text-slate-400">Waiting</span>
+                          <span className="text-[#788477]">Waiting</span>
                         )}
                       </div>
                     </div>
@@ -467,19 +467,19 @@ export const SimulationSetupPage: React.FC = () => {
               </div>
 
               {!isRunning && currentProgressIndex >= 5 && (
-                <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="p-4 rounded-xl bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40 border border-[#A0C878] flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-[#A0C878] shrink-0" />
                     <div>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white">Power-Flow Simulation Complete</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                      <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED]">Power-Flow Simulation Complete</div>
+                      <div className="text-xs text-[#506052] dark:text-[#C2CCC0]">
                         Nodal voltages, branch ampacities, and violations have been calculated and synced with the Digital Twin.
                       </div>
                     </div>
                   </div>
 
                   <Button
-                    variant="success"
+                    variant="primary"
                     size="md"
                     rightIcon={<ArrowRight className="w-4 h-4" />}
                     onClick={handleViewResults}
@@ -504,3 +504,5 @@ export const SimulationSetupPage: React.FC = () => {
     </PageContainer>
   )
 }
+
+export default SimulationSetupPage

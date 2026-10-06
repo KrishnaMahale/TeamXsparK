@@ -47,7 +47,7 @@ export const DomesticVoltageProfileChart: React.FC = () => {
       <CardHeader
         title="Feeder Voltage Profile (Distance vs. Voltage)"
         subtitle="Reverse power flow voltage rise along 290m residential low-voltage feeder"
-        icon={<Activity className="w-4 h-4 text-sky-500" />}
+        icon={<Activity className="w-4 h-4 text-[#A0C878]" />}
         action={
           <Badge variant={isOverVoltage ? 'danger' : 'success'} size="sm">
             {isOverVoltage ? `Peak: ${maxV} V (> 253V Limit)` : `Peak: ${maxV} V (Compliant)`}
@@ -62,25 +62,25 @@ export const DomesticVoltageProfileChart: React.FC = () => {
               data={chartData}
               margin={{ top: 10, right: 20, left: 0, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#E2E8F0'} vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#2A3A2C' : '#DDD9C9'} vertical={false} />
               
               <XAxis
                 dataKey="distance"
-                stroke={isDark ? '#94A3B8' : '#64748B'}
+                stroke={isDark ? '#A0B0A2' : '#788477'}
                 fontSize={11}
                 tickFormatter={(val) => `${val}m`}
                 label={{
                   value: 'Distance along street cable from transformer (meters)',
                   position: 'insideBottom',
                   offset: -12,
-                  fill: isDark ? '#94A3B8' : '#64748B',
+                  fill: isDark ? '#A0B0A2' : '#788477',
                   fontSize: 10,
                 }}
               />
 
               <YAxis
                 domain={[215, 260]}
-                stroke={isDark ? '#94A3B8' : '#64748B'}
+                stroke={isDark ? '#A0B0A2' : '#788477'}
                 fontSize={11}
                 tickFormatter={(val) => `${val}V`}
               />
@@ -102,12 +102,12 @@ export const DomesticVoltageProfileChart: React.FC = () => {
               {/* Nominal Reference Line (230 V / 1.00 pu) */}
               <ReferenceLine
                 y={230.0}
-                stroke="#16A34A"
+                stroke="#A0C878"
                 strokeDasharray="3 3"
-                strokeWidth={1}
+                strokeWidth={1.5}
                 label={{
                   value: 'Nominal 230V',
-                  fill: '#16A34A',
+                  fill: '#A0C878',
                   fontSize: 10,
                   position: 'insideBottomLeft',
                 }}
@@ -116,7 +116,7 @@ export const DomesticVoltageProfileChart: React.FC = () => {
               {/* Warning Threshold Line (248 V) */}
               <ReferenceLine
                 y={248.0}
-                stroke="#F59E0B"
+                stroke="#D97706"
                 strokeDasharray="2 2"
                 strokeWidth={1}
               />
@@ -128,24 +128,24 @@ export const DomesticVoltageProfileChart: React.FC = () => {
                     const v = data.voltage
                     const isCrit = v > 253.0
                     return (
-                      <div className="bg-[var(--surface-elevated)] border border-[var(--border)] p-2.5 rounded-lg shadow-xl text-xs space-y-1">
-                        <div className="font-bold text-[var(--text-primary)]">{data.name}</div>
-                        <div className="text-[var(--text-muted)]">
-                          Distance: <span className="text-[var(--text-primary)] font-mono">{data.distance} m</span>
+                      <div className="bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2A3A2C] p-2.5 rounded-lg shadow-xl text-xs space-y-1">
+                        <div className="font-bold text-[#26352A] dark:text-[#E8F0E6]">{data.name}</div>
+                        <div className="text-[#788477]">
+                          Distance: <span className="text-[#26352A] dark:text-[#E8F0E6] font-mono">{data.distance} m</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-[var(--text-muted)]">Terminal Voltage:</span>
+                          <span className="text-[#788477]">Terminal Voltage:</span>
                           <span
                             className={`font-mono font-bold ${
-                              isCrit ? 'text-red-500' : 'text-emerald-500'
+                              isCrit ? 'text-red-600' : 'text-[#A0C878]'
                             }`}
                           >
                             {v} V ({(v / 230).toFixed(3)} pu)
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-[var(--text-muted)]">Net Flow at Node:</span>
-                          <span className="font-mono text-amber-500 dark:text-amber-400 font-bold">
+                          <span className="text-[#788477]">Net Flow at Node:</span>
+                          <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">
                             {data.netKw > 0 ? `+${data.netKw} kW (Export)` : `${data.netKw} kW (Import)`}
                           </span>
                         </div>
@@ -159,18 +159,18 @@ export const DomesticVoltageProfileChart: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="voltage"
-                stroke="#0284C7"
+                stroke="#A0C878"
                 strokeWidth={2.5}
                 dot={{
-                  r: 5,
-                  fill: isDark ? '#0F172A' : '#FFFFFF',
-                  stroke: '#0284C7',
+                  r: 4,
+                  fill: isDark ? '#151F17' : '#FFFDF6',
+                  stroke: '#A0C878',
                   strokeWidth: 2,
                 }}
                 activeDot={{
-                  r: 7,
-                  fill: '#0284C7',
-                  stroke: '#FFFFFF',
+                  r: 6,
+                  fill: '#A0C878',
+                  stroke: '#FFFDF6',
                   strokeWidth: 2,
                 }}
               />
@@ -179,11 +179,11 @@ export const DomesticVoltageProfileChart: React.FC = () => {
         </div>
 
         {/* Concise Key Insight */}
-        <div className="p-2.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-xs text-[var(--text-secondary)] flex items-center justify-between gap-3">
+        <div className="p-2.5 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2A3A2C] text-xs text-[#506052] dark:text-[#A0B0A2] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-sky-500 shrink-0" />
+            <Info className="w-4 h-4 text-[#A0C878] shrink-0" />
             <span>
-              <strong className="text-[var(--text-primary)]">Voltage Trend:</strong> Solar export from houses raises voltage along the street, peaking at end-of-line residences ({maxV}V at 290m).
+              <strong className="text-[#26352A] dark:text-[#E8F0E6]">Voltage Trend:</strong> Solar export from houses raises voltage along the street, peaking at end-of-line residences ({maxV}V at 290m).
             </span>
           </div>
           <Badge variant={isOverVoltage ? 'danger' : 'success'} size="sm">
