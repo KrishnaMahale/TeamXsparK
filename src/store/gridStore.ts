@@ -49,8 +49,8 @@ export const useGridStore = create<GridState>((set, get) => ({
     id: 'B3',
     data: mockNetwork.buses.find((b) => b.id === 'B3')!,
   },
-  violations: mockViolations,
-  violationSummary: getViolationSummary(mockViolations),
+  violations: [],
+  violationSummary: getViolationSummary([]),
   isInitialized: false,
   isResolved: false,
   activeActionApplied: null,
@@ -87,7 +87,14 @@ export const useGridStore = create<GridState>((set, get) => ({
     try {
       await gridService.setActiveGridId(gridId)
       const network = await gridService.getGrid(gridId)
-      set({ network, selectedComponent: null, isLoading: false })
+      simulationService.setActiveSimulation(null)
+      set({
+        network,
+        selectedComponent: null,
+        violations: [],
+        violationSummary: getViolationSummary([]),
+        isLoading: false,
+      })
       await get().setTime(get().currentTime)
     } catch (err: any) {
       set({ error: err.message || 'Failed to switch grid', isLoading: false })
@@ -315,12 +322,17 @@ export const useGridStore = create<GridState>((set, get) => ({
   setTime: async (time: string) => {
     set({ currentTime: time, isLoading: true })
     try {
+      const activeNetId = get().network.id
       const activeSim = simulationService.getActiveSimulation()
       let pfResult: PowerFlowResult | undefined
-      if (activeSim && activeSim.timeStepResults[time]) {
+      if (
+        activeSim &&
+        (!activeSim.input.gridId || activeSim.input.gridId === activeNetId) &&
+        activeSim.timeStepResults[time]
+      ) {
         pfResult = activeSim.timeStepResults[time]
       } else {
-        pfResult = await simulationService.runPowerFlow(time)
+        pfResult = await simulationService.runPowerFlow(time, undefined, activeNetId)
       }
       if (pfResult) {
         get().updateFromSimulationResult(pfResult, time)

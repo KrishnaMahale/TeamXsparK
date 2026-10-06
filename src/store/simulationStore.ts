@@ -90,7 +90,11 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 
   loadPreset: (presetKey) => {
+    const currentGridId = get().input.gridId || useGridStore.getState().network.id
     const newInput = createSimulationInputFromPreset(presetKey)
+    if (currentGridId) {
+      newInput.gridId = currentGridId
+    }
     set({
       input: newInput,
       activePresetKey: presetKey,
@@ -280,22 +284,36 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   fetchActions: async () => {
     set({ isRunning: true, error: null })
     try {
-      const actions = await actionService.getActions()
-      const recommended = actions.find((a) => a.id === 'ACT-02') || actions[0]
+      const activeGridId = get().input.gridId || useGridStore.getState().network.id
+      const response = await simulationService.runCorrectiveActions(undefined, activeGridId)
+      const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
       set({
-        availableActions: actions,
+        availableActions: response.availableActions,
         selectedAction: recommended,
+        comparisonData: response.comparisonData,
         isRunning: false,
       })
     } catch (err: any) {
-      set({ error: err.message || 'Failed to fetch actions', isRunning: false })
+      try {
+        const activeGridId = get().input.gridId || useGridStore.getState().network.id
+        const actions = await actionService.getActions(activeGridId)
+        const recommended = actions.find((a) => a.id === 'ACT-02') || actions[0]
+        set({
+          availableActions: actions,
+          selectedAction: recommended,
+          isRunning: false,
+        })
+      } catch (innerErr: any) {
+        set({ error: err.message || 'Failed to fetch actions', isRunning: false })
+      }
     }
   },
 
   runCorrectiveActionsAnalysis: async () => {
     set({ isRunning: true, error: null })
     try {
-      const response = await simulationService.runCorrectiveActions()
+      const activeGridId = get().input.gridId || useGridStore.getState().network.id
+      const response = await simulationService.runCorrectiveActions(undefined, activeGridId)
       const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
 
       set({
@@ -334,6 +352,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       isSafe: action.isFeasible && action.remainingViolationsCount === 0,
       renewableUseMaintainedPercent: action.renewableUtilizationPercent,
       selectedActionTitle: action.title,
+      afterViolationsCount: action.remainingViolationsCount,
     }
 
     set({
@@ -354,7 +373,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
     set({ isRunning: true, error: null })
     try {
-      const result = await simulationService.executeAction(targetAction.id)
+      const activeGridId = get().input.gridId || useGridStore.getState().network.id
+      const result = await actionService.executeAction(targetAction.id, activeGridId)
       set({
         executionResult: result,
         isRunning: false,

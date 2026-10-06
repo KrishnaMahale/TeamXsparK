@@ -165,11 +165,14 @@ class PowerFlowEngine:
         for b_id in bus_map.keys():
             net_inj[b_id] = solar_alloc.get(b_id, 0.0) + bat_alloc.get(b_id, 0.0) - load_alloc.get(b_id, 0.0)
             
-        # Very simple topological flow: assume radial from Substation (TX-MAIN)
+        if not grid.buses:
+            return [], [], 0.0, 0.0
+
+        substation_id = grid.substation.id if grid.substation else "TX-MAIN"
         # Find substation bus
         sub_bus_id = None
         for f in grid.feeders:
-            if f.fromBus == grid.substation.id:
+            if f.fromBus == substation_id:
                 sub_bus_id = f.toBus
                 break
         
@@ -238,7 +241,8 @@ class PowerFlowEngine:
             voltages[sub_bus_id] = 1.02
             calc_voltage(sub_bus_id)
             
-        tx_loading = min(120.0, round((abs(total_substation_flow) / grid.substation.ratingKva) * 100.0, 1))
+        tx_rating = grid.substation.ratingKva if (grid.substation and grid.substation.ratingKva > 0) else 500.0
+        tx_loading = min(120.0, round((abs(total_substation_flow) / tx_rating) * 100.0, 1))
 
         # Reconstruct Buses
         for b_id, b in bus_map.items():

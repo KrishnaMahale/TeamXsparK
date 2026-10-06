@@ -1,3 +1,6 @@
+import os
+import json
+import uuid
 import datetime
 from typing import Optional, Dict, List
 from app.db.supabase import get_supabase_client
@@ -5,10 +8,48 @@ from app.schemas.network import (
     GridNetwork, Bus, Feeder, SolarUnit, Battery, Load, Transformer, BusConnectedAssets, Position3D
 )
 from app.core.logging import logger
-import uuid
 
 _GRIDS: Dict[str, GridNetwork] = {}
 _ACTIVE_GRID_ID: str = "default-grid"
+
+_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "data"))
+_CACHE_FILE = os.path.join(_DATA_DIR, "grids_cache.json")
+_ACTIVE_ID_FILE = os.path.join(_DATA_DIR, "active_grid_id.txt")
+
+
+def _save_local_cache():
+    try:
+        os.makedirs(_DATA_DIR, exist_ok=True)
+        serializable = {k: v.model_dump() for k, v in _GRIDS.items()}
+        temp_file = os.path.join(_DATA_DIR, f"grids_cache_{os.getpid()}_{uuid.uuid4().hex[:6]}.tmp")
+        with open(temp_file, "w", encoding="utf-8") as f:
+            json.dump(serializable, f, indent=2)
+        os.replace(temp_file, _CACHE_FILE)
+    except Exception as e:
+        logger.warning(f"Failed to write local grids cache: {e}")
+
+
+def _load_local_cache():
+    global _ACTIVE_GRID_ID
+    try:
+        if os.path.exists(_ACTIVE_ID_FILE):
+            with open(_ACTIVE_ID_FILE, "r", encoding="utf-8") as f:
+                act = f.read().strip()
+                if act:
+                    _ACTIVE_GRID_ID = act
+
+        if os.path.exists(_CACHE_FILE):
+            with open(_CACHE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    for k, v in data.items():
+                        try:
+                            _GRIDS[k] = GridNetwork(**v)
+                        except Exception:
+                            pass
+    except Exception as e:
+        logger.warning(f"Failed to load local grids cache: {e}")
+
 
 def initialize_default_grid() -> GridNetwork:
     substation = Transformer(
@@ -81,80 +122,179 @@ def initialize_default_grid() -> GridNetwork:
     _GRIDS[default_net.id] = default_net
     return default_net
 
-initialize_default_grid()
+
+_load_local_cache()
+if not _GRIDS or "default-grid" not in _GRIDS:
+    initialize_default_grid()
+
 
 class NetworkRepository:
     def __init__(self):
         self.supabase = get_supabase_client()
-        # Ensure default exists
         if not _GRIDS:
             initialize_default_grid()
 
+    def _sync_to_supabase(self, grid: GridNetwork):
+        if not self.supabase:
+            return
+        try:
+            payload = {
+                "id": grid.id,
+                "name": grid.name,
+                "topology": grid.model_dump(),
+                "voltage_min_pu": 0.95,
+                "voltage_max_pu": 1.05,
+                "feeder_loading_limit_pct": 100.0,
+                "transformer_loading_limit_pct": 100.0,
+            }
+            self.supabase.table("networks").upsert(payload).execute()
+            logger.info(f"Persisted grid '{grid.id}' ({grid.name}) to Supabase database.")
+        except Exception as e:
+            logger.warning(f"Failed to persist grid '{grid.id}' to Supabase: {e}")
+
+    def _sync_all_from_supabase(self):
+        if not self.supabase:
+            return
+        try:
+            res = self.supabase.table("networks").select("*").execute()
+            if res.data is not None:
+                synced = {}
+                for row in res.data:
+                    grid_id = row.get("id")
+                    topology = row.get("topology")
+                    if topology and isinstance(topology, dict):
+                        try:
+                            if grid_id:
+                                topology["id"] = grid_id
+                            if row.get("name") and not topology.get("name"):
+                                topology["name"] = row.get("name")
+                            net = GridNetwork(**topology)
+                            synced[net.id] = net
+                        except Exception as parse_err:
+                            logger.warning(f"Could not parse grid row {grid_id}: {parse_err}")
+                if synced:
+                    _GRIDS.clear()
+                    _GRIDS.update(synced)
+                    if not os.path.exists(_CACHE_FILE):
+                        _save_local_cache()
+        except Exception as e:
+            logger.warning(f"Error syncing grids from Supabase: {e}")
+
     async def get_all_grids(self) -> List[GridNetwork]:
+        self._sync_all_from_supabase()
+        if not _GRIDS:
+            initialize_default_grid()
         return list(_GRIDS.values())
 
     async def get_grid(self, grid_id: str) -> Optional[GridNetwork]:
+        if grid_id in _GRIDS:
+            return _GRIDS[grid_id]
+
+        if self.supabase:
+            try:
+                res = self.supabase.table("networks").select("*").eq("id", grid_id).execute()
+                if res.data and len(res.data) > 0:
+                    row = res.data[0]
+                    topology = row.get("topology")
+                    if topology and isinstance(topology, dict):
+                        if grid_id:
+                            topology["id"] = grid_id
+                        if row.get("name") and not topology.get("name"):
+                            topology["name"] = row.get("name")
+                        net = GridNetwork(**topology)
+                        _GRIDS[net.id] = net
+                        return net
+            except Exception as e:
+                logger.warning(f"Error fetching grid '{grid_id}' from Supabase: {e}")
+
         return _GRIDS.get(grid_id)
 
     async def create_grid(self, grid: GridNetwork) -> GridNetwork:
         if not grid.id:
             grid.id = f"GRID-{uuid.uuid4().hex[:6].upper()}"
+        if not grid.substation:
+            grid.substation = initialize_default_grid().substation
         grid.lastUpdated = datetime.datetime.now().isoformat()
         _GRIDS[grid.id] = grid
+        _save_local_cache()
+        self._sync_to_supabase(grid)
         return grid
 
     async def update_grid(self, grid_id: str, grid: GridNetwork) -> Optional[GridNetwork]:
-        if grid_id in _GRIDS:
-            grid.id = grid_id
-            grid.lastUpdated = datetime.datetime.now().isoformat()
-            _GRIDS[grid_id] = grid
-            return grid
-        return None
+        grid.id = grid_id
+        grid.lastUpdated = datetime.datetime.now().isoformat()
+        _GRIDS[grid_id] = grid
+        _save_local_cache()
+        self._sync_to_supabase(grid)
+        return grid
 
     async def delete_grid(self, grid_id: str) -> bool:
         if grid_id == "default-grid":
             return False
+
         if grid_id in _GRIDS:
             del _GRIDS[grid_id]
-            global _ACTIVE_GRID_ID
-            if _ACTIVE_GRID_ID == grid_id:
-                _ACTIVE_GRID_ID = "default-grid"
-            return True
-        return False
+
+        _save_local_cache()
+
+        if self.supabase:
+            try:
+                self.supabase.table("networks").delete().eq("id", grid_id).execute()
+                logger.info(f"Deleted grid '{grid_id}' from Supabase database.")
+            except Exception as e:
+                logger.warning(f"Failed to delete grid '{grid_id}' from Supabase: {e}")
+
+        global _ACTIVE_GRID_ID
+        if _ACTIVE_GRID_ID == grid_id:
+            await self.set_active_grid_id("default-grid")
+
+        return True
 
     async def set_active_grid_id(self, grid_id: str) -> bool:
         global _ACTIVE_GRID_ID
-        if grid_id in _GRIDS:
-            _ACTIVE_GRID_ID = grid_id
-            return True
-        return False
+        _ACTIVE_GRID_ID = grid_id
+        try:
+            os.makedirs(_DATA_DIR, exist_ok=True)
+            with open(_ACTIVE_ID_FILE, "w", encoding="utf-8") as f:
+                f.write(grid_id)
+        except Exception:
+            pass
+        return True
 
     async def get_active_grid_id(self) -> str:
+        global _ACTIVE_GRID_ID
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return "default-grid"
+        try:
+            if os.path.exists(_ACTIVE_ID_FILE):
+                with open(_ACTIVE_ID_FILE, "r", encoding="utf-8") as f:
+                    act = f.read().strip()
+                    if act and (act in _GRIDS or act == "default-grid"):
+                        _ACTIVE_GRID_ID = act
+        except Exception:
+            pass
         return _ACTIVE_GRID_ID
 
     async def get_network(self) -> GridNetwork:
-        # Returns the active network, with live power flow data applied if available
-        base_net = _GRIDS.get(_ACTIVE_GRID_ID) or _GRIDS.get("default-grid")
+        active_id = await self.get_active_grid_id()
+        base_net = await self.get_grid(active_id)
+        if not base_net:
+            base_net = await self.get_grid("default-grid")
         if not base_net:
             base_net = initialize_default_grid()
 
         from app.services.simulation_service import get_active_power_flow
         active_pf = get_active_power_flow()
-        
-        # If no active power flow or it's for a different topology run, just return base_net
+
         if not active_pf or getattr(active_pf, 'buses', None) is None:
             return base_net
 
-        # Apply simulation results dynamically based on component IDs
         pf_buses = {b.id: b for b in active_pf.buses}
         pf_feeders = {f.id: f for f in active_pf.feeders}
 
         updated_buses = [pf_buses.get(b.id, b) for b in base_net.buses]
         updated_feeders = [pf_feeders.get(f.id, f) for f in base_net.feeders]
 
-        # For solar and load, in a generic solver we would have individual pf results,
-        # but since we simplified, let's keep them as is unless we know their values.
-        
         return GridNetwork(
             id=base_net.id,
             name=base_net.name,

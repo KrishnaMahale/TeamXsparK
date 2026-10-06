@@ -241,10 +241,16 @@ class DomesticDistFlowEngine:
             raw_sin = math.sin(((hours - 6.0) / 12.5) * math.pi)
             irradiance_wm2 = round(980.0 * max(0.0, raw_sin**1.1))
 
-        if preset == "OVERCAST_IMPORT":
+        if preset in ("OVERCAST_IMPORT", "CLOUDY"):
             irradiance_wm2 = round(irradiance_wm2 * 0.28)
-        elif preset == "EVENING_PEAK":
+        elif preset in ("EVENING_PEAK", "NIGHT_QUIET"):
             irradiance_wm2 = 0.0
+        elif preset in ("STORM_CLOUD_RAMP", "STORM"):
+            irradiance_wm2 = round(irradiance_wm2 * 0.15)
+        elif preset in ("NORMAL_DAY",):
+            irradiance_wm2 = round(irradiance_wm2 * 0.72)
+        elif preset in ("HIGH_SOLAR_LOW_LOAD", "HIGH_SOLAR", "SUNNY_NOON_EXPORT", "PHASE_UNBALANCE_PEAK", "EXTREME_INFEASIBLE"):
+            irradiance_wm2 = max(irradiance_wm2, 950.0)
 
         ambient_temp_c = round(22.0 + 10.0 * math.sin(((hours - 8.0) / 14.0) * math.pi), 1)
         cell_temp_c = round(ambient_temp_c + ((45.0 - 20.0) / 800.0) * irradiance_wm2, 1)
@@ -263,6 +269,12 @@ class DomesticDistFlowEngine:
 
         if preset == "EVENING_PEAK":
             load_factor = max(load_factor, 1.85)
+        elif preset == "EV_CHARGING_SURGE":
+            load_factor = max(load_factor, 2.10)
+        elif preset == "HIGH_SOLAR_LOW_LOAD":
+            load_factor = 0.35
+        elif preset == "NIGHT_QUIET":
+            load_factor = 0.30
 
         base_tx_v = 230.0
         tap_pos = 0

@@ -64,6 +64,7 @@ def generate_default_load_points() -> List[TimeSeriesLoadPoint]:
 
 
 class SimulationInput(BaseModel):
+    gridId: Optional[str] = None
     scenarioName: str = "High Solar + Low Load"
     scenarioDescription: Optional[str] = ""
     simulationDate: Optional[str] = "2026-09-25"
@@ -105,6 +106,14 @@ class BeforeAfterComparisonData(BaseModel):
     isSafe: bool = True
     renewableUseMaintainedPercent: float = 96.0
     selectedActionTitle: str = "Feeder Reconfiguration (F-02 → F-03)"
+    monitoredBusId: Optional[str] = "B3"
+    monitoredBusName: Optional[str] = "Bus 3"
+    monitoredFeederId: Optional[str] = "F-02"
+    monitoredFeederName: Optional[str] = "Feeder F-02"
+    beforeViolationsCount: Optional[int] = 2
+    afterViolationsCount: Optional[int] = 0
+    gridId: Optional[str] = None
+    gridName: Optional[str] = None
 
 
 class PowerFlowResult(BaseModel):
@@ -154,6 +163,7 @@ class SimulationResponse(BaseModel):
 class SingleTimePowerFlowRequest(BaseModel):
     time: str = "13:15"
     scenarioId: Optional[str] = None
+    gridId: Optional[str] = None
 
 
 class SimulationCreateRequest(BaseModel):

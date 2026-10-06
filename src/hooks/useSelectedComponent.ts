@@ -1,11 +1,11 @@
+import { useMemo } from 'react'
 import { useGridStore } from '../store/gridStore'
-import { ComponentSelection } from '../types/network'
 
 export const useSelectedComponent = () => {
   const { selectedComponent, setSelectedComponent, network } = useGridStore()
 
-  // Always keep selected data synced with live network changes
-  const liveSelectedData = (() => {
+  // Always keep selected data synced with live network changes, memoized to prevent infinite re-renders
+  const liveSelectedData = useMemo(() => {
     if (!selectedComponent) return null
 
     if (selectedComponent.type === 'bus') {
@@ -29,10 +29,10 @@ export const useSelectedComponent = () => {
       return load ? { type: 'load' as const, id: load.id, data: load } : selectedComponent
     }
     if (selectedComponent.type === 'transformer') {
-      return { type: 'transformer' as const, id: network.substation.id, data: network.substation }
+      return { type: 'transformer' as const, id: network.substation?.id || 'SUB', data: network.substation }
     }
     return selectedComponent
-  })()
+  }, [selectedComponent?.type, selectedComponent?.id, selectedComponent?.data, network])
 
   return {
     selectedComponent: liveSelectedData,

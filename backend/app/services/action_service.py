@@ -12,7 +12,6 @@ from app.schemas.simulation import (
     PowerFlowResult,
     SimulationInput,
 )
-from app.engine.actions import ActionEngine
 from app.engine.network_engine import NetworkEngine
 from app.core.exceptions import ResourceNotFoundException
 
@@ -28,9 +27,11 @@ class ActionService:
         input_data = simulation_input or SimulationInput()
         from app.db.repositories.network_repository import NetworkRepository
         repo = NetworkRepository()
-        grid = await repo.get_grid(await repo.get_active_grid_id())
+        target_grid_id = input_data.gridId or await repo.get_active_grid_id()
+        grid = await repo.get_grid(target_grid_id)
         if not grid:
             grid = await repo.get_network()
+
         full_res = NetworkEngine.run_full_simulation(input_data, grid)
         peak_key = "13:15" if "13:15" in full_res.timeStepResults else list(full_res.timeStepResults.keys())[0]
         peak_flow = full_res.timeStepResults[peak_key]
@@ -42,104 +43,80 @@ class ActionService:
             comparisonData=full_res.comparisonData,
         )
 
-    async def execute_action(self, action_id: str) -> ActionExecutionResult:
+    async def execute_action(self, action_id: str, grid_id: Optional[str] = None) -> ActionExecutionResult:
         now_str = datetime.datetime.now().isoformat()
+        from app.db.repositories.network_repository import NetworkRepository
+        from app.services.simulation_service import get_active_simulation
 
-        # Action parameters mapping based on action_id
-        if action_id == "ACT-01": # Battery Discharge
-            result = ActionExecutionResult(
-                actionId="ACT-01",
-                executedAt=now_str,
-                success=True,
-                message="Battery discharged 40 kW into Bus 3. Local voltage rise mitigated to 1.045 pu.",
-                beforeState=ActionStateSnapshot(
-                    b3Voltage=1.074,
-                    f02LoadingPercent=108.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=62.0,
-                    violationsCount=2,
-                ),
-                afterState=ActionAfterStateSnapshot(
-                    b3Voltage=1.045,
-                    f02LoadingPercent=98.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=48.0,
-                    violationsCount=0,
-                    renewableUseMaintainedPercent=100.0,
-                    isSafe=True,
-                ),
-            )
-        elif action_id == "ACT-02": # Feeder Reconfiguration
-            result = ActionExecutionResult(
-                actionId="ACT-02",
-                executedAt=now_str,
-                success=True,
-                message="Feeder switch executed: F-02 open, tie-line F-03 closed. Line loading reduced to 92%.",
-                beforeState=ActionStateSnapshot(
-                    b3Voltage=1.074,
-                    f02LoadingPercent=108.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=62.0,
-                    violationsCount=2,
-                ),
-                afterState=ActionAfterStateSnapshot(
-                    b3Voltage=1.038,
-                    f02LoadingPercent=92.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=62.0,
-                    violationsCount=0,
-                    renewableUseMaintainedPercent=100.0,
-                    isSafe=True,
-                ),
-            )
-        elif action_id == "ACT-03": # Solar Curtailment
-            result = ActionExecutionResult(
-                actionId="ACT-03",
-                executedAt=now_str,
-                success=True,
-                message="Rooftop solar curtailed by 30 kW at Bus 3. Over-voltage condition eliminated.",
-                beforeState=ActionStateSnapshot(
-                    b3Voltage=1.074,
-                    f02LoadingPercent=108.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=62.0,
-                    violationsCount=2,
-                ),
-                afterState=ActionAfterStateSnapshot(
-                    b3Voltage=1.032,
-                    f02LoadingPercent=90.0,
-                    solarUsedKw=210.0,
-                    batterySocPercent=62.0,
-                    violationsCount=0,
-                    renewableUseMaintainedPercent=87.5,
-                    isSafe=True,
-                ),
-            )
-        elif action_id == "ACT-04": # Max Battery Discharge (Infeasible demonstration)
-            result = ActionExecutionResult(
-                actionId="ACT-04",
-                executedAt=now_str,
-                success=False,
-                message="Action Rejected: Requested battery discharge exceeds safe minimum depth of discharge (15% <= 20% safe floor).",
-                beforeState=ActionStateSnapshot(
-                    b3Voltage=1.074,
-                    f02LoadingPercent=108.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=15.0,
-                    violationsCount=2,
-                ),
-                afterState=ActionAfterStateSnapshot(
-                    b3Voltage=1.068,
-                    f02LoadingPercent=105.0,
-                    solarUsedKw=240.0,
-                    batterySocPercent=15.0,
-                    violationsCount=2,
-                    renewableUseMaintainedPercent=100.0,
-                    isSafe=False,
-                ),
+        repo = NetworkRepository()
+        target_grid_id = grid_id or await repo.get_active_grid_id()
+        grid = await repo.get_grid(target_grid_id)
+        if not grid:
+            grid = await repo.get_network()
+
+        # Get active simulation or run for current grid
+        active_sim = get_active_simulation()
+        if not active_sim or (active_sim.input and active_sim.input.gridId and active_sim.input.gridId != target_grid_id):
+            full_res = NetworkEngine.run_full_simulation(SimulationInput(gridId=target_grid_id), grid)
+        else:
+            full_res = active_sim
+
+        target_action = next((a for a in full_res.availableActions if a.id == action_id), None)
+        if not target_action:
+            raise ResourceNotFoundException("Action", action_id)
+
+        comp = full_res.comparisonData
+        crit_bus_v_before = comp.b3Voltage.before
+        crit_f_load_before = comp.f02Loading.before
+        base_viols = comp.beforeViolationsCount if comp.beforeViolationsCount is not None else 2
+
+        v_after = target_action.expectedVoltagePu
+        f_after = target_action.expectedFeederLoadPercent
+        viols_after = target_action.remainingViolationsCount
+        is_safe = target_action.isFeasible and viols_after == 0
+
+        if target_action.isFeasible:
+            msg = (
+                f"{target_action.title} executed successfully on {grid.name}. "
+                f"Monitored voltage adjusted to {v_after:.3f} pu, feeder loading to {f_after:.1f}%."
             )
         else:
-            raise ResourceNotFoundException("Action", action_id)
+            msg = f"Action Rejected: {target_action.infeasibleReason or 'Operating constraint violation.'}"
+
+        result = ActionExecutionResult(
+            actionId=action_id,
+            executedAt=now_str,
+            success=target_action.isFeasible,
+            message=msg,
+            beforeState=ActionStateSnapshot(
+                b3Voltage=crit_bus_v_before,
+                f02LoadingPercent=crit_f_load_before,
+                solarUsedKw=comp.solarUsed.before,
+                batterySocPercent=comp.batterySoc.before,
+                violationsCount=base_viols,
+                monitoredBusId=comp.monitoredBusId,
+                monitoredBusName=comp.monitoredBusName,
+                monitoredFeederId=comp.monitoredFeederId,
+                monitoredFeederName=comp.monitoredFeederName,
+                gridId=grid.id,
+                gridName=grid.name,
+            ),
+            afterState=ActionAfterStateSnapshot(
+                b3Voltage=v_after,
+                f02LoadingPercent=f_after,
+                solarUsedKw=target_action.solarUsedKw,
+                batterySocPercent=target_action.batterySocPercent,
+                violationsCount=viols_after,
+                renewableUseMaintainedPercent=target_action.renewableUtilizationPercent,
+                isSafe=is_safe,
+                monitoredBusId=comp.monitoredBusId,
+                monitoredBusName=comp.monitoredBusName,
+                monitoredFeederId=comp.monitoredFeederId,
+                monitoredFeederName=comp.monitoredFeederName,
+                gridId=grid.id,
+                gridName=grid.name,
+            ),
+        )
 
         await self.repository.save_execution_result(result)
         return result

@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button'
 import { useViolations } from '../hooks/useViolations'
 import { GridViolation } from '../types/violation'
 import { useNavigate } from 'react-router-dom'
+import { useGridStore } from '../store/gridStore'
 import {
   AlertTriangle,
   AlertCircle,
@@ -15,6 +16,7 @@ import {
   ArrowRight,
   ShieldCheck,
   MapPin,
+  Cpu,
 } from 'lucide-react'
 
 export const ViolationsPage: React.FC = () => {
@@ -28,6 +30,7 @@ export const ViolationsPage: React.FC = () => {
     handleSelectViolation,
   } = useViolations()
 
+  const { network } = useGridStore()
   const navigate = useNavigate()
 
   const onRowClick = (item: GridViolation) => {
@@ -38,16 +41,22 @@ export const ViolationsPage: React.FC = () => {
   return (
     <PageContainer
       title="Grid Health & Violations Log"
-      subtitle="Chronological log of voltage, line ampacity, and transformer constraint violations"
+      subtitle={`Chronological log of voltage, line ampacity, and transformer constraint violations for ${network.name} (${network.id})`}
       actions={
-        <Button
-          variant="primary"
-          size="sm"
-          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-          onClick={() => navigate('/actions')}
-        >
-          Evaluate Corrective Actions
-        </Button>
+        <div className="flex items-center gap-2.5">
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+            <Cpu className="w-3.5 h-3.5 text-[#A0C878]" />
+            <span>{network.name}</span>
+          </span>
+          <Button
+            variant="primary"
+            size="sm"
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+            onClick={() => navigate('/actions')}
+          >
+            Evaluate Corrective Actions
+          </Button>
+        </div>
       }
     >
       <div className="space-y-6">
@@ -160,8 +169,12 @@ export const ViolationsPage: React.FC = () => {
             {violations.length === 0 ? (
               <div className="p-12 text-center text-[#788477] dark:text-[#859483]">
                 <ShieldCheck className="w-10 h-10 text-[#A0C878] mx-auto mb-2" />
-                <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED]">No Violations Found</div>
-                <p className="text-xs text-[#788477] dark:text-[#859483] mt-1">All distribution assets satisfy statutory operating bounds.</p>
+                <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                  No Violations Detected on {network.name}
+                </div>
+                <p className="text-xs text-[#788477] dark:text-[#859483] mt-1">
+                  All {network.buses.length} buses and {network.feeders.length} branches satisfy statutory voltage and thermal constraints.
+                </p>
               </div>
             ) : (
               <table className="w-full text-xs text-left border-collapse min-w-[700px]">

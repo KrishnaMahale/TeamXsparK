@@ -18,6 +18,9 @@ class CorrectiveAction(BaseModel):
     resolvedViolationsCount: int = 0
     remainingViolationsCount: int = 0
     renewableUtilizationPercent: float = 100.0
+    targetComponentId: Optional[str] = None
+    targetComponentName: Optional[str] = None
+    gridId: Optional[str] = None
 
 
 class ActionComparisonRow(BaseModel):
@@ -38,6 +41,12 @@ class ActionStateSnapshot(BaseModel):
     solarUsedKw: float
     batterySocPercent: float
     violationsCount: int
+    monitoredBusId: Optional[str] = "B3"
+    monitoredBusName: Optional[str] = "Bus 3"
+    monitoredFeederId: Optional[str] = "F-02"
+    monitoredFeederName: Optional[str] = "Feeder F-02"
+    gridId: Optional[str] = None
+    gridName: Optional[str] = None
 
 
 class ActionAfterStateSnapshot(ActionStateSnapshot):

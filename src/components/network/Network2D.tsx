@@ -13,6 +13,8 @@ import {
   RotateCcw,
   RotateCw,
   Compass,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react'
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
@@ -31,6 +33,46 @@ export const Network2D: React.FC = () => {
   const [isPanning, setIsPanning] = useState(false)
   const dragStartRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Toggle Full Screen View
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return
+    if (!isFullscreen && !document.fullscreenElement) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {
+          setIsFullscreen(true)
+        })
+      } else {
+        setIsFullscreen(true)
+      }
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {
+          setIsFullscreen(false)
+        })
+      } else {
+        setIsFullscreen(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement && document.fullscreenElement === containerRef.current))
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen && !document.fullscreenElement) {
+        setIsFullscreen(false)
+      }
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isFullscreen])
 
   // Non-passive wheel listener to zoom smoothly without scrolling the page
   useEffect(() => {
@@ -157,7 +199,11 @@ export const Network2D: React.FC = () => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
-      className="relative w-full h-[540px] flex items-center justify-center overflow-hidden bg-white dark:bg-[#0B1220] rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4 transition-colors select-none"
+      className={`relative w-full flex items-center justify-center overflow-hidden transition-all select-none ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-white dark:bg-[#0B1220] p-4'
+          : 'h-[580px] xl:h-[620px] rounded-xl bg-white dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4'
+      }`}
     >
       {/* Subtle Grid Background */}
       <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03] bg-[radial-gradient(#0284C7_1px,transparent_1px)] dark:bg-[radial-gradient(#38BDF8_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
@@ -806,6 +852,28 @@ export const Network2D: React.FC = () => {
             <span className="text-sky-400">Rotated {rotation}°</span>
           </>
         )}
+      </div>
+
+      {/* Fullscreen Simulation Button (Bottom-Right in highlighted position) */}
+      <div className="absolute bottom-3 right-3 z-20">
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+          title={isFullscreen ? 'Exit Full Screen' : 'Full Screen Simulation'}
+        >
+          {isFullscreen ? (
+            <>
+              <Minimize2 className="w-3.5 h-3.5 text-sky-500" />
+              <span>Exit Full Screen</span>
+            </>
+          ) : (
+            <>
+              <Maximize2 className="w-3.5 h-3.5 text-sky-500" />
+              <span>Full Screen</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

@@ -1,21 +1,18 @@
 import React from 'react'
 import { Card, CardHeader, CardContent } from '../ui/Card'
-import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
 import { SimulationInput } from '../../types/simulation'
-import { Play, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react'
 
 interface SimulationReviewCardProps {
   input: SimulationInput
-  onRunSimulation: () => void
-  isRunning: boolean
+  isRunning?: boolean
   validationErrors: string[]
 }
 
 export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
   input,
-  onRunSimulation,
-  isRunning,
+  isRunning = false,
   validationErrors,
 }) => {
   const peakSolar = Math.max(...input.solarTimeSeries.map((s) => s.solarKw), 0)
@@ -40,12 +37,15 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
         {/* Verification Matrix */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
           <div className="p-3 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C]">
-            <span className="text-[10px] text-[#788477] uppercase font-sans block">Scenario</span>
+            <span className="text-[10px] text-[#788477] uppercase font-sans flex items-center justify-between">
+              <span>Scenario</span>
+              <span className="text-[9px] text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-1 rounded border border-emerald-300 dark:border-emerald-800">DB Synced</span>
+            </span>
             <span className="text-[#26352A] dark:text-[#E8F0E6] font-bold text-sm block mt-0.5 truncate font-sans">
               {input.scenarioName}
             </span>
-            <span className="text-[10px] text-[#506052] dark:text-[#A0B0A2] block mt-0.5 font-sans">
-              {input.simulationDuration} ({dataPointsCount} intervals)
+            <span className="text-[10px] text-[#506052] dark:text-[#A0B0A2] block mt-0.5 font-sans truncate">
+              Grid: {input.gridId || 'Active Grid'} • {input.simulationDuration}
             </span>
           </div>
 
@@ -95,24 +95,10 @@ export const SimulationReviewCard: React.FC<SimulationReviewCardProps> = ({
           </div>
         )}
 
-        {/* Primary Action Button */}
-        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="text-xs text-[#788477] flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-[#A0C878]" />
-            <span>Power flow calculations will evaluate all time steps and detect constraint violations.</span>
-          </div>
-
-          <Button
-            size="lg"
-            variant="primary"
-            isLoading={isRunning}
-            disabled={!isValid}
-            leftIcon={<Play className="w-4 h-4 fill-current" />}
-            onClick={onRunSimulation}
-            className="w-full sm:w-auto px-8 font-bold tracking-wide"
-          >
-            RUN SIMULATION
-          </Button>
+        {/* Verification Note (Single execution button handled in wizard bottom navigation) */}
+        <div className="pt-2 flex items-center gap-2 text-xs text-[#788477] dark:text-[#A0B0A2]">
+          <ShieldCheck className="w-4 h-4 text-[#A0C878] shrink-0" />
+          <span>Power flow calculations will evaluate all time steps and detect constraint violations.</span>
         </div>
       </CardContent>
     </Card>

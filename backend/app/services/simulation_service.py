@@ -122,14 +122,25 @@ class SimulationService:
         sim_id = f"SIM-{uuid.uuid4().hex[:8].upper()}"
         
         repo = NetworkRepository()
-        grid = await repo.get_grid(await repo.get_active_grid_id())
+        target_grid_id = input_data.gridId or await repo.get_active_grid_id()
+        grid = await repo.get_grid(target_grid_id)
         if not grid:
             grid = await repo.get_network() # fallback
 
         res = NetworkEngine.run_full_simulation(input_data, grid)
 
         # Match scenarioId to a recognized scenario if present, else None
-        known_scenarios = {"NORMAL_DAY", "HIGH_SOLAR", "EVENING_PEAK", "HIGH_SOLAR_LOW_LOAD", "EXTREME_INFEASIBLE"}
+        known_scenarios = {
+            "NORMAL_DAY",
+            "HIGH_SOLAR",
+            "EVENING_PEAK",
+            "HIGH_SOLAR_LOW_LOAD",
+            "EXTREME_INFEASIBLE",
+            "STORM_CLOUD_RAMP",
+            "EV_CHARGING_SURGE",
+            "PHASE_UNBALANCE_PEAK",
+            "NIGHT_QUIET",
+        }
         normalized_name = input_data.scenarioName.upper().replace(" ", "_").replace("+", "")
         matched_scenario = None
         for s in known_scenarios:
@@ -154,26 +165,37 @@ class SimulationService:
             raise ResourceNotFoundException("Simulation", simulation_id)
         return res
 
-    async def run_single_power_flow(self, time: str, scenario_id: Optional[str] = None) -> PowerFlowResult:
+    async def run_single_power_flow(
+        self,
+        time: str,
+        scenario_id: Optional[str] = None,
+        grid_id: Optional[str] = None,
+    ) -> PowerFlowResult:
         global _ACTIVE_SIMULATION, _ACTIVE_POWER_FLOW
 
-        # 1. If active simulation has this exact time step already solved, return it
-        if _ACTIVE_SIMULATION and time in _ACTIVE_SIMULATION.timeStepResults:
+        repo = NetworkRepository()
+        target_grid_id = grid_id or await repo.get_active_grid_id()
+
+        # 1. If active simulation has this exact time step already solved and matches grid, return it
+        if (
+            _ACTIVE_SIMULATION
+            and (_ACTIVE_SIMULATION.input.gridId == target_grid_id or not _ACTIVE_SIMULATION.input.gridId)
+            and time in _ACTIVE_SIMULATION.timeStepResults
+        ):
             result = _ACTIVE_SIMULATION.timeStepResults[time]
             _ACTIVE_POWER_FLOW = result
             return result
 
         # 2. Get active input configuration or initialize default
-        active_input = _ACTIVE_SIMULATION.input if _ACTIVE_SIMULATION else SimulationInput()
+        active_input = _ACTIVE_SIMULATION.input if _ACTIVE_SIMULATION else SimulationInput(gridId=target_grid_id)
 
         # 3. Calculate dynamic solar and load for the exact requested timestamp
         solar_kw, load_kw = interpolate_power_at_time(time, active_input)
 
         is_alt = active_input.networkConfig.feederTopology == "alternative"
         pf_engine = PowerFlowEngine(is_alternative_topology=is_alt)
-        
-        repo = NetworkRepository()
-        grid = await repo.get_grid(await repo.get_active_grid_id())
+
+        grid = await repo.get_grid(target_grid_id)
         if not grid:
             grid = await repo.get_network()
 

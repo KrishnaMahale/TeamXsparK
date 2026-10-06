@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -12,6 +12,9 @@ import { SimulationReviewCard } from '../components/simulation/SimulationReviewC
 import { SimulationProgressModal } from '../components/simulation/SimulationProgressModal'
 import { CSVUploader } from '../components/simulation/CSVUploader'
 import { useSimulationStore } from '../store/simulationStore'
+import { useGridStore } from '../store/gridStore'
+import { gridService } from '../services/api/gridService'
+import { GridNetwork } from '../types/network'
 import { useNavigate } from 'react-router-dom'
 import {
   SlidersHorizontal,
@@ -21,6 +24,9 @@ import {
   Play,
   CheckCircle2,
   Zap,
+  Database,
+  Cpu,
+  Share2,
 } from 'lucide-react'
 
 export const SimulationSetupPage: React.FC = () => {
@@ -49,7 +55,27 @@ export const SimulationSetupPage: React.FC = () => {
     resetSimulation,
   } = useSimulationStore()
 
+  const { network, switchGrid } = useGridStore()
+  const [availableGrids, setAvailableGrids] = useState<GridNetwork[]>([])
+
   const navigate = useNavigate()
+
+  // Load all saved grids from database on mount or network change
+  useEffect(() => {
+    gridService.getGrids().then(setAvailableGrids).catch(() => {})
+  }, [network.id])
+
+  // Ensure input.gridId is synchronized with active grid
+  useEffect(() => {
+    if (!input.gridId && network.id) {
+      updateInput({ gridId: network.id })
+    }
+  }, [network.id, input.gridId, updateInput])
+
+  const handleSelectTargetGrid = async (gridId: string) => {
+    await switchGrid(gridId)
+    updateInput({ gridId })
+  }
 
   // Real-time Form Validation
   const validationErrors = useMemo(() => {
@@ -181,6 +207,76 @@ export const SimulationSetupPage: React.FC = () => {
             activePresetKey={activePresetKey}
             onSelectPreset={loadPreset}
           />
+
+          {/* Target Grid Model (Database Synced) */}
+          <Card>
+            <CardHeader
+              title={
+                <div className="flex items-center gap-2">
+                  <span>Target Grid Digital Twin</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <Database className="w-3 h-3" />
+                    Database Synced
+                  </span>
+                </div>
+              }
+              subtitle="Select which persistent grid topology from the database to run the scenario simulation on"
+              icon={<Cpu className="w-4 h-4 text-[#A0C878]" />}
+            />
+            <CardContent className="space-y-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block mb-1">
+                    Select Saved Grid Model
+                  </label>
+                  <select
+                    value={network.id}
+                    onChange={(e) => handleSelectTargetGrid(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                  >
+                    {availableGrids && availableGrids.length > 0 ? (
+                      availableGrids.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders • {g.solarUnits?.length || 0} Solar • {g.batteries?.length || 0} BESS • {g.loads?.length || 0} Loads)
+                        </option>
+                      ))
+                    ) : (
+                      <option value={network.id}>{network.name}</option>
+                    )}
+                  </select>
+                </div>
+                <div className="flex items-end pt-2 sm:pt-0">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate('/network')}
+                    leftIcon={<Share2 className="w-3.5 h-3.5" />}
+                  >
+                    Edit in Grid Configurator
+                  </Button>
+                </div>
+              </div>
+
+              {/* Grid Summary Stats */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-mono">
+                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+                  Model ID: <strong>{network.id}</strong>
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+                  {network.buses.length} Buses
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+                  {network.feeders.length} Feeders
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-amber-700 dark:text-amber-400">
+                  {network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)} kW Solar
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-emerald-700 dark:text-emerald-400">
+                  {network.batteries.reduce((acc, b) => acc + (b.capacityKwh || 0), 0)} kWh BESS
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader
@@ -378,10 +474,6 @@ export const SimulationSetupPage: React.FC = () => {
           <SimulationReviewCard
             input={input}
             validationErrors={validationErrors}
-            onRunSimulation={() => {
-              setCurrentStep(5)
-              handleRun()
-            }}
             isRunning={isRunning}
           />
 
@@ -395,12 +487,15 @@ export const SimulationSetupPage: React.FC = () => {
             </Button>
             <Button
               variant="primary"
+              size="lg"
               rightIcon={<Play className="w-4 h-4" />}
               onClick={() => {
                 setCurrentStep(5)
                 handleRun()
               }}
               disabled={validationErrors.length > 0}
+              isLoading={isRunning}
+              className="px-8 font-bold tracking-wide"
             >
               Run Power-Flow Simulation
             </Button>

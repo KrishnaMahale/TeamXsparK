@@ -14,6 +14,11 @@ class GridScenario(BaseModel):
     violationsExpected: int
     recommendedActionHint: str
     simulatedTime: str = "13:15"
+    gridType: str = "industrial"  # 'industrial' | 'domestic' | 'any'
+    peakVoltagePu: Optional[float] = None
+    maxFeederLoadingPct: Optional[float] = None
+    vufPercent: Optional[float] = None
+    tags: List[str] = Field(default_factory=list)
 
 
 class ScenarioExecutionResponse(BaseModel):
@@ -23,6 +28,17 @@ class ScenarioExecutionResponse(BaseModel):
     resolvedViolations: int
     recommendedAction: str
     isFeasible: bool
+    gridType: str = "industrial"
+    voltageMaxPu: Optional[float] = None
+    voltageMinPu: Optional[float] = None
+    feederLoadingMaxPct: Optional[float] = None
+    transformerLoadingPct: Optional[float] = None
+    lossesKw: Optional[float] = None
+    vufPercent: Optional[float] = None
+    violations: List[Dict[str, Any]] = Field(default_factory=list)
+    powerFlowResult: Optional[Dict[str, Any]] = None
+    availableActions: List[Dict[str, Any]] = Field(default_factory=list)
+    comparisonData: Optional[Dict[str, Any]] = None
 
 
 class ScenarioCreate(BaseModel):

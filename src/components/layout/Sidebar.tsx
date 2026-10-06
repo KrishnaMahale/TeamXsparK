@@ -27,7 +27,7 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     { name: 'Overview', path: '/', icon: LayoutDashboard },
     { name: 'Simulation', path: '/simulation', icon: SlidersHorizontal },
-    { name: 'Network', path: '/network', icon: Share2 },
+    { name: 'Grid Configurator', path: '/network', icon: Share2 },
     { name: 'Forecast', path: '/forecasts', icon: TrendingUp },
     {
       name: 'Violations',
@@ -76,29 +76,35 @@ export const Sidebar: React.FC = () => {
       <nav className="p-2.5 space-y-1 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
+          const isOverview = item.path === '/'
           return (
             <NavLink
               key={item.path}
               to={item.path}
+              end={isOverview}
+              title={sidebarCollapsed ? item.name : undefined}
+              aria-label={item.name}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors relative mx-0.5 ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors relative mx-0.5 select-none ${
+                  sidebarCollapsed ? 'justify-center px-2' : ''
+                } ${
                   isActive
                     ? 'bg-[#FFFDF6] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] font-bold shadow-xs'
                     : 'text-[#26352A] dark:text-[#C2CCC0] font-medium hover:text-[#18251B] dark:hover:text-[#FFFDF6] hover:bg-[#DDEB9D] dark:hover:bg-[#233325]'
                 }`
               }
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {!sidebarCollapsed && <span className="flex-1 truncate">{item.name}</span>}
+              <Icon className="w-4 h-4 shrink-0 pointer-events-none" />
+              {!sidebarCollapsed && <span className="flex-1 truncate pointer-events-none">{item.name}</span>}
               {!sidebarCollapsed && item.badge !== undefined && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${item.badgeColor}`}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold pointer-events-none ${item.badgeColor}`}
                 >
                   {item.badge}
                 </span>
               )}
               {sidebarCollapsed && item.badge !== undefined && (
-                <span className="w-2 h-2 rounded-full bg-red-600 absolute top-2 right-2 ring-2 ring-[#A0C878] dark:ring-[#1A281C]" />
+                <span className="w-2 h-2 rounded-full bg-red-600 absolute top-2 right-2 ring-2 ring-[#A0C878] dark:ring-[#1A281C] pointer-events-none" />
               )}
             </NavLink>
           )

@@ -15,6 +15,7 @@ import {
   Box,
   AlertTriangle,
   GitBranch,
+  Database,
 } from 'lucide-react'
 import { useGridStore } from '../../store/gridStore'
 import { useUIStore } from '../../store/uiStore'
@@ -312,6 +313,10 @@ export const GridManagerPanel: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-[#26352A] dark:text-[#E8F0E6]">Grid Manager</span>
             <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" title="Grid Active" />
+            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-800/80">
+              <Database className="w-2.5 h-2.5" />
+              DB Synced
+            </span>
           </div>
         }
         subtitle="Model topologies & sandbox"

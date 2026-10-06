@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   Play,
   Pause,
@@ -6,13 +7,28 @@ import {
   ChevronRight,
   Search,
   Bell,
+  Menu,
   LayoutDashboard,
+  SlidersHorizontal,
+  Share2,
+  TrendingUp,
+  AlertTriangle,
+  Wrench,
+  Layers,
+  FileText,
+  Factory,
+  Home,
 } from 'lucide-react'
 import { useTimeSimulation } from '../../hooks/useTimeSimulation'
 import { useGridStore } from '../../store/gridStore'
+import { useDomesticStore } from '../../store/domesticStore'
+import { useUIStore } from '../../store/uiStore'
 import { ThemeToggle } from '../ui/ThemeToggle'
 
 export const Header: React.FC = () => {
+  const location = useLocation()
+  const { toggleSidebar, sidebarCollapsed } = useUIStore()
+  const { gridType, setGridType } = useDomesticStore()
   const {
     currentTime,
     currentHours,
@@ -27,14 +43,85 @@ export const Header: React.FC = () => {
   const hasCritical = violationSummary.critical > 0
   const hasWarning = violationSummary.warning > 0
 
+  // Resolve active page header title and icon
+  const getPageInfo = () => {
+    const path = location.pathname
+    if (path === '/' || path === '/simulation/results') {
+      return { title: 'Overview Dashboard', icon: LayoutDashboard }
+    }
+    if (path.startsWith('/simulation')) {
+      return { title: 'Simulation Setup', icon: SlidersHorizontal }
+    }
+    if (path.startsWith('/network')) {
+      return { title: 'Grid Configurator', icon: Share2 }
+    }
+    if (path.startsWith('/forecast')) {
+      return { title: 'Predictive Forecast', icon: TrendingUp }
+    }
+    if (path.startsWith('/violations')) {
+      return { title: 'Violations & Constraints', icon: AlertTriangle }
+    }
+    if (path.startsWith('/actions')) {
+      return { title: 'Corrective Actions', icon: Wrench }
+    }
+    if (path.startsWith('/scenarios')) {
+      return { title: 'Operating Scenarios', icon: Layers }
+    }
+    if (path.startsWith('/reports')) {
+      return { title: 'Audit Reports', icon: FileText }
+    }
+    return { title: 'Dashboard', icon: LayoutDashboard }
+  }
+
+  const pageInfo = getPageInfo()
+  const PageIcon = pageInfo.icon
+
   return (
-    <header className="h-16 px-6 bg-[#FFFDF6] dark:bg-[#151F17] border-b border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between gap-4 shrink-0 z-30 select-none transition-colors duration-200">
-      {/* Left: Page Title */}
-      <div className="flex items-center gap-2.5">
-        <LayoutDashboard className="w-4.5 h-4.5 text-[#506052] dark:text-[#A0C878]" />
-        <span className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-wide">
-          Dashboard
-        </span>
+    <header className="h-16 px-4 sm:px-6 bg-[#FFFDF6] dark:bg-[#151F17] border-b border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between gap-3 shrink-0 z-30 select-none transition-colors duration-200">
+      {/* Left: Sidebar Toggle + Dynamic Page Title */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          onClick={toggleSidebar}
+          className="p-1.5 rounded-lg text-[#506052] dark:text-[#C2CCC0] hover:text-[#26352A] dark:hover:text-[#FFFDF6] hover:bg-[#DDEB9D] dark:hover:bg-[#2D3E2F] transition-colors"
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <Menu className="w-4.5 h-4.5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <PageIcon className="w-4 h-4 text-[#506052] dark:text-[#A0C878] shrink-0" />
+          <span className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-wide truncate">
+            {pageInfo.title}
+          </span>
+        </div>
+      </div>
+
+      {/* Grid Model Quick Toggle */}
+      <div className="hidden md:flex items-center bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg p-0.5 shadow-xs">
+        <button
+          onClick={() => setGridType('industrial')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+            gridType === 'industrial'
+              ? 'bg-[#A0C878] text-[#26352A] shadow-xs'
+              : 'text-[#788477] hover:text-[#26352A] dark:hover:text-[#F2F5ED]'
+          }`}
+          title="11 kV Industrial Substation Grid"
+        >
+          <Factory className="w-3.5 h-3.5" />
+          <span>11 kV Grid</span>
+        </button>
+        <button
+          onClick={() => setGridType('domestic')}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+            gridType === 'domestic'
+              ? 'bg-[#A0C878] text-[#26352A] shadow-xs'
+              : 'text-[#788477] hover:text-[#26352A] dark:hover:text-[#F2F5ED]'
+          }`}
+          title="230 V Domestic Rooftop Solar Neighborhood"
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>230 V Rooftop</span>
+        </button>
       </div>
 
       {/* Center: Time Simulation Controls */}

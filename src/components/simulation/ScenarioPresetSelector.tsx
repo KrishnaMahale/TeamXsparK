@@ -31,6 +31,10 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
     if (s.id === 'EVENING_PEAK') return 'High Demand'
     if (s.id === 'NORMAL_DAY') return 'Optimal'
     if (s.id === 'EXTREME_INFEASIBLE') return 'Action Infeasible'
+    if (s.id === 'STORM_CLOUD_RAMP') return 'Solar Ramp Drop'
+    if (s.id === 'EV_CHARGING_SURGE') return 'EV Fleet Surge'
+    if (s.id === 'PHASE_UNBALANCE_PEAK') return 'Phase Unbalance'
+    if (s.id === 'NIGHT_QUIET') return 'Nocturnal Baseload'
     return s.status ? s.status.toUpperCase() : 'Benchmark'
   }
 
@@ -44,7 +48,7 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
         <span className="text-[11px] text-gray-500">Presets loaded from database • can be modified</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-3">
         {scenarios.map((p) => {
           const isSelected = activePresetKey === p.id
 

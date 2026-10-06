@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Query, status
 from app.schemas.scenario import (
     GridScenario,
     ScenarioExecutionResponse,
@@ -57,6 +57,8 @@ async def delete_scenario(
 @router.post("/{scenario_id}/run", response_model=ScenarioExecutionResponse)
 async def run_scenario(
     scenario_id: str,
+    grid_id: Optional[str] = Query(None, description="Target network grid ID"),
+    grid_type: Optional[str] = Query(None, description="Target grid type (industrial or domestic)"),
     service: ScenarioService = Depends(get_scenario_service),
 ):
-    return await service.run_scenario(scenario_id)
+    return await service.run_scenario(scenario_id, grid_id=grid_id, grid_type=grid_type)

@@ -20,6 +20,9 @@ export interface CorrectiveAction {
   resolvedViolationsCount: number
   remainingViolationsCount: number
   renewableUtilizationPercent: number
+  targetComponentId?: string
+  targetComponentName?: string
+  gridId?: string
 }
 
 export interface ActionComparisonRow {
@@ -45,6 +48,12 @@ export interface ActionExecutionResult {
     solarUsedKw: number
     batterySocPercent: number
     violationsCount: number
+    monitoredBusId?: string
+    monitoredBusName?: string
+    monitoredFeederId?: string
+    monitoredFeederName?: string
+    gridId?: string
+    gridName?: string
   }
   afterState: {
     b3Voltage: number
@@ -54,5 +63,11 @@ export interface ActionExecutionResult {
     violationsCount: number
     renewableUseMaintainedPercent: number
     isSafe: boolean
+    monitoredBusId?: string
+    monitoredBusName?: string
+    monitoredFeederId?: string
+    monitoredFeederName?: string
+    gridId?: string
+    gridName?: string
   }
 }

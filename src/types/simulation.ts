@@ -30,6 +30,7 @@ export interface BatteryStorageConfig {
 }
 
 export interface SimulationInput {
+  gridId?: string
   scenarioName: string
   scenarioDescription: string
   simulationDate: string
@@ -86,6 +87,14 @@ export interface BeforeAfterComparisonData {
   isSafe: boolean
   renewableUseMaintainedPercent: number
   selectedActionTitle: string
+  monitoredBusId?: string
+  monitoredBusName?: string
+  monitoredFeederId?: string
+  monitoredFeederName?: string
+  beforeViolationsCount?: number
+  afterViolationsCount?: number
+  gridId?: string
+  gridName?: string
 }
 
 export interface PowerFlowResult {

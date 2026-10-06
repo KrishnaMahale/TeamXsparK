@@ -6,7 +6,7 @@ import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
 import { gridService } from '../../services/api/gridService'
-import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Compass, ArrowUp, ArrowDown } from 'lucide-react'
+import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Compass, ArrowUp, ArrowDown, Maximize2, Minimize2 } from 'lucide-react'
 import { FactoryAsset, ResidentialAsset, CommercialAsset, SolarUtilityAsset, SolarRooftopAsset } from './assets/GridAssets3D'
 
 // --- Reusable 3D Nodes ---
@@ -426,7 +426,48 @@ export const Network3D: React.FC = () => {
   const isDark = theme === 'dark'
 
   const orbitRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [positions, setPositions] = useState<Record<string, [number, number, number]>>({})
+
+  // Toggle Full Screen View
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return
+    if (!isFullscreen && !document.fullscreenElement) {
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {
+          setIsFullscreen(true)
+        })
+      } else {
+        setIsFullscreen(true)
+      }
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {
+          setIsFullscreen(false)
+        })
+      } else {
+        setIsFullscreen(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement && document.fullscreenElement === containerRef.current))
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen && !document.fullscreenElement) {
+        setIsFullscreen(false)
+      }
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isFullscreen])
   const positionsRef = useRef<Record<string, [number, number, number]>>({})
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [isDraggingNode, setIsDraggingNode] = useState(false)
@@ -444,6 +485,13 @@ export const Network3D: React.FC = () => {
 
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [connectionSource, setConnectionSource] = useState<{type: string, id: string} | null>(null)
+
+  // Ensure cursor returns to default if user navigates away while hovering or dragging in 3D
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = 'default'
+    }
+  }, [])
 
   // Initialize and synchronize 3D positions with layout spacing
   useEffect(() => {
@@ -784,7 +832,14 @@ export const Network3D: React.FC = () => {
   ]
 
   return (
-    <div className="relative w-full h-[540px] bg-slate-100 dark:bg-[#0B1220] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs transition-colors select-none">
+    <div
+      ref={containerRef}
+      className={`relative w-full transition-all select-none overflow-hidden ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-[#0B1220]'
+          : 'h-[580px] xl:h-[620px] rounded-xl bg-slate-100 dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs'
+      }`}
+    >
       
       {/* Visual Spawn & Edit Palette */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
@@ -1089,6 +1144,28 @@ export const Network3D: React.FC = () => {
         <span>Scroll: Zoom</span>
         <span>•</span>
         <span>Right-click: Pan</span>
+      </div>
+
+      {/* Fullscreen Simulation Button (Bottom-Right in highlighted position) */}
+      <div className="absolute bottom-3 right-3 z-20">
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 shadow-md transition-all cursor-pointer hover:scale-105 active:scale-95"
+          title={isFullscreen ? 'Exit Full Screen' : 'Full Screen Simulation'}
+        >
+          {isFullscreen ? (
+            <>
+              <Minimize2 className="w-3.5 h-3.5 text-sky-500" />
+              <span>Exit Full Screen</span>
+            </>
+          ) : (
+            <>
+              <Maximize2 className="w-3.5 h-3.5 text-sky-500" />
+              <span>Full Screen</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

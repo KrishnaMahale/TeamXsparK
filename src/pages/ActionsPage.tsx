@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { useCorrectiveActions } from '../hooks/useCorrectiveActions'
+import { useGridStore } from '../store/gridStore'
 import { ActionComparisonRow } from '../types/action'
 import {
   Wrench,
@@ -12,6 +13,7 @@ import {
   Network,
   Sun,
   XCircle,
+  Cpu,
 } from 'lucide-react'
 
 export const ActionsPage: React.FC = () => {
@@ -20,10 +22,19 @@ export const ActionsPage: React.FC = () => {
     selectedAction,
     isRunning,
     executionResult,
+    comparisonData,
     selectAction,
     executeAction,
     resetSimulation,
   } = useCorrectiveActions()
+
+  const { network } = useGridStore()
+  const monitoredBusName = comparisonData.monitoredBusName || comparisonData.monitoredBusId || 'Critical Bus'
+  const monitoredFeederName = comparisonData.monitoredFeederName || comparisonData.monitoredFeederId || 'Feeder'
+  const targetGridName = comparisonData.gridName || network.name || 'Selected Grid'
+  const beforeVoltage = comparisonData.b3Voltage?.before ?? 1.074
+  const beforeFeederLoading = comparisonData.f02Loading?.before ?? 108
+  const beforeViolations = comparisonData.beforeViolationsCount ?? 2
 
   const comparisonRows: ActionComparisonRow[] = useMemo(() => {
     return actions.map((a) => ({
@@ -56,9 +67,13 @@ export const ActionsPage: React.FC = () => {
   return (
     <PageContainer
       title="Corrective Actions"
-      subtitle="Evaluate available interventions against current network constraints and compare outcomes"
+      subtitle={`Evaluate available interventions against operating constraints on ${targetGridName} and compare outcomes`}
       actions={
         <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
+            <Cpu className="w-3.5 h-3.5 text-[#A0C878]" />
+            <span>{targetGridName}</span>
+          </span>
           <Button
             variant="secondary"
             size="sm"
@@ -127,7 +142,7 @@ export const ActionsPage: React.FC = () => {
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#788477] dark:text-[#859483] block text-[10px]">F-02 Loading:</span>
+                      <span className="text-[#788477] dark:text-[#859483] block text-[10px] truncate">{monitoredFeederName} Load:</span>
                       <span className="font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">
                         {action.expectedFeederLoadPercent}%
                       </span>
@@ -204,37 +219,59 @@ export const ActionsPage: React.FC = () => {
           {/* Side-by-Side BEFORE / AFTER Panels */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             {/* BEFORE Panel */}
-            <div className="p-5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-red-300 dark:border-red-900/80 shadow-xs">
+            <div className={`p-5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border ${beforeViolations > 0 ? 'border-red-300 dark:border-red-900/80' : 'border-[#DDD9C9] dark:border-[#2C3C2E]'} shadow-xs`}>
               <div className="flex items-center justify-between pb-3 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                  <span className={`w-2.5 h-2.5 rounded-full ${beforeViolations > 0 ? 'bg-red-600' : 'bg-[#A0C878]'}`} />
                   <h3 className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] uppercase">Before Dispatch</h3>
                 </div>
-                <Badge variant="danger">Unsafe</Badge>
+                <Badge variant={beforeViolations > 0 ? 'danger' : 'success'}>
+                  {beforeViolations > 0 ? 'Unsafe' : 'Nominal'}
+                </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <div className="text-xs text-[#788477] dark:text-[#859483]">Bus B3 Voltage</div>
-                  <div className="text-xl font-bold font-mono text-red-700 dark:text-red-400 mt-1">1.074 pu</div>
-                  <div className="text-[10px] text-red-600/80 dark:text-red-400/80 mt-0.5">+0.024 pu over limit (1.050)</div>
+                  <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredBusName} Voltage</div>
+                  <div className={`text-xl font-bold font-mono mt-1 ${beforeVoltage > 1.05 || beforeVoltage < 0.95 ? 'text-red-700 dark:text-red-400' : 'text-[#A0C878]'}`}>
+                    {beforeVoltage.toFixed(3)} pu
+                  </div>
+                  <div className="text-[10px] text-red-600/80 dark:text-red-400/80 mt-0.5 truncate">
+                    {beforeVoltage > 1.05
+                      ? `+${(beforeVoltage - 1.05).toFixed(3)} pu over limit (1.050)`
+                      : beforeVoltage < 0.95
+                      ? `-${(0.95 - beforeVoltage).toFixed(3)} pu under limit (0.950)`
+                      : 'Within normal bandwidth'}
+                  </div>
                 </div>
 
                 <div>
-                  <div className="text-xs text-[#788477] dark:text-[#859483]">Feeder F-02 Loading</div>
-                  <div className="text-xl font-bold font-mono text-red-700 dark:text-red-400 mt-1">108%</div>
-                  <div className="text-[10px] text-red-600/80 dark:text-red-400/80 mt-0.5">+8% above rated ampacity</div>
+                  <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredFeederName} Loading</div>
+                  <div className={`text-xl font-bold font-mono mt-1 ${beforeFeederLoading > 100 ? 'text-red-700 dark:text-red-400' : 'text-[#26352A] dark:text-[#F2F5ED]'}`}>
+                    {beforeFeederLoading.toFixed(0)}%
+                  </div>
+                  <div className="text-[10px] text-red-600/80 dark:text-red-400/80 mt-0.5 truncate">
+                    {beforeFeederLoading > 100
+                      ? `+${(beforeFeederLoading - 100).toFixed(0)}% above rated ampacity`
+                      : 'Within rated ampacity'}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-xs text-[#788477] dark:text-[#859483]">Active Violations</div>
-                  <div className="text-lg font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">2 Violations</div>
-                  <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">Critical severity</div>
+                  <div className={`text-lg font-bold font-mono mt-1 ${beforeViolations > 0 ? 'text-red-700 dark:text-red-400' : 'text-[#A0C878]'}`}>
+                    {beforeViolations} {beforeViolations === 1 ? 'Violation' : 'Violations'}
+                  </div>
+                  <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">
+                    {beforeViolations > 0 ? 'Critical severity' : 'All constraints cleared'}
+                  </div>
                 </div>
 
                 <div>
                   <div className="text-xs text-[#788477] dark:text-[#859483]">Solar Utilization</div>
-                  <div className="text-lg font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1">240 kW</div>
+                  <div className="text-lg font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1">
+                    {comparisonData.solarUsed?.before ? `${comparisonData.solarUsed.before.toFixed(0)} kW` : '240 kW'}
+                  </div>
                   <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">100% Generation</div>
                 </div>
               </div>
@@ -254,17 +291,21 @@ export const ActionsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <div className="text-xs text-[#788477] dark:text-[#859483]">Bus B3 Voltage</div>
+                  <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredBusName} Voltage</div>
                   <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
-                    {selectedAction?.isFeasible ? `${selectedAction?.expectedVoltagePu || '1.038'} pu` : '1.074 pu'}
+                    {selectedAction?.isFeasible
+                      ? `${selectedAction?.expectedVoltagePu || '1.038'} pu`
+                      : `${beforeVoltage.toFixed(3)} pu`}
                   </div>
                   <div className="text-[10px] text-[#A0C878] mt-0.5">Within IEEE 1547 (0.95 - 1.05)</div>
                 </div>
 
                 <div>
-                  <div className="text-xs text-[#788477] dark:text-[#859483]">Feeder F-02 Loading</div>
+                  <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredFeederName} Loading</div>
                   <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
-                    {selectedAction?.isFeasible ? `${selectedAction?.expectedFeederLoadPercent || '92'}%` : '108%'}
+                    {selectedAction?.isFeasible
+                      ? `${selectedAction?.expectedFeederLoadPercent || '92'}%`
+                      : `${beforeFeederLoading.toFixed(0)}%`}
                   </div>
                   <div className="text-[10px] text-[#A0C878] mt-0.5">Below 100% thermal rating</div>
                 </div>
@@ -272,9 +313,15 @@ export const ActionsPage: React.FC = () => {
                 <div>
                   <div className="text-xs text-[#788477] dark:text-[#859483]">Remaining Violations</div>
                   <div className="text-lg font-bold font-mono text-[#A0C878] mt-1">
-                    {selectedAction?.isFeasible ? '0 Violations' : '2 Violations'}
+                    {selectedAction?.isFeasible
+                      ? `${selectedAction.remainingViolationsCount ?? 0} Violations`
+                      : `${beforeViolations} Violations`}
                   </div>
-                  <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">All constraints cleared</div>
+                  <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">
+                    {selectedAction?.isFeasible && (selectedAction.remainingViolationsCount ?? 0) === 0
+                      ? 'All constraints cleared'
+                      : 'Action applied'}
+                  </div>
                 </div>
 
                 <div>
@@ -283,7 +330,7 @@ export const ActionsPage: React.FC = () => {
                     {selectedAction?.renewableUtilizationPercent || 96}%
                   </div>
                   <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">
-                    {selectedAction?.id === 'solar_curtailment' ? 'Trade-off: 12% Curtailed' : 'Clean energy maintained'}
+                    {selectedAction?.id === 'solar_curtailment' ? 'Trade-off: Curtailed' : 'Clean energy maintained'}
                   </div>
                 </div>
               </div>
@@ -295,7 +342,7 @@ export const ActionsPage: React.FC = () => {
         <Card>
           <CardHeader
             title="Compare Corrective Actions"
-            subtitle="Multi-criteria ranking of voltage relief, thermal loading, and renewable utilization"
+            subtitle={`Multi-criteria ranking of voltage relief, thermal loading, and renewable utilization on ${targetGridName}`}
             icon={<Wrench className="w-4 h-4 text-[#A0C878]" />}
           />
           <CardContent className="p-0 overflow-x-auto">
@@ -303,8 +350,8 @@ export const ActionsPage: React.FC = () => {
               <thead className="bg-[#F3EEDC] dark:bg-[#18231A] text-[#788477] dark:text-[#859483] uppercase text-[10px] tracking-wider border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
                 <tr>
                   <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">B3 Voltage</th>
-                  <th className="py-3 px-4">Feeder Load</th>
+                  <th className="py-3 px-4">{monitoredBusName} Voltage</th>
+                  <th className="py-3 px-4">{monitoredFeederName} Load</th>
                   <th className="py-3 px-4">Renewable Used</th>
                   <th className="py-3 px-4">Battery SOC</th>
                   <th className="py-3 px-4">Violations</th>

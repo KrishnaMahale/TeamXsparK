@@ -1,3 +1,4 @@
+import uuid
 from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 from app.schemas.common import ComponentStatus, ComponentType
@@ -95,14 +96,14 @@ class Transformer(BaseModel):
 
 
 class GridNetwork(BaseModel):
-    id: str = "default-grid"
-    name: str = "Default Grid"
+    id: str = Field(default_factory=lambda: f"GRID-{uuid.uuid4().hex[:6].upper()}")
+    name: str = "Custom Grid"
     gridConnectionStatus: str = "connected"
     gridFrequencyHz: float = 50.0
-    substation: Transformer
-    buses: List[Bus]
-    feeders: List[Feeder]
-    solarUnits: List[SolarUnit]
-    batteries: List[Battery]
-    loads: List[Load]
-    lastUpdated: str
+    substation: Optional[Transformer] = None
+    buses: List[Bus] = Field(default_factory=list)
+    feeders: List[Feeder] = Field(default_factory=list)
+    solarUnits: List[SolarUnit] = Field(default_factory=list)
+    batteries: List[Battery] = Field(default_factory=list)
+    loads: List[Load] = Field(default_factory=list)
+    lastUpdated: Optional[str] = None

@@ -369,13 +369,14 @@ export const simulationService = {
   /**
    * Run power-flow analysis for a single timestamp
    */
-  async runPowerFlow(time: string, scenarioId?: string): Promise<PowerFlowResult> {
+  async runPowerFlow(time: string, scenarioId?: string, gridId?: string): Promise<PowerFlowResult> {
     if (IS_MOCK_API) {
       await simulateLatency(150)
       if (activeSimulationCache && activeSimulationCache.timeStepResults[time]) {
         return activeSimulationCache.timeStepResults[time]
       }
       const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
+      if (gridId) defaultInput.gridId = gridId
       const full = activeSimulationCache || runMockPowerFlow(defaultInput)
       activeSimulationCache = full
 
@@ -411,6 +412,7 @@ export const simulationService = {
     const response = await apiClient.post<PowerFlowResult>('/simulation/power-flow', {
       time,
       scenarioId,
+      gridId,
     })
     return response.data
   },
@@ -418,10 +420,11 @@ export const simulationService = {
   /**
    * Run and evaluate corrective actions
    */
-  async runCorrectiveActions(violationIds?: string[]): Promise<SimulationResponse> {
+  async runCorrectiveActions(violationIds?: string[], gridId?: string): Promise<SimulationResponse> {
     if (IS_MOCK_API) {
       await simulateLatency(450)
       const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
+      if (gridId) defaultInput.gridId = gridId
       const full = runMockPowerFlow(defaultInput)
       const peak = full.timeStepResults['13:15'] || Object.values(full.timeStepResults)[0]
 
@@ -432,22 +435,28 @@ export const simulationService = {
         comparisonData: full.comparisonData,
       }
     }
-    const response = await apiClient.post<SimulationResponse>('/simulation/corrective-actions', {
-      violationIds,
-    })
+    const response = await apiClient.post<SimulationResponse>(
+      '/simulation/corrective-actions',
+      { violationIds },
+      { params: gridId ? { grid_id: gridId } : undefined }
+    )
     return response.data
   },
 
   /**
    * Execute a specific corrective action
    */
-  async executeAction(actionId: string): Promise<ActionExecutionResult> {
+  async executeAction(actionId: string, gridId?: string): Promise<ActionExecutionResult> {
     if (IS_MOCK_API) {
       await simulateLatency(400)
       const action = mockCorrectiveActions.find((a) => a.id === actionId) || mockCorrectiveActions[0]
       return createExecutionResult(action)
     }
-    const response = await apiClient.post<ActionExecutionResult>(`/simulation/actions/${actionId}/execute`)
+    const response = await apiClient.post<ActionExecutionResult>(
+      `/simulation/actions/${actionId}/execute`,
+      null,
+      { params: gridId ? { grid_id: gridId } : undefined }
+    )
     return response.data
   },
 }

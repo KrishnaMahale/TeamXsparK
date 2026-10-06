@@ -81,7 +81,7 @@ class ConstraintChecker:
                         formattedLimit=f"{feeder_max_pct:.0f}%",
                         severity=ViolationSeverity.CRITICAL,
                         status="active",
-                        recommendationHint="Shift tie-line branch flow to Feeder F-03",
+                        recommendationHint=f"Shift branch load from {feeder.name} via tie-switch or dispatch local BESS",
                     )
                 )
         return violations

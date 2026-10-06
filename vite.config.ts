@@ -14,7 +14,20 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    watch: {
+      ignored: [
+        '**/backend/**',
+        '**/data/**',
+        '**/.venv/**',
+        '**/scratch/**',
+        '**/.system_generated/**',
+        '**/*.json.tmp*',
+      ],
+    },
+  },
   build: {
     chunkSizeWarningLimit: 2000,
   },
 })
+

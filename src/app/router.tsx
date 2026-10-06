@@ -1,5 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
+import { RouteError } from '../components/layout/RouteError'
 import { DashboardPage } from '../pages/DashboardPage'
 import { SimulationSetupPage } from '../pages/SimulationSetupPage'
 import { NetworkPage } from '../pages/NetworkPage'
@@ -13,8 +14,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'overview', element: <Navigate to="/" replace /> },
       { path: 'simulation', element: <SimulationSetupPage /> },
       { path: 'simulation/results', element: <DashboardPage /> },
       { path: 'network', element: <NetworkPage /> },
@@ -24,6 +27,8 @@ export const router = createBrowserRouter([
       { path: 'actions', element: <ActionsPage /> },
       { path: 'scenarios', element: <ScenariosPage /> },
       { path: 'reports', element: <ReportsPage /> },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])
+

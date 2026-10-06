@@ -76,24 +76,27 @@ async def run_power_flow(
     request: SingleTimePowerFlowRequest,
     sim_service: SimulationService = Depends(get_sim_service),
 ):
-    return await sim_service.run_single_power_flow(request.time, request.scenarioId)
+    return await sim_service.run_single_power_flow(request.time, request.scenarioId, request.gridId)
 
 
 # 3. Corrective Actions Evaluation (Used by simulationService.runCorrectiveActions)
 @router.post("/simulation/corrective-actions", response_model=SimulationResponse)
 async def run_corrective_actions(
+    grid_id: Optional[str] = None,
     act_service: ActionService = Depends(get_act_service),
 ):
-    return await act_service.evaluate_actions_for_simulation()
+    inp = SimulationInput(gridId=grid_id) if grid_id else None
+    return await act_service.evaluate_actions_for_simulation(inp)
 
 
 # 4. Action Execution (Used by simulationService.executeAction)
 @router.post("/simulation/actions/{action_id}/execute", response_model=ActionExecutionResult)
 async def execute_action(
     action_id: str,
+    grid_id: Optional[str] = None,
     act_service: ActionService = Depends(get_act_service),
 ):
-    return await act_service.execute_action(action_id)
+    return await act_service.execute_action(action_id, grid_id=grid_id)
 
 
 @router.post("/simulations/{simulation_id}/actions/{action_id}/simulate", response_model=ActionExecutionResult)

@@ -50,23 +50,30 @@ export const ComponentDetailsPanel: React.FC = () => {
     if (!selectedComponent) return
 
     const { type, data } = selectedComponent
+    let next: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }
+
     if (type === 'bus') {
       const b = data as Bus
-      setCoords({ x: b.position?.x ?? 0, y: b.position?.y ?? 0.6, z: b.position?.z ?? 0 })
+      next = { x: b.position?.x ?? 0, y: b.position?.y ?? 0.6, z: b.position?.z ?? 0 }
     } else if (type === 'solar') {
       const s = data as SolarUnit
-      setCoords({ x: s.position?.x ?? 0, y: s.position?.y ?? 0, z: s.position?.z ?? 0 })
+      next = { x: s.position?.x ?? 0, y: s.position?.y ?? 0, z: s.position?.z ?? 0 }
     } else if (type === 'battery') {
       const b = data as Battery
-      setCoords({ x: b.position?.x ?? 0, y: b.position?.y ?? 0, z: b.position?.z ?? 0 })
+      next = { x: b.position?.x ?? 0, y: b.position?.y ?? 0, z: b.position?.z ?? 0 }
     } else if (type === 'load') {
       const l = data as Load
-      setCoords({ x: l.position?.x ?? 0, y: l.position?.y ?? 0, z: l.position?.z ?? 0 })
+      next = { x: l.position?.x ?? 0, y: l.position?.y ?? 0, z: l.position?.z ?? 0 }
     } else if (type === 'transformer' || type === 'substation') {
       const sub = network.substation
-      setCoords({ x: sub?.position?.x ?? 0, y: sub?.position?.y ?? 0.6, z: sub?.position?.z ?? -10 })
+      next = { x: sub?.position?.x ?? 0, y: sub?.position?.y ?? 0.6, z: sub?.position?.z ?? -10 }
     }
-  }, [selectedComponent, network.substation])
+
+    setCoords((prev) => {
+      if (prev.x === next.x && prev.y === next.y && prev.z === next.z) return prev
+      return next
+    })
+  }, [selectedComponent?.type, selectedComponent?.id, network.substation?.position?.x, network.substation?.position?.y, network.substation?.position?.z])
 
   const toggleSection = (key: keyof typeof openSections) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))

@@ -39,10 +39,8 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-5 lg:p-6 space-y-6 w-full min-w-0">
-      {/* Primary Grid Type Switcher (Hidden in this layout or moved) */}
-      <div className="hidden">
-        <GridTypeSwitcher />
-      </div>
+      {/* Primary Grid Type Switcher */}
+      <GridTypeSwitcher className="w-full" />
 
       {gridType === 'domestic' ? (
         <DomesticDashboardView />

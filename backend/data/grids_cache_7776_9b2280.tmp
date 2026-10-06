@@ -1,0 +1,467 @@
+{
+  "DEFAULT_GRID": {
+    "id": "DEFAULT_GRID",
+    "name": "TeamXsparK 4-Bus Feeder Network",
+    "gridConnectionStatus": "connected",
+    "gridFrequencyHz": 50.0,
+    "substation": null,
+    "buses": [
+      {
+        "id": "B1",
+        "name": "Bus 1",
+        "voltage": 1.02,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 0.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 64.0,
+        "temperatureC": 32.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-01",
+          "F-LINE-12"
+        ],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": null
+        },
+        "position": null
+      },
+      {
+        "id": "B2",
+        "name": "Bus 2",
+        "voltage": 1.01,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 90.0,
+        "solarKw": 150.0,
+        "lineLoadingPercent": 82.0,
+        "temperatureC": 35.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-LINE-12",
+          "F-02"
+        ],
+        "connectedAssets": {
+          "solar": "SOLAR-01",
+          "battery": null,
+          "load": "LOAD-01"
+        },
+        "position": null
+      },
+      {
+        "id": "B3",
+        "name": "Bus 3",
+        "voltage": 1.074,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 60.0,
+        "solarKw": 80.0,
+        "lineLoadingPercent": 108.0,
+        "temperatureC": 42.0,
+        "status": "critical",
+        "connectedFeeders": [
+          "F-02",
+          "F-04",
+          "F-03"
+        ],
+        "connectedAssets": {
+          "solar": "SOLAR-02",
+          "battery": "BAT-01",
+          "load": "LOAD-02"
+        },
+        "position": null
+      },
+      {
+        "id": "B4",
+        "name": "Bus 4",
+        "voltage": 1.0,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 120.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 52.0,
+        "temperatureC": 31.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-04"
+        ],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": "LOAD-03"
+        },
+        "position": null
+      }
+    ],
+    "feeders": [
+      {
+        "id": "F-01",
+        "name": "Feeder F-01",
+        "fromBus": "TX-MAIN",
+        "toBus": "B1",
+        "loadingPercent": 64.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 600.0,
+        "activePowerKw": 384.0,
+        "reactivePowerKvar": 72.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-LINE-12",
+        "name": "Feeder Line 1-2",
+        "fromBus": "B1",
+        "toBus": "B2",
+        "loadingPercent": 78.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 450.0,
+        "activePowerKw": 351.0,
+        "reactivePowerKvar": 60.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-02",
+        "name": "Feeder F-02",
+        "fromBus": "B2",
+        "toBus": "B3",
+        "loadingPercent": 108.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 300.0,
+        "activePowerKw": 324.0,
+        "reactivePowerKvar": 85.0,
+        "status": "critical",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-03",
+        "name": "Feeder F-03 (Tie-Line)",
+        "fromBus": "B1",
+        "toBus": "B3",
+        "loadingPercent": 0.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 350.0,
+        "activePowerKw": 0.0,
+        "reactivePowerKvar": 0.0,
+        "status": "normal",
+        "isSwitchClosed": false,
+        "isReconfigurableAlternate": true
+      },
+      {
+        "id": "F-04",
+        "name": "Feeder F-04",
+        "fromBus": "B3",
+        "toBus": "B4",
+        "loadingPercent": 52.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 250.0,
+        "activePowerKw": 130.0,
+        "reactivePowerKvar": 28.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      }
+    ],
+    "solarUnits": [],
+    "batteries": [],
+    "loads": [],
+    "lastUpdated": null
+  },
+  "default-grid": {
+    "id": "default-grid",
+    "name": "Default Grid",
+    "gridConnectionStatus": "connected",
+    "gridFrequencyHz": 50.02,
+    "substation": {
+      "id": "TX-MAIN",
+      "name": "Primary Substation (33/11 kV)",
+      "ratingKva": 500.0,
+      "primaryVoltageKv": 33.0,
+      "secondaryVoltageKv": 11.0,
+      "loadingPercent": 68.4,
+      "temperatureC": 38.5,
+      "status": "normal",
+      "position": {
+        "x": 0.0,
+        "y": 0.6,
+        "z": -10.0
+      }
+    },
+    "buses": [
+      {
+        "id": "B1",
+        "name": "Bus 1",
+        "voltage": 1.02,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 0.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 64.0,
+        "temperatureC": 32.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-01",
+          "F-LINE-12"
+        ],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": null
+        },
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": -5.0
+        }
+      },
+      {
+        "id": "B2",
+        "name": "Bus 2",
+        "voltage": 1.01,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 90.0,
+        "solarKw": 150.0,
+        "lineLoadingPercent": 82.0,
+        "temperatureC": 35.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-LINE-12",
+          "F-02"
+        ],
+        "connectedAssets": {
+          "solar": "SOLAR-01",
+          "battery": null,
+          "load": "LOAD-01"
+        },
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      {
+        "id": "B3",
+        "name": "Bus 3",
+        "voltage": 1.074,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 60.0,
+        "solarKw": 80.0,
+        "lineLoadingPercent": 108.0,
+        "temperatureC": 42.0,
+        "status": "critical",
+        "connectedFeeders": [
+          "F-02",
+          "F-04",
+          "F-03"
+        ],
+        "connectedAssets": {
+          "solar": "SOLAR-02",
+          "battery": "BAT-01",
+          "load": "LOAD-02"
+        },
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 6.0
+        }
+      },
+      {
+        "id": "B4",
+        "name": "Bus 4",
+        "voltage": 1.0,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 120.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 52.0,
+        "temperatureC": 31.0,
+        "status": "normal",
+        "connectedFeeders": [
+          "F-04"
+        ],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": "LOAD-03"
+        },
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 12.0
+        }
+      }
+    ],
+    "feeders": [
+      {
+        "id": "F-01",
+        "name": "Feeder F-01",
+        "fromBus": "TX-MAIN",
+        "toBus": "B1",
+        "loadingPercent": 64.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 600.0,
+        "activePowerKw": 384.0,
+        "reactivePowerKvar": 72.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-LINE-12",
+        "name": "Feeder Line 1-2",
+        "fromBus": "B1",
+        "toBus": "B2",
+        "loadingPercent": 78.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 450.0,
+        "activePowerKw": 351.0,
+        "reactivePowerKvar": 60.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-02",
+        "name": "Feeder F-02",
+        "fromBus": "B2",
+        "toBus": "B3",
+        "loadingPercent": 108.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 300.0,
+        "activePowerKw": 324.0,
+        "reactivePowerKvar": 85.0,
+        "status": "critical",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-03",
+        "name": "Feeder F-03 (Tie-Line)",
+        "fromBus": "B1",
+        "toBus": "B3",
+        "loadingPercent": 0.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 350.0,
+        "activePowerKw": 0.0,
+        "reactivePowerKvar": 0.0,
+        "status": "normal",
+        "isSwitchClosed": false,
+        "isReconfigurableAlternate": true
+      },
+      {
+        "id": "F-04",
+        "name": "Feeder F-04",
+        "fromBus": "B3",
+        "toBus": "B4",
+        "loadingPercent": 52.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 250.0,
+        "activePowerKw": 130.0,
+        "reactivePowerKvar": 28.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      }
+    ],
+    "solarUnits": [
+      {
+        "id": "SOLAR-01",
+        "name": "Solar Farm Alpha",
+        "busId": "B2",
+        "generationKw": 150.0,
+        "capacityKw": 250.0,
+        "irradianceWm2": 895.0,
+        "curtailedKw": 0.0,
+        "status": "normal",
+        "position": {
+          "x": -7.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      {
+        "id": "SOLAR-02",
+        "name": "Rooftop Solar B3",
+        "busId": "B3",
+        "generationKw": 80.0,
+        "capacityKw": 100.0,
+        "irradianceWm2": 890.0,
+        "curtailedKw": 0.0,
+        "status": "warning",
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      }
+    ],
+    "batteries": [
+      {
+        "id": "BAT-01",
+        "name": "BESS Unit 1",
+        "busId": "B3",
+        "powerKw": 40.0,
+        "maxDischargeKw": 60.0,
+        "maxChargeKw": 60.0,
+        "socPercent": 62.0,
+        "capacityKwh": 100.0,
+        "status": "normal",
+        "cycleCount": 100,
+        "position": {
+          "x": -7.0,
+          "y": 0.0,
+          "z": 6.0
+        }
+      }
+    ],
+    "loads": [
+      {
+        "id": "LOAD-01",
+        "name": "Commercial Complex Load",
+        "busId": "B2",
+        "powerKw": 90.0,
+        "powerFactor": 0.94,
+        "status": "normal",
+        "position": {
+          "x": 7.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      {
+        "id": "LOAD-02",
+        "name": "Residential Sub-district A",
+        "busId": "B3",
+        "powerKw": 60.0,
+        "powerFactor": 0.92,
+        "status": "normal",
+        "position": {
+          "x": 7.0,
+          "y": 0.0,
+          "z": 6.0
+        }
+      },
+      {
+        "id": "LOAD-03",
+        "name": "Industrial Park Load",
+        "busId": "B4",
+        "powerKw": 120.0,
+        "powerFactor": 0.89,
+        "status": "normal",
+        "position": {
+          "x": 7.0,
+          "y": 0.0,
+          "z": 12.0
+        }
+      }
+    ],
+    "lastUpdated": "2026-10-06T16:37:40.444819"
+  }
+}
