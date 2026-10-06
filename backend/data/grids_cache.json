@@ -215,200 +215,6 @@
     ],
     "lastUpdated": "2026-10-06T17:29:28.918450"
   },
-  "GRID-H4HSGW": {
-    "id": "GRID-H4HSGW",
-    "name": "nigga grid",
-    "gridConnectionStatus": "connected",
-    "gridFrequencyHz": 50.0,
-    "substation": {
-      "id": "TX-MAIN",
-      "name": "Primary Substation (33/11 kV)",
-      "ratingKva": 500.0,
-      "primaryVoltageKv": 33.0,
-      "secondaryVoltageKv": 11.0,
-      "loadingPercent": 78.1,
-      "temperatureC": 38.5,
-      "status": "normal",
-      "position": {
-        "x": 0.40446844706695373,
-        "y": 0.6,
-        "z": -8.91763707330929
-      }
-    },
-    "buses": [
-      {
-        "id": "BUS-9037",
-        "name": "Bus 1",
-        "voltage": 1.0,
-        "voltageLimitMin": 0.95,
-        "voltageLimitMax": 1.05,
-        "loadKw": 0.0,
-        "solarKw": 0.0,
-        "lineLoadingPercent": 0.0,
-        "temperatureC": 30.0,
-        "status": "normal",
-        "connectedFeeders": [],
-        "connectedAssets": {
-          "solar": null,
-          "battery": null,
-          "load": null
-        },
-        "position": {
-          "x": 0.1,
-          "y": 0.0,
-          "z": 1.6
-        }
-      },
-      {
-        "id": "BUS-8630",
-        "name": "Bus 2",
-        "voltage": 1.0,
-        "voltageLimitMin": 0.95,
-        "voltageLimitMax": 1.05,
-        "loadKw": 0.0,
-        "solarKw": 0.0,
-        "lineLoadingPercent": 0.0,
-        "temperatureC": 30.0,
-        "status": "normal",
-        "connectedFeeders": [],
-        "connectedAssets": {
-          "solar": null,
-          "battery": null,
-          "load": null
-        },
-        "position": {
-          "x": 0.2977369697884379,
-          "y": 0.0,
-          "z": 9.08644645207437
-        }
-      }
-    ],
-    "feeders": [
-      {
-        "id": "F-1422",
-        "name": "Feeder BUS-9037-TX-MAIN",
-        "fromBus": "BUS-9037",
-        "toBus": "TX-MAIN",
-        "loadingPercent": 0.0,
-        "loadingLimitPercent": 100.0,
-        "capacityKw": 1000.0,
-        "activePowerKw": 0.0,
-        "reactivePowerKvar": 0.0,
-        "status": "normal",
-        "isSwitchClosed": true,
-        "isReconfigurableAlternate": false
-      },
-      {
-        "id": "F-9881",
-        "name": "Feeder BUS-9037-BUS-8630",
-        "fromBus": "BUS-9037",
-        "toBus": "BUS-8630",
-        "loadingPercent": 0.0,
-        "loadingLimitPercent": 100.0,
-        "capacityKw": 1000.0,
-        "activePowerKw": 0.0,
-        "reactivePowerKvar": 0.0,
-        "status": "normal",
-        "isSwitchClosed": true,
-        "isReconfigurableAlternate": false
-      }
-    ],
-    "solarUnits": [
-      {
-        "id": "SOLAR-5744",
-        "name": "[Utility] Solar Array",
-        "busId": "BUS-9037",
-        "generationKw": 500.0,
-        "capacityKw": 500.0,
-        "irradianceWm2": 800.0,
-        "curtailedKw": 0.0,
-        "status": "normal",
-        "position": {
-          "x": 8.496974956266973,
-          "y": 0.0,
-          "z": 1.3896142537049458
-        }
-      },
-      {
-        "id": "SOLAR-9640",
-        "name": "[Utility] Solar Array",
-        "busId": "BUS-9037",
-        "generationKw": 500.0,
-        "capacityKw": 500.0,
-        "irradianceWm2": 800.0,
-        "curtailedKw": 0.0,
-        "status": "normal",
-        "position": {
-          "x": -8.668619582750079,
-          "y": 0.0,
-          "z": 1.3918387276123674
-        }
-      },
-      {
-        "id": "SOLAR-5539",
-        "name": "[Utility] Solar Array",
-        "busId": "BUS-9037",
-        "generationKw": 500.0,
-        "capacityKw": 500.0,
-        "irradianceWm2": 800.0,
-        "curtailedKw": 0.0,
-        "status": "normal",
-        "position": {
-          "x": -10.3,
-          "y": 0.0,
-          "z": -4.8
-        }
-      }
-    ],
-    "batteries": [
-      {
-        "id": "BATTERY-1382",
-        "name": "Battery Storage",
-        "busId": "BUS-9037",
-        "powerKw": 0.0,
-        "maxDischargeKw": 100.0,
-        "maxChargeKw": 100.0,
-        "socPercent": 50.0,
-        "capacityKwh": 500.0,
-        "status": "normal",
-        "cycleCount": 100,
-        "position": {
-          "x": 8.6,
-          "y": 0.0,
-          "z": -7.2
-        }
-      }
-    ],
-    "loads": [
-      {
-        "id": "LOAD-5941",
-        "name": "[Commercial] Office Block",
-        "busId": "BUS-8630",
-        "powerKw": 300.0,
-        "powerFactor": 0.9,
-        "status": "normal",
-        "position": {
-          "x": -8.458288652928314,
-          "y": 0.0,
-          "z": 8.987335413685694
-        }
-      },
-      {
-        "id": "LOAD-5928",
-        "name": "[Factory] Heavy Industry",
-        "busId": "BUS-8630",
-        "powerKw": 1000.0,
-        "powerFactor": 0.9,
-        "status": "normal",
-        "position": {
-          "x": 8.103108934079287,
-          "y": 0.0,
-          "z": 9.053000172003152
-        }
-      }
-    ],
-    "lastUpdated": "2026-10-06T17:33:40.812474"
-  },
   "default-grid": {
     "id": "default-grid",
     "name": "Default Grid",
@@ -685,5 +491,212 @@
       }
     ],
     "lastUpdated": "2026-10-06T17:27:03.095965"
+  },
+  "GRID-H4HSGW": {
+    "id": "GRID-H4HSGW",
+    "name": "nigga grid",
+    "gridConnectionStatus": "connected",
+    "gridFrequencyHz": 50.0,
+    "substation": {
+      "id": "TX-MAIN",
+      "name": "Primary Substation (33/11 kV)",
+      "ratingKva": 500.0,
+      "primaryVoltageKv": 33.0,
+      "secondaryVoltageKv": 11.0,
+      "loadingPercent": 78.1,
+      "temperatureC": 38.5,
+      "status": "normal",
+      "position": {
+        "x": 0.40446844706695373,
+        "y": 0.6,
+        "z": -8.91763707330929
+      }
+    },
+    "buses": [
+      {
+        "id": "BUS-9037",
+        "name": "Bus 1",
+        "voltage": 1.02,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 0.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 0.0,
+        "temperatureC": 30.0,
+        "status": "normal",
+        "connectedFeeders": [],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": null
+        },
+        "position": {
+          "x": 0.1,
+          "y": 0.0,
+          "z": 1.6
+        }
+      },
+      {
+        "id": "BUS-8630",
+        "name": "Bus 2",
+        "voltage": 1.017,
+        "voltageLimitMin": 0.95,
+        "voltageLimitMax": 1.05,
+        "loadKw": 0.0,
+        "solarKw": 0.0,
+        "lineLoadingPercent": 0.0,
+        "temperatureC": 30.0,
+        "status": "normal",
+        "connectedFeeders": [],
+        "connectedAssets": {
+          "solar": null,
+          "battery": null,
+          "load": null
+        },
+        "position": {
+          "x": 0.2977369697884379,
+          "y": 0.0,
+          "z": 9.08644645207437
+        }
+      }
+    ],
+    "feeders": [
+      {
+        "id": "F-1422",
+        "name": "Feeder BUS-9037-TX-MAIN",
+        "fromBus": "BUS-9037",
+        "toBus": "TX-MAIN",
+        "loadingPercent": 0.0,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 1000.0,
+        "activePowerKw": 0.0,
+        "reactivePowerKvar": 0.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      },
+      {
+        "id": "F-9881",
+        "name": "Feeder BUS-9037-BUS-8630",
+        "fromBus": "BUS-9037",
+        "toBus": "BUS-8630",
+        "loadingPercent": 13.6,
+        "loadingLimitPercent": 100.0,
+        "capacityKw": 1000.0,
+        "activePowerKw": 0.0,
+        "reactivePowerKvar": 0.0,
+        "status": "normal",
+        "isSwitchClosed": true,
+        "isReconfigurableAlternate": false
+      }
+    ],
+    "solarUnits": [
+      {
+        "id": "SOLAR-5744",
+        "name": "[Utility] Solar Array",
+        "busId": "BUS-9037",
+        "generationKw": 82.0,
+        "capacityKw": 500.0,
+        "irradianceWm2": 800.0,
+        "curtailedKw": 0.0,
+        "status": "normal",
+        "position": {
+          "x": 8.496974956266973,
+          "y": 0.0,
+          "z": 1.3896142537049458
+        }
+      },
+      {
+        "id": "SOLAR-9640",
+        "name": "[Utility] Solar Array",
+        "busId": "BUS-9037",
+        "generationKw": 82.0,
+        "capacityKw": 500.0,
+        "irradianceWm2": 800.0,
+        "curtailedKw": 0.0,
+        "status": "normal",
+        "position": {
+          "x": -8.668619582750079,
+          "y": 0.0,
+          "z": 1.3918387276123674
+        }
+      },
+      {
+        "id": "SOLAR-5539",
+        "name": "[Utility] Solar Array",
+        "busId": "BUS-9037",
+        "generationKw": 82.0,
+        "capacityKw": 500.0,
+        "irradianceWm2": 800.0,
+        "curtailedKw": 0.0,
+        "status": "normal",
+        "position": {
+          "x": -10.3,
+          "y": 0.0,
+          "z": -4.8
+        }
+      }
+    ],
+    "batteries": [
+      {
+        "id": "BATTERY-1382",
+        "name": "Battery Storage",
+        "busId": "BUS-9037",
+        "powerKw": 0.0,
+        "maxDischargeKw": 100.0,
+        "maxChargeKw": 100.0,
+        "socPercent": 62.0,
+        "capacityKwh": 500.0,
+        "status": "normal",
+        "cycleCount": 100,
+        "position": {
+          "x": 8.6,
+          "y": 0.0,
+          "z": -7.2
+        }
+      }
+    ],
+    "loads": [
+      {
+        "id": "LOAD-5941",
+        "name": "[Commercial] Office Block",
+        "busId": "BUS-8630",
+        "powerKw": 31.0,
+        "powerFactor": 0.9,
+        "status": "normal",
+        "position": {
+          "x": -8.458288652928314,
+          "y": 0.0,
+          "z": 8.987335413685694
+        }
+      },
+      {
+        "id": "LOAD-5928",
+        "name": "[Factory] Heavy Industry",
+        "busId": "BUS-8630",
+        "powerKw": 105.0,
+        "powerFactor": 0.9,
+        "status": "normal",
+        "position": {
+          "x": 8.103108934079287,
+          "y": 0.0,
+          "z": 9.053000172003152
+        }
+      },
+      {
+        "id": "LOAD-5260",
+        "name": "[Residential] House",
+        "busId": "BUS-8630",
+        "powerKw": 50.0,
+        "powerFactor": 0.9,
+        "status": "normal",
+        "position": {
+          "x": -2.8,
+          "y": 0.0,
+          "z": 19.3
+        }
+      }
+    ],
+    "lastUpdated": "2026-10-06T19:58:43.189383"
   }
 }

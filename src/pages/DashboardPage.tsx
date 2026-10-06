@@ -3,7 +3,6 @@ import { NetworkStatus } from '../components/dashboard/NetworkStatus'
 import { useSimulationStore } from '../store/simulationStore'
 import { useGridStore } from '../store/gridStore'
 import { useDomesticStore } from '../store/domesticStore'
-import { GridTypeSwitcher } from '../components/layout/GridTypeSwitcher'
 import { DomesticDashboardView } from '../components/domestic/DomesticDashboardView'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
@@ -39,8 +38,6 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-5 lg:p-6 space-y-6 w-full min-w-0">
-      {/* Primary Grid Type Switcher */}
-      <GridTypeSwitcher className="w-full" />
 
       {gridType === 'domestic' ? (
         <DomesticDashboardView />

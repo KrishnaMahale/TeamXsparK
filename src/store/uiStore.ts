@@ -53,7 +53,7 @@ export const useUIStore = create<UIState>((set) => {
 
   return {
     sidebarCollapsed: false,
-    is3DEnabled: false,
+    is3DEnabled: true,
     isComparisonModalOpen: false,
     activeTab: 'network',
     theme: initialTheme,
