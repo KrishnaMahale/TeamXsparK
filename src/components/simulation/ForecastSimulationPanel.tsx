@@ -44,12 +44,14 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
     ? Math.max(...input.loadTimeSeries.map((l) => l.loadKw), 0)
     : 0
 
+  const dtHours = input.solarTimeSeries.length > 0 ? 24.0 / input.solarTimeSeries.length : 0.25
+
   const totalSolarKwh = hasForecastData
-    ? Math.round(input.solarTimeSeries.reduce((acc, s) => acc + s.solarKw, 0))
+    ? Math.round(input.solarTimeSeries.reduce((acc, s) => acc + s.solarKw, 0) * dtHours)
     : 0
 
   const totalLoadKwh = hasForecastData
-    ? Math.round(input.loadTimeSeries.reduce((acc, l) => acc + l.loadKw, 0))
+    ? Math.round(input.loadTimeSeries.reduce((acc, l) => acc + l.loadKw, 0) * dtHours)
     : 0
 
   const netDemandValues = hasForecastData

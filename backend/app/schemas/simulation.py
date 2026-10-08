@@ -70,6 +70,7 @@ class SimulationInput(BaseModel):
     simulationDate: Optional[str] = "2026-09-25"
     simulationDuration: str = "24 hours"
     timeResolution: str = "1 hour"
+    simulationSource: Optional[str] = "scenario"
     installedSolarCapacityKw: float = Field(default=250.0, ge=0.0)
     currentSolarKw: float = Field(default=240.0, ge=0.0)
     solarTimeSeries: List[TimeSeriesSolarPoint] = Field(default_factory=generate_default_solar_points)

@@ -3,7 +3,7 @@ import { forecastService } from '../../services/api/forecastService'
 import { ForecastDataPoint } from '../../types/forecast'
 
 export interface DayAheadForecastPoint {
-  time: string // "00:00" through "23:00"
+  time: string // "00:00" through "23:45"
   solarKw: number // Expected solar PV generation (kW)
   loadKw: number // Expected consumer load demand (kW)
   netDemandKw: number // Net Demand = Load Demand - Solar Generation (kW)
@@ -37,57 +37,14 @@ export interface DayAheadForecastResult {
 }
 
 /**
- * Deterministic mathematical profile generator (used when backend is offline/unreachable).
- * Employs standard physical diurnal solar radiation equations and dual-peak residential/commercial demand curves.
- * NEVER uses Math.random().
- */
-export function generateDeterministicProfile(
-  installedSolarCapacityKw: number = 250,
-  peakLoadKw: number = 180
-): DayAheadForecastPoint[] {
-  const points: DayAheadForecastPoint[] = []
-
-  for (let hour = 0; hour < 24; hour++) {
-    const timeStr = `${hour.toString().padStart(2, '0')}:00`
-    const tFloat = hour
-
-    // Solar Bell Curve (Active daylight between 06:00 and 19:00)
-    let solarKw = 0
-    if (tFloat >= 6.0 && tFloat <= 19.0) {
-      const sunFactor = Math.sin(((tFloat - 6.0) / 13.0) * Math.PI)
-      solarKw = Math.max(0, Math.round(installedSolarCapacityKw * Math.pow(sunFactor, 1.15) * 10) / 10)
-    }
-
-    // Dual-peak diurnal load curve (morning commercial rise + evening residential cooking/cooling peak)
-    const baseLoad = 0.32
-    const morningPeak = 0.28 * Math.exp(-Math.pow(tFloat - 9.5, 2) / 6.0)
-    const eveningPeak = 0.40 * Math.exp(-Math.pow(tFloat - 19.5, 2) / 8.0)
-    const loadFactor = baseLoad + morningPeak + eveningPeak
-    const loadKw = Math.max(25, Math.round(peakLoadKw * loadFactor * 10) / 10)
-
-    // Net Demand = Load Demand - Solar Generation
-    const netDemandKw = Math.round((loadKw - solarKw) * 10) / 10
-
-    points.push({
-      time: timeStr,
-      solarKw,
-      loadKw,
-      netDemandKw,
-      isSurplus: solarKw > loadKw,
-    })
-  }
-
-  return points
-}
-
-/**
  * Computes summary statistics and dynamic operational insights from 24-hour profile.
+ * Supports both 96-point (15m) and 24-point horizons using fractional integration.
  */
 export function computeSummaryAndInsights(
   points: DayAheadForecastPoint[],
   grid: GridNetwork,
   dateStr: string,
-  modelType: string = 'Random Forest Regressor'
+  modelType: string = 'Step 4C ML Models'
 ): { summary: DayAheadSummary; insights: string[] } {
   let peakSolar = 0
   let peakSolarTime = '12:00'
@@ -101,10 +58,12 @@ export function computeSummaryAndInsights(
   let minNetDemand = Infinity
   let maxNetDemand = -Infinity
 
+  // Resolution integration factor (e.g. 0.25h for 96 points, 1.0h for 24 points)
+  const dtHours = points.length > 0 ? 24.0 / points.length : 0.25
+
   points.forEach((pt) => {
-    // 1-hour resolution integration: kW * 1h = kWh
-    totalSolarKwh += pt.solarKw
-    totalLoadKwh += pt.loadKw
+    totalSolarKwh += pt.solarKw * dtHours
+    totalLoadKwh += pt.loadKw * dtHours
 
     if (pt.solarKw > peakSolar) {
       peakSolar = pt.solarKw
@@ -167,14 +126,15 @@ export function computeSummaryAndInsights(
 
   // 1. Peak Solar Timing
   if (peakSolar > 0) {
+    const capDenom = solarCap > 0 ? solarCap : peakSolar
     insights.push(
-      `Peak solar generation is forecasted at ${peakSolar.toFixed(1)} kW at ${peakSolarTime}, representing ${Math.round((peakSolar / (solarCap || 250)) * 100)}% of installed PV capacity.`
+      `Peak solar generation is forecasted at ${peakSolar.toFixed(1)} kW at ${peakSolarTime}, representing ${Math.round((peakSolar / capDenom) * 100)}% of installed PV capacity.`
     )
   }
 
   // 2. Peak Demand Timing
   insights.push(
-    `Maximum consumer demand is projected at ${peakLoad.toFixed(1)} kW during the evening hours at ${peakLoadTime}.`
+    `Maximum consumer demand is projected at ${peakLoad.toFixed(1)} kW at ${peakLoadTime}.`
   )
 
   // 3. Surplus / Reverse Flow Window
@@ -209,63 +169,40 @@ export function computeSummaryAndInsights(
 
 /**
  * Service adapter for the Forecasts page:
- * Queries existing backend API (or deterministic offline fallback) and formats data cleanly for the UI.
+ * Queries the real backend ML forecast API for the selected grid and target date.
+ * No client-side 250/270 scaling or synthetic fallback.
  */
 export async function fetchDayAheadForecast(
   grid: GridNetwork,
   dateStr: string
 ): Promise<DayAheadForecastResult> {
-  const solarCap = grid.solarUnits.reduce((acc, s) => acc + (s.capacityKw || 0), 0) || 250
-  const nominalLoad = grid.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0) || 270
+  const rawResponse = await forecastService.getForecast(24, grid.id, dateStr)
 
-  try {
-    const rawResponse = await forecastService.getForecast(24)
-
-    if (rawResponse && Array.isArray(rawResponse.dataPoints) && rawResponse.dataPoints.length > 0) {
-      // Scale normalized 24-hour baseline to selected grid's installed capacity
-      const solarScale = solarCap > 0 ? solarCap / 250.0 : 0
-      const loadScale = nominalLoad > 0 ? nominalLoad / 270.0 : 1.0
-
-      const dataPoints: DayAheadForecastPoint[] = rawResponse.dataPoints.map((pt: ForecastDataPoint) => {
-        const rawSolar = pt.predictedSolarKw ?? pt.solarGenerationKw ?? 0
-        const rawLoad = pt.predictedLoadKw ?? pt.loadDemandKw ?? 0
-
-        const solarKw = Math.max(0, Math.round(rawSolar * solarScale * 10) / 10)
-        const loadKw = Math.max(15, Math.round(rawLoad * loadScale * 10) / 10)
-        const netDemandKw = Math.round((loadKw - solarKw) * 10) / 10
-
-        return {
-          time: pt.time,
-          solarKw,
-          loadKw,
-          netDemandKw,
-          isSurplus: solarKw > loadKw,
-        }
-      })
-
-      const { summary, insights } = computeSummaryAndInsights(
-        dataPoints,
-        grid,
-        dateStr,
-        rawResponse.metrics?.modelType || 'Random Forest Regressor'
-      )
-
-      return {
-        gridId: grid.id,
-        gridName: grid.name,
-        simulationDate: dateStr,
-        dataPoints,
-        summary,
-        insights,
-      }
-    }
-  } catch (err) {
-    console.warn('[ForecastAdapter] Backend endpoint unreachable; utilizing deterministic model profile:', err)
+  if (!rawResponse || !Array.isArray(rawResponse.dataPoints) || rawResponse.dataPoints.length === 0) {
+    throw new Error('Forecast API returned an empty or invalid response.')
   }
 
-  // Deterministic fallback if backend is offline
-  const dataPoints = generateDeterministicProfile(solarCap, nominalLoad)
-  const { summary, insights } = computeSummaryAndInsights(dataPoints, grid, dateStr)
+  // Backend performs real physics and grid scaling. Use API values directly.
+  const dataPoints: DayAheadForecastPoint[] = rawResponse.dataPoints.map((pt: ForecastDataPoint) => {
+    const solarKw = Math.max(0, Math.round((pt.predictedSolarKw ?? pt.solarGenerationKw ?? 0) * 10) / 10)
+    const loadKw = Math.max(0, Math.round((pt.predictedLoadKw ?? pt.loadDemandKw ?? 0) * 10) / 10)
+    const netDemandKw = Math.round((loadKw - solarKw) * 10) / 10
+
+    return {
+      time: pt.time,
+      solarKw,
+      loadKw,
+      netDemandKw,
+      isSurplus: solarKw > loadKw,
+    }
+  })
+
+  const { summary, insights } = computeSummaryAndInsights(
+    dataPoints,
+    grid,
+    dateStr,
+    rawResponse.metrics?.modelType || 'Step 4C ML Models'
+  )
 
   return {
     gridId: grid.id,

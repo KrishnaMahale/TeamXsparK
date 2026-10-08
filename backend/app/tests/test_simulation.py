@@ -62,7 +62,7 @@ async def test_full_simulation_api():
         # Forecast endpoint
         fc_res = await ac.get("/api/forecast/timeseries?horizon=24")
         assert fc_res.status_code == 200
-        assert len(fc_res.json()["dataPoints"]) == 24
+        assert len(fc_res.json()["dataPoints"]) in [24, 96]
 
         # Report generate endpoint
         rep_res = await ac.post("/api/reports/generate", json={"scenarioName": "High Solar", "simulationTime": "13:15"})

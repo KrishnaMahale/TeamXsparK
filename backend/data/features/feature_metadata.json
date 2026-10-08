@@ -1,0 +1,502 @@
+[
+  {
+    "feature_name": "minute_of_day",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "Minute of day (0-1425)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "15-minute slot of day (0-95)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "hour",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "Hour of day (0-23)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_week",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "Day of week (0=Mon, 6=Sun)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "Day of year (1-365)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "month",
+    "dataset": "solar",
+    "feature_type": "calendar",
+    "description": "Month of year (1-12)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year_sin",
+    "dataset": "solar",
+    "feature_type": "cyclical",
+    "description": "Cyclical sine of day of year",
+    "source_column": "day_of_year",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year_cos",
+    "dataset": "solar",
+    "feature_type": "cyclical",
+    "description": "Cyclical cosine of day of year",
+    "source_column": "day_of_year",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_sin",
+    "dataset": "solar",
+    "feature_type": "cyclical",
+    "description": "Cyclical sine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_cos",
+    "dataset": "solar",
+    "feature_type": "cyclical",
+    "description": "Cyclical cosine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "solar_elevation_deg",
+    "dataset": "solar",
+    "feature_type": "solar_geometry",
+    "description": "Solar elevation angle (degrees)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "solar_elevation_sin",
+    "dataset": "solar",
+    "feature_type": "solar_geometry",
+    "description": "Sine of solar elevation angle",
+    "source_column": "solar_elevation_deg",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "solar_elevation_cos",
+    "dataset": "solar",
+    "feature_type": "solar_geometry",
+    "description": "Cosine of solar elevation angle",
+    "source_column": "solar_elevation_deg",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "is_night",
+    "dataset": "solar",
+    "feature_type": "solar_geometry",
+    "description": "Astronomical night indicator (elevation <= -5 deg)",
+    "source_column": "solar_elevation_deg",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "clearsky_proxy_wm2",
+    "dataset": "solar",
+    "feature_type": "clear_sky",
+    "description": "Haurwitz clear-sky irradiance proxy (W/m2)",
+    "source_column": "solar_elevation_deg",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_lag_15m",
+    "dataset": "solar",
+    "feature_type": "lag",
+    "description": "Historical clean GHI at t-15m (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_lag_30m",
+    "dataset": "solar",
+    "feature_type": "lag",
+    "description": "Historical clean GHI at t-30m (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 30,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_lag_45m",
+    "dataset": "solar",
+    "feature_type": "lag",
+    "description": "Historical clean GHI at t-45m (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 45,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_lag_24h",
+    "dataset": "solar",
+    "feature_type": "lag",
+    "description": "Historical clean GHI at t-24h (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 1440,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_roll_mean_2h",
+    "dataset": "solar",
+    "feature_type": "rolling",
+    "description": "Rolling 2-hour backward mean of prior GHI (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "ghi_roll_std_2h",
+    "dataset": "solar",
+    "feature_type": "rolling",
+    "description": "Rolling 2-hour backward std of prior GHI (W/m2)",
+    "source_column": "ghi_clean_wm2",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_c",
+    "dataset": "solar",
+    "feature_type": "auxiliary_weather",
+    "description": "Ambient temperature at forecast origin t-15m (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_lag_24h",
+    "dataset": "solar",
+    "feature_type": "auxiliary_weather",
+    "description": "Ambient temperature at t-24h (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 1440,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "minute_of_day",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "Minute of day (0-1425)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "15-minute slot of day (0-95)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "hour",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "Hour of day (0-23)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_week",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "Day of week (0=Mon, 6=Sun)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "Day of year (1-365)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "month",
+    "dataset": "temperature",
+    "feature_type": "calendar",
+    "description": "Month of year (1-12)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year_sin",
+    "dataset": "temperature",
+    "feature_type": "cyclical",
+    "description": "Cyclical sine of day of year",
+    "source_column": "day_of_year",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_year_cos",
+    "dataset": "temperature",
+    "feature_type": "cyclical",
+    "description": "Cyclical cosine of day of year",
+    "source_column": "day_of_year",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_sin",
+    "dataset": "temperature",
+    "feature_type": "cyclical",
+    "description": "Cyclical sine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_cos",
+    "dataset": "temperature",
+    "feature_type": "cyclical",
+    "description": "Cyclical cosine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "solar_elevation_deg",
+    "dataset": "temperature",
+    "feature_type": "solar_geometry",
+    "description": "Solar elevation angle (degrees)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_lag_15m",
+    "dataset": "temperature",
+    "feature_type": "lag",
+    "description": "Historical temperature at t-15m (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_lag_24h",
+    "dataset": "temperature",
+    "feature_type": "lag",
+    "description": "Historical temperature at t-24h (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 1440,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_roll_mean_1h",
+    "dataset": "temperature",
+    "feature_type": "rolling",
+    "description": "Rolling 1-hour backward mean of prior temperature (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "temperature_roll_std_1h",
+    "dataset": "temperature",
+    "feature_type": "rolling",
+    "description": "Rolling 1-hour backward std of prior temperature (C)",
+    "source_column": "temperature_clean_c",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "minute_of_day",
+    "dataset": "load",
+    "feature_type": "calendar",
+    "description": "Minute of day in local Austin time (0-1425)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m",
+    "dataset": "load",
+    "feature_type": "calendar",
+    "description": "15-minute slot in local Austin time (0-95)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "hour",
+    "dataset": "load",
+    "feature_type": "calendar",
+    "description": "Hour of day in local Austin time (0-23)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "day_of_week",
+    "dataset": "load",
+    "feature_type": "calendar",
+    "description": "Day of week in local Austin time (0=Mon, 6=Sun)",
+    "source_column": "timestamp",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "is_weekend",
+    "dataset": "load",
+    "feature_type": "calendar",
+    "description": "Weekend indicator in local Austin time",
+    "source_column": "day_of_week",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_sin",
+    "dataset": "load",
+    "feature_type": "cyclical",
+    "description": "Cyclical sine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "slot_15m_cos",
+    "dataset": "load",
+    "feature_type": "cyclical",
+    "description": "Cyclical cosine of 15-minute slot",
+    "source_column": "slot_15m",
+    "lag_minutes": 0,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "load_lag_15m",
+    "dataset": "load",
+    "feature_type": "lag",
+    "description": "Historical household gross load at t-15m for same home (kW)",
+    "source_column": "gross_load_kw",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "load_lag_30m",
+    "dataset": "load",
+    "feature_type": "lag",
+    "description": "Historical household gross load at t-30m for same home (kW)",
+    "source_column": "gross_load_kw",
+    "lag_minutes": 30,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "load_lag_24h",
+    "dataset": "load",
+    "feature_type": "lag",
+    "description": "Historical household gross load at t-24h for same home (kW)",
+    "source_column": "gross_load_kw",
+    "lag_minutes": 1440,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "load_roll_mean_1h",
+    "dataset": "load",
+    "feature_type": "rolling",
+    "description": "Rolling 1-hour backward mean of prior load for same home (kW)",
+    "source_column": "gross_load_kw",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  },
+  {
+    "feature_name": "load_roll_std_1h",
+    "dataset": "load",
+    "feature_type": "rolling",
+    "description": "Rolling 1-hour backward std of prior load for same home (kW)",
+    "source_column": "gross_load_kw",
+    "lag_minutes": 15,
+    "uses_future_information": false,
+    "allowed_for_training": true
+  }
+]

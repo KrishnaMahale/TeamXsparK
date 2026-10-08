@@ -52,7 +52,8 @@ class NetworkEngine:
             except Exception:
                 t_hours = 12.0
 
-            dt = 1.0 if prev_t_hours is None else max(0.25, min(2.0, t_hours - prev_t_hours))
+            default_dt = 0.25 if len(all_times) >= 48 else 1.0
+            dt = default_dt if prev_t_hours is None else max(0.25, min(2.0, t_hours - prev_t_hours))
             prev_t_hours = t_hours
 
             # Battery dynamic state evolution:

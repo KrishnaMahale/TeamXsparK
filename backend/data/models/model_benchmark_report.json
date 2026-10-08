@@ -1,0 +1,1087 @@
+{
+  "generated_at": "2026-10-08T16:25:37.463152+00:00",
+  "summary": "Step 4C Model Benchmarking, Validation, and Untouched Evaluation Report",
+  "solar": {
+    "benchmarks": [
+      {
+        "model_name": "Persistence_1Step",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "validation",
+        "MAE": 20.2922,
+        "RMSE": 42.0627,
+        "R2": 0.9819,
+        "MAPE_or_sMAPE": 15.333,
+        "WAPE": 9.0268,
+        "daylight_mae": 41.913,
+        "nighttime_mae": 0.4224,
+        "training_rows": 0,
+        "validation_rows": 4644,
+        "test_rows": 0,
+        "features_used": [
+          "ghi_lag_15m"
+        ]
+      },
+      {
+        "model_name": "Persistence_24h",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "validation",
+        "MAE": 20.2456,
+        "RMSE": 69.1323,
+        "R2": 0.9541,
+        "MAPE_or_sMAPE": 7.8226,
+        "WAPE": 9.0035,
+        "daylight_mae": 43.9231,
+        "nighttime_mae": 0.1184,
+        "training_rows": 0,
+        "validation_rows": 1604,
+        "test_rows": 0,
+        "features_used": [
+          "ghi_lag_24h"
+        ]
+      },
+      {
+        "model_name": "ClearSky_Haurwitz_Proxy",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "validation",
+        "MAE": 68.6456,
+        "RMSE": 126.5512,
+        "R2": 0.8368,
+        "MAPE_or_sMAPE": 25.7007,
+        "WAPE": 30.2376,
+        "daylight_mae": 141.3788,
+        "nighttime_mae": 0.46,
+        "training_rows": 0,
+        "validation_rows": 4710,
+        "test_rows": 0,
+        "features_used": [
+          "clearsky_proxy_wm2"
+        ]
+      },
+      {
+        "model_name": "Ridge_Regression",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "validation",
+        "MAE": 28.1184,
+        "RMSE": 60.2161,
+        "R2": 0.963,
+        "MAPE_or_sMAPE": 79.8609,
+        "WAPE": 12.3858,
+        "daylight_mae": 48.4279,
+        "nighttime_mae": 9.0788,
+        "training_rows": 22947,
+        "validation_rows": 4710,
+        "test_rows": 0,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "solar_elevation_sin",
+          "solar_elevation_cos",
+          "is_night",
+          "clearsky_proxy_wm2",
+          "ghi_lag_15m",
+          "ghi_lag_30m",
+          "ghi_lag_45m",
+          "ghi_lag_24h",
+          "ghi_roll_mean_2h",
+          "ghi_roll_std_2h",
+          "temperature_c",
+          "temperature_lag_24h"
+        ]
+      },
+      {
+        "model_name": "HistGradientBoostingRegressor",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "validation",
+        "MAE": 15.3467,
+        "RMSE": 38.3901,
+        "R2": 0.985,
+        "MAPE_or_sMAPE": 102.9295,
+        "WAPE": 6.76,
+        "daylight_mae": 30.4201,
+        "nighttime_mae": 1.2157,
+        "training_rows": 22947,
+        "validation_rows": 4710,
+        "test_rows": 0,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "solar_elevation_sin",
+          "solar_elevation_cos",
+          "is_night",
+          "clearsky_proxy_wm2",
+          "ghi_lag_15m",
+          "ghi_lag_30m",
+          "ghi_lag_45m",
+          "ghi_lag_24h",
+          "ghi_roll_mean_2h",
+          "ghi_roll_std_2h",
+          "temperature_c",
+          "temperature_lag_24h"
+        ]
+      },
+      {
+        "model_name": "HistGradientBoostingRegressor_FinalRetrained",
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "split": "test",
+        "MAE": 36.1296,
+        "RMSE": 82.258,
+        "R2": 0.92,
+        "MAPE_or_sMAPE": 21.0938,
+        "WAPE": 19.2662,
+        "daylight_mae": 70.9151,
+        "nighttime_mae": 0.763,
+        "common_with_persistence_mae": 33.3719,
+        "training_rows": 27657,
+        "validation_rows": 0,
+        "test_rows": 2535,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "solar_elevation_sin",
+          "solar_elevation_cos",
+          "is_night",
+          "clearsky_proxy_wm2",
+          "ghi_lag_15m",
+          "ghi_lag_30m",
+          "ghi_lag_45m",
+          "ghi_lag_24h",
+          "ghi_roll_mean_2h",
+          "ghi_roll_std_2h",
+          "temperature_c",
+          "temperature_lag_24h"
+        ]
+      }
+    ],
+    "selected_model": "HistGradientBoostingRegressor",
+    "validation_mae": 15.3467,
+    "test_mae": 36.1296,
+    "test_rmse": 82.258,
+    "test_r2": 0.92,
+    "test_daylight_mae": 70.9151,
+    "baseline_val_mae": 20.2922,
+    "baseline_test_mae": 34.7435,
+    "model_test_common_mae": 33.3719,
+    "offline_24h_simulation": {
+      "test_day": "2025-05-02",
+      "timesteps": 95,
+      "MAE": 74.7906,
+      "RMSE": 112.6324,
+      "daylight_mae": 138.7538,
+      "nighttime_mae": 0.6514
+    }
+  },
+  "temperature": {
+    "benchmarks": [
+      {
+        "model_name": "Persistence_1Step",
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "split": "validation",
+        "MAE": 0.472,
+        "RMSE": 0.6337,
+        "R2": 0.9914,
+        "MAPE_or_sMAPE": 1.6988,
+        "training_rows": 0,
+        "validation_rows": 4469,
+        "test_rows": 0,
+        "features_used": [
+          "temperature_lag_15m"
+        ]
+      },
+      {
+        "model_name": "Persistence_24h",
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "split": "validation",
+        "MAE": 1.1931,
+        "RMSE": 1.5106,
+        "R2": 0.9524,
+        "MAPE_or_sMAPE": 4.7786,
+        "training_rows": 0,
+        "validation_rows": 910,
+        "test_rows": 0,
+        "features_used": [
+          "temperature_lag_24h"
+        ]
+      },
+      {
+        "model_name": "Ridge_Regression",
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "split": "validation",
+        "MAE": 0.5068,
+        "RMSE": 1.314,
+        "R2": 0.9629,
+        "MAPE_or_sMAPE": 1.823,
+        "training_rows": 22315,
+        "validation_rows": 4567,
+        "test_rows": 0,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "temperature_lag_15m",
+          "temperature_lag_24h",
+          "temperature_roll_mean_1h",
+          "temperature_roll_std_1h"
+        ]
+      },
+      {
+        "model_name": "HistGradientBoostingRegressor",
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "split": "validation",
+        "MAE": 0.6413,
+        "RMSE": 1.1112,
+        "R2": 0.9735,
+        "MAPE_or_sMAPE": 2.0636,
+        "training_rows": 22315,
+        "validation_rows": 4567,
+        "test_rows": 0,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "temperature_lag_15m",
+          "temperature_lag_24h",
+          "temperature_roll_mean_1h",
+          "temperature_roll_std_1h"
+        ]
+      },
+      {
+        "model_name": "Ridge_Regression_FinalRetrained",
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "split": "test",
+        "MAE": 0.4256,
+        "RMSE": 0.9687,
+        "R2": 0.9334,
+        "MAPE_or_sMAPE": 1.5539,
+        "common_with_persistence_mae": 0.3298,
+        "training_rows": 26882,
+        "validation_rows": 0,
+        "test_rows": 2444,
+        "features_used": [
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "day_of_year",
+          "month",
+          "day_of_year_sin",
+          "day_of_year_cos",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "solar_elevation_deg",
+          "temperature_lag_15m",
+          "temperature_lag_24h",
+          "temperature_roll_mean_1h",
+          "temperature_roll_std_1h"
+        ]
+      }
+    ],
+    "selected_model": "Ridge_Regression",
+    "validation_mae": 0.5068,
+    "validation_common_mae": 0.369,
+    "test_mae": 0.4256,
+    "test_rmse": 0.9687,
+    "test_r2": 0.9334,
+    "baseline_val_mae": 0.472,
+    "baseline_val_common_mae": 0.472,
+    "baseline_test_mae": 0.2757,
+    "model_test_common_mae": 0.3298
+  },
+  "load": {
+    "benchmarks": [
+      {
+        "model_name": "Diurnal_Slot_Profile",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 1.2313,
+        "RMSE": 1.7013,
+        "R2": -0.0974,
+        "MAPE_or_sMAPE": 54.5562,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 1.0434,
+            "RMSE": 1.4706,
+            "R2": -0.0541,
+            "WAPE": 32.2024,
+            "sMAPE": 39.5633
+          },
+          "Home_2": {
+            "MAE": 1.6166,
+            "RMSE": 2.0313,
+            "R2": -0.0549,
+            "WAPE": 44.5618,
+            "sMAPE": 52.36
+          },
+          "Home_3": {
+            "MAE": 1.1851,
+            "RMSE": 1.5191,
+            "R2": -0.5786,
+            "WAPE": 50.5905,
+            "sMAPE": 52.105
+          },
+          "Home_4": {
+            "MAE": 0.436,
+            "RMSE": 0.8315,
+            "R2": 0.6272,
+            "WAPE": 18.5335,
+            "sMAPE": 23.7572
+          },
+          "Home_5": {
+            "MAE": 1.8179,
+            "RMSE": 2.5345,
+            "R2": -0.7238,
+            "WAPE": 59.2006,
+            "sMAPE": 53.3369
+          },
+          "Home_6": {
+            "MAE": 0.9429,
+            "RMSE": 1.2237,
+            "R2": 0.0596,
+            "WAPE": 36.653,
+            "sMAPE": 46.9792
+          },
+          "Home_7": {
+            "MAE": 1.633,
+            "RMSE": 2.1966,
+            "R2": -0.1804,
+            "WAPE": 54.0375,
+            "sMAPE": 59.4973
+          },
+          "Home_8": {
+            "MAE": 1.3156,
+            "RMSE": 1.7512,
+            "R2": -0.8668,
+            "WAPE": 77.7512,
+            "sMAPE": 68.542
+          },
+          "Home_9": {
+            "MAE": 1.3942,
+            "RMSE": 1.6195,
+            "R2": -0.5932,
+            "WAPE": 54.702,
+            "sMAPE": 62.9097
+          },
+          "Home_10": {
+            "MAE": 0.9279,
+            "RMSE": 1.1054,
+            "R2": -0.9605,
+            "WAPE": 57.2385,
+            "sMAPE": 86.5117
+          }
+        },
+        "training_rows": 960,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "home_id",
+          "slot_15m"
+        ]
+      },
+      {
+        "model_name": "Persistence_1Step",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 0.9494,
+        "RMSE": 1.3543,
+        "R2": 0.3047,
+        "MAPE_or_sMAPE": 43.4112,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 1.1352,
+            "RMSE": 1.5345,
+            "R2": -0.1478,
+            "WAPE": 35.0351,
+            "sMAPE": 42.341
+          },
+          "Home_2": {
+            "MAE": 1.4548,
+            "RMSE": 1.8015,
+            "R2": 0.1703,
+            "WAPE": 40.1001,
+            "sMAPE": 53.7217
+          },
+          "Home_3": {
+            "MAE": 0.3978,
+            "RMSE": 0.7623,
+            "R2": 0.6025,
+            "WAPE": 16.9824,
+            "sMAPE": 19.724
+          },
+          "Home_4": {
+            "MAE": 0.3096,
+            "RMSE": 0.6351,
+            "R2": 0.7825,
+            "WAPE": 13.1585,
+            "sMAPE": 15.9666
+          },
+          "Home_5": {
+            "MAE": 1.3929,
+            "RMSE": 1.8028,
+            "R2": 0.1278,
+            "WAPE": 45.361,
+            "sMAPE": 50.7027
+          },
+          "Home_6": {
+            "MAE": 0.6873,
+            "RMSE": 0.8308,
+            "R2": 0.5666,
+            "WAPE": 26.7154,
+            "sMAPE": 32.9533
+          },
+          "Home_7": {
+            "MAE": 1.176,
+            "RMSE": 1.7611,
+            "R2": 0.2413,
+            "WAPE": 38.9164,
+            "sMAPE": 44.0969
+          },
+          "Home_8": {
+            "MAE": 0.7413,
+            "RMSE": 0.9598,
+            "R2": 0.4392,
+            "WAPE": 43.8113,
+            "sMAPE": 58.0761
+          },
+          "Home_9": {
+            "MAE": 1.5771,
+            "RMSE": 1.8077,
+            "R2": -0.9849,
+            "WAPE": 61.877,
+            "sMAPE": 69.8205
+          },
+          "Home_10": {
+            "MAE": 0.6221,
+            "RMSE": 0.7248,
+            "R2": 0.157,
+            "WAPE": 38.3779,
+            "sMAPE": 46.7089
+          }
+        },
+        "training_rows": 0,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "load_lag_15m"
+        ]
+      },
+      {
+        "model_name": "Persistence_24h",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 1.2313,
+        "RMSE": 1.7013,
+        "R2": -0.0974,
+        "MAPE_or_sMAPE": 54.5562,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 1.0434,
+            "RMSE": 1.4706,
+            "R2": -0.0541,
+            "WAPE": 32.2024,
+            "sMAPE": 39.5633
+          },
+          "Home_2": {
+            "MAE": 1.6166,
+            "RMSE": 2.0313,
+            "R2": -0.0549,
+            "WAPE": 44.5618,
+            "sMAPE": 52.36
+          },
+          "Home_3": {
+            "MAE": 1.1851,
+            "RMSE": 1.5191,
+            "R2": -0.5786,
+            "WAPE": 50.5905,
+            "sMAPE": 52.105
+          },
+          "Home_4": {
+            "MAE": 0.436,
+            "RMSE": 0.8315,
+            "R2": 0.6272,
+            "WAPE": 18.5335,
+            "sMAPE": 23.7572
+          },
+          "Home_5": {
+            "MAE": 1.8179,
+            "RMSE": 2.5345,
+            "R2": -0.7238,
+            "WAPE": 59.2006,
+            "sMAPE": 53.3369
+          },
+          "Home_6": {
+            "MAE": 0.9429,
+            "RMSE": 1.2237,
+            "R2": 0.0596,
+            "WAPE": 36.653,
+            "sMAPE": 46.9792
+          },
+          "Home_7": {
+            "MAE": 1.633,
+            "RMSE": 2.1966,
+            "R2": -0.1804,
+            "WAPE": 54.0375,
+            "sMAPE": 59.4973
+          },
+          "Home_8": {
+            "MAE": 1.3156,
+            "RMSE": 1.7512,
+            "R2": -0.8668,
+            "WAPE": 77.7512,
+            "sMAPE": 68.542
+          },
+          "Home_9": {
+            "MAE": 1.3942,
+            "RMSE": 1.6195,
+            "R2": -0.5932,
+            "WAPE": 54.702,
+            "sMAPE": 62.9097
+          },
+          "Home_10": {
+            "MAE": 0.9279,
+            "RMSE": 1.1054,
+            "R2": -0.9605,
+            "WAPE": 57.2385,
+            "sMAPE": 86.5117
+          }
+        },
+        "training_rows": 0,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "load_lag_24h"
+        ]
+      },
+      {
+        "model_name": "Home_Overall_Mean",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 1.3425,
+        "RMSE": 1.6011,
+        "R2": 0.028,
+        "MAPE_or_sMAPE": 57.1612,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 1.2775,
+            "RMSE": 1.4328,
+            "R2": -0.0006,
+            "WAPE": 39.4283,
+            "sMAPE": 43.0807
+          },
+          "Home_2": {
+            "MAE": 1.6376,
+            "RMSE": 2.0013,
+            "R2": -0.024,
+            "WAPE": 45.1381,
+            "sMAPE": 50.9656
+          },
+          "Home_3": {
+            "MAE": 1.1113,
+            "RMSE": 1.4732,
+            "R2": -0.4844,
+            "WAPE": 47.4377,
+            "sMAPE": 50.8611
+          },
+          "Home_4": {
+            "MAE": 1.2724,
+            "RMSE": 1.4053,
+            "R2": -0.0648,
+            "WAPE": 54.0825,
+            "sMAPE": 67.0336
+          },
+          "Home_5": {
+            "MAE": 1.8331,
+            "RMSE": 2.0892,
+            "R2": -0.1713,
+            "WAPE": 59.6973,
+            "sMAPE": 61.9667
+          },
+          "Home_6": {
+            "MAE": 1.068,
+            "RMSE": 1.2758,
+            "R2": -0.0222,
+            "WAPE": 41.516,
+            "sMAPE": 44.199
+          },
+          "Home_7": {
+            "MAE": 1.9073,
+            "RMSE": 2.0432,
+            "R2": -0.0213,
+            "WAPE": 63.1145,
+            "sMAPE": 69.4102
+          },
+          "Home_8": {
+            "MAE": 1.4115,
+            "RMSE": 1.6218,
+            "R2": -0.6012,
+            "WAPE": 83.418,
+            "sMAPE": 77.9067
+          },
+          "Home_9": {
+            "MAE": 1.0877,
+            "RMSE": 1.2897,
+            "R2": -0.0103,
+            "WAPE": 42.6756,
+            "sMAPE": 46.7261
+          },
+          "Home_10": {
+            "MAE": 0.8182,
+            "RMSE": 0.9864,
+            "R2": -0.5611,
+            "WAPE": 50.4728,
+            "sMAPE": 59.4626
+          }
+        },
+        "training_rows": 960,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "home_id"
+        ]
+      },
+      {
+        "model_name": "Ridge_Regression",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 0.8835,
+        "RMSE": 1.1371,
+        "R2": 0.5098,
+        "MAPE_or_sMAPE": 44.5955,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 0.9768,
+            "RMSE": 1.1919,
+            "R2": 0.3075,
+            "WAPE": 30.1469,
+            "sMAPE": 36.5227
+          },
+          "Home_2": {
+            "MAE": 1.0991,
+            "RMSE": 1.3943,
+            "R2": 0.503,
+            "WAPE": 30.2971,
+            "sMAPE": 38.2659
+          },
+          "Home_3": {
+            "MAE": 0.616,
+            "RMSE": 0.8128,
+            "R2": 0.5481,
+            "WAPE": 26.2936,
+            "sMAPE": 31.0283
+          },
+          "Home_4": {
+            "MAE": 0.5725,
+            "RMSE": 0.7968,
+            "R2": 0.6577,
+            "WAPE": 24.3342,
+            "sMAPE": 31.6112
+          },
+          "Home_5": {
+            "MAE": 1.2621,
+            "RMSE": 1.4939,
+            "R2": 0.4011,
+            "WAPE": 41.1007,
+            "sMAPE": 49.6903
+          },
+          "Home_6": {
+            "MAE": 0.6327,
+            "RMSE": 0.7681,
+            "R2": 0.6295,
+            "WAPE": 24.5941,
+            "sMAPE": 30.7986
+          },
+          "Home_7": {
+            "MAE": 1.3335,
+            "RMSE": 1.6333,
+            "R2": 0.3473,
+            "WAPE": 44.1292,
+            "sMAPE": 54.3017
+          },
+          "Home_8": {
+            "MAE": 0.6137,
+            "RMSE": 0.7636,
+            "R2": 0.645,
+            "WAPE": 36.271,
+            "sMAPE": 50.4901
+          },
+          "Home_9": {
+            "MAE": 1.0666,
+            "RMSE": 1.2318,
+            "R2": 0.0783,
+            "WAPE": 41.8475,
+            "sMAPE": 49.2528
+          },
+          "Home_10": {
+            "MAE": 0.6617,
+            "RMSE": 0.8248,
+            "R2": -0.0915,
+            "WAPE": 40.8206,
+            "sMAPE": 73.9936
+          }
+        },
+        "training_rows": 960,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "home_id",
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "is_weekend",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "load_lag_15m",
+          "load_lag_30m",
+          "load_roll_mean_1h",
+          "load_roll_std_1h"
+        ]
+      },
+      {
+        "model_name": "HistGradientBoostingRegressor",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "validation",
+        "MAE": 0.8018,
+        "RMSE": 1.0584,
+        "R2": 0.5753,
+        "MAPE_or_sMAPE": 37.7403,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 0.7727,
+            "RMSE": 0.9581,
+            "R2": 0.5525,
+            "WAPE": 23.8463,
+            "sMAPE": 28.6361
+          },
+          "Home_2": {
+            "MAE": 1.1381,
+            "RMSE": 1.462,
+            "R2": 0.4535,
+            "WAPE": 31.3698,
+            "sMAPE": 38.5873
+          },
+          "Home_3": {
+            "MAE": 0.6857,
+            "RMSE": 0.93,
+            "R2": 0.4084,
+            "WAPE": 29.271,
+            "sMAPE": 38.2702
+          },
+          "Home_4": {
+            "MAE": 0.3958,
+            "RMSE": 0.6552,
+            "R2": 0.7685,
+            "WAPE": 16.8229,
+            "sMAPE": 22.475
+          },
+          "Home_5": {
+            "MAE": 1.1842,
+            "RMSE": 1.4443,
+            "R2": 0.4402,
+            "WAPE": 38.5655,
+            "sMAPE": 45.8797
+          },
+          "Home_6": {
+            "MAE": 0.511,
+            "RMSE": 0.6282,
+            "R2": 0.7522,
+            "WAPE": 19.8637,
+            "sMAPE": 24.3324
+          },
+          "Home_7": {
+            "MAE": 1.2799,
+            "RMSE": 1.4931,
+            "R2": 0.4546,
+            "WAPE": 42.3542,
+            "sMAPE": 53.0364
+          },
+          "Home_8": {
+            "MAE": 0.7815,
+            "RMSE": 0.9646,
+            "R2": 0.4336,
+            "WAPE": 46.1833,
+            "sMAPE": 56.0869
+          },
+          "Home_9": {
+            "MAE": 0.8082,
+            "RMSE": 0.938,
+            "R2": 0.4656,
+            "WAPE": 31.7073,
+            "sMAPE": 37.1594
+          },
+          "Home_10": {
+            "MAE": 0.4614,
+            "RMSE": 0.5772,
+            "R2": 0.4654,
+            "WAPE": 28.4594,
+            "sMAPE": 32.9394
+          }
+        },
+        "training_rows": 960,
+        "validation_rows": 960,
+        "test_rows": 0,
+        "features_used": [
+          "home_id",
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "is_weekend",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "load_lag_15m",
+          "load_lag_30m",
+          "load_roll_mean_1h",
+          "load_roll_std_1h"
+        ]
+      },
+      {
+        "model_name": "HistGradientBoostingRegressor_FinalRetrained",
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "split": "holdout",
+        "MAE": 0.805,
+        "RMSE": 1.0976,
+        "R2": 0.6158,
+        "MAPE_or_sMAPE": 37.6506,
+        "per_home_metrics": {
+          "Home_1": {
+            "MAE": 0.8951,
+            "RMSE": 1.2248,
+            "R2": 0.5704,
+            "WAPE": 24.4809,
+            "sMAPE": 30.1201
+          },
+          "Home_2": {
+            "MAE": 0.9037,
+            "RMSE": 1.1208,
+            "R2": 0.6123,
+            "WAPE": 25.1804,
+            "sMAPE": 29.6603
+          },
+          "Home_3": {
+            "MAE": 0.6015,
+            "RMSE": 0.9022,
+            "R2": 0.6037,
+            "WAPE": 18.1917,
+            "sMAPE": 22.7182
+          },
+          "Home_4": {
+            "MAE": 0.6434,
+            "RMSE": 1.0424,
+            "R2": 0.3845,
+            "WAPE": 21.6789,
+            "sMAPE": 23.8374
+          },
+          "Home_5": {
+            "MAE": 1.3149,
+            "RMSE": 1.6596,
+            "R2": 0.2454,
+            "WAPE": 40.4944,
+            "sMAPE": 45.5776
+          },
+          "Home_6": {
+            "MAE": 0.5512,
+            "RMSE": 0.7248,
+            "R2": 0.2668,
+            "WAPE": 45.0347,
+            "sMAPE": 46.1927
+          },
+          "Home_7": {
+            "MAE": 1.26,
+            "RMSE": 1.477,
+            "R2": 0.5241,
+            "WAPE": 38.9308,
+            "sMAPE": 52.8398
+          },
+          "Home_8": {
+            "MAE": 0.6866,
+            "RMSE": 0.8878,
+            "R2": 0.203,
+            "WAPE": 42.4227,
+            "sMAPE": 48.8567
+          },
+          "Home_9": {
+            "MAE": 0.7754,
+            "RMSE": 0.9107,
+            "R2": 0.5215,
+            "WAPE": 30.9613,
+            "sMAPE": 36.3139
+          },
+          "Home_10": {
+            "MAE": 0.4183,
+            "RMSE": 0.5591,
+            "R2": 0.2626,
+            "WAPE": 38.7411,
+            "sMAPE": 40.3892
+          }
+        },
+        "training_rows": 1920,
+        "validation_rows": 0,
+        "test_rows": 960,
+        "features_used": [
+          "home_id",
+          "minute_of_day",
+          "slot_15m",
+          "hour",
+          "day_of_week",
+          "is_weekend",
+          "slot_15m_sin",
+          "slot_15m_cos",
+          "load_lag_15m",
+          "load_lag_30m",
+          "load_roll_mean_1h",
+          "load_roll_std_1h"
+        ]
+      }
+    ],
+    "selected_model": "HistGradientBoostingRegressor",
+    "validation_mae": 0.8018,
+    "test_mae": 0.805,
+    "test_rmse": 1.0976,
+    "test_r2": 0.6158,
+    "per_home_metrics": {
+      "Home_1": {
+        "MAE": 0.8951,
+        "RMSE": 1.2248,
+        "R2": 0.5704,
+        "WAPE": 24.4809,
+        "sMAPE": 30.1201
+      },
+      "Home_2": {
+        "MAE": 0.9037,
+        "RMSE": 1.1208,
+        "R2": 0.6123,
+        "WAPE": 25.1804,
+        "sMAPE": 29.6603
+      },
+      "Home_3": {
+        "MAE": 0.6015,
+        "RMSE": 0.9022,
+        "R2": 0.6037,
+        "WAPE": 18.1917,
+        "sMAPE": 22.7182
+      },
+      "Home_4": {
+        "MAE": 0.6434,
+        "RMSE": 1.0424,
+        "R2": 0.3845,
+        "WAPE": 21.6789,
+        "sMAPE": 23.8374
+      },
+      "Home_5": {
+        "MAE": 1.3149,
+        "RMSE": 1.6596,
+        "R2": 0.2454,
+        "WAPE": 40.4944,
+        "sMAPE": 45.5776
+      },
+      "Home_6": {
+        "MAE": 0.5512,
+        "RMSE": 0.7248,
+        "R2": 0.2668,
+        "WAPE": 45.0347,
+        "sMAPE": 46.1927
+      },
+      "Home_7": {
+        "MAE": 1.26,
+        "RMSE": 1.477,
+        "R2": 0.5241,
+        "WAPE": 38.9308,
+        "sMAPE": 52.8398
+      },
+      "Home_8": {
+        "MAE": 0.6866,
+        "RMSE": 0.8878,
+        "R2": 0.203,
+        "WAPE": 42.4227,
+        "sMAPE": 48.8567
+      },
+      "Home_9": {
+        "MAE": 0.7754,
+        "RMSE": 0.9107,
+        "R2": 0.5215,
+        "WAPE": 30.9613,
+        "sMAPE": 36.3139
+      },
+      "Home_10": {
+        "MAE": 0.4183,
+        "RMSE": 0.5591,
+        "R2": 0.2626,
+        "WAPE": 38.7411,
+        "sMAPE": 40.3892
+      }
+    },
+    "median_home_mae": 0.731,
+    "best_home_mae": 0.4183,
+    "worst_home_mae": 1.3149,
+    "baseline_val_mae": 0.9494,
+    "baseline_test_mae": 1.0189,
+    "offline_24h_simulation": {
+      "benchmark_type": "24h_recursive_micro_benchmark",
+      "holdout_day": "2018-08-25",
+      "homes_evaluated": 10,
+      "timesteps_per_home": 96,
+      "MAE": 1.1353,
+      "RMSE": 1.4252
+    }
+  }
+}
