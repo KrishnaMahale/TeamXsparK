@@ -123,16 +123,493 @@ def initialize_default_grid() -> GridNetwork:
     return default_net
 
 
+def initialize_medium_grid() -> GridNetwork:
+    substation = Transformer(
+        id="TX-MED",
+        name="District Substation (33/11 kV)",
+        ratingKva=350.0,
+        primaryVoltageKv=33.0,
+        secondaryVoltageKv=11.0,
+        loadingPercent=58.0,
+        temperatureC=36.0,
+        status="normal",
+        position=Position3D(x=0.0, y=0.6, z=-10.0),
+    )
+
+    buses = [
+        Bus(
+            id="MB-01",
+            name="Substation Main Bus",
+            voltage=1.020,
+            voltageLimitMin=0.95,
+            voltageLimitMax=1.05,
+            loadKw=0.0,
+            solarKw=0.0,
+            lineLoadingPercent=60.0,
+            temperatureC=32.0,
+            status="normal",
+            connectedFeeders=["F-MED-MAIN", "F-MED-N1", "F-MED-S1"],
+            connectedAssets=BusConnectedAssets(),
+            position=Position3D(x=0.0, y=0.0, z=-5.0),
+        ),
+        Bus(
+            id="MB-02",
+            name="North Residential Bus",
+            voltage=1.015,
+            voltageLimitMin=0.95,
+            voltageLimitMax=1.05,
+            loadKw=52.0,
+            solarKw=35.0,
+            lineLoadingPercent=68.0,
+            temperatureC=34.0,
+            status="normal",
+            connectedFeeders=["F-MED-N1", "F-MED-N2"],
+            connectedAssets=BusConnectedAssets(solar="S-MED-01", load="L-MED-01"),
+            position=Position3D(x=-6.0, y=0.0, z=0.0),
+        ),
+        Bus(
+            id="MB-03",
+            name="North Commercial Bus",
+            voltage=1.025,
+            voltageLimitMin=0.95,
+            voltageLimitMax=1.05,
+            loadKw=58.0,
+            solarKw=45.0,
+            lineLoadingPercent=74.0,
+            temperatureC=35.0,
+            status="normal",
+            connectedFeeders=["F-MED-N2", "F-MED-TIE"],
+            connectedAssets=BusConnectedAssets(solar="S-MED-02", battery="BAT-MED-01", load="L-MED-03"),
+            position=Position3D(x=-6.0, y=0.0, z=6.0),
+        ),
+        Bus(
+            id="MB-04",
+            name="South Community Bus",
+            voltage=1.012,
+            voltageLimitMin=0.95,
+            voltageLimitMax=1.05,
+            loadKw=40.0,
+            solarKw=25.0,
+            lineLoadingPercent=62.0,
+            temperatureC=33.0,
+            status="normal",
+            connectedFeeders=["F-MED-S1", "F-MED-S2"],
+            connectedAssets=BusConnectedAssets(solar="S-MED-03", load="L-MED-05"),
+            position=Position3D(x=6.0, y=0.0, z=0.0),
+        ),
+        Bus(
+            id="MB-05",
+            name="South Civic & School Bus",
+            voltage=1.018,
+            voltageLimitMin=0.95,
+            voltageLimitMax=1.05,
+            loadKw=50.0,
+            solarKw=35.0,
+            lineLoadingPercent=66.0,
+            temperatureC=34.0,
+            status="normal",
+            connectedFeeders=["F-MED-S2", "F-MED-TIE"],
+            connectedAssets=BusConnectedAssets(solar="S-MED-04", load="L-MED-07"),
+            position=Position3D(x=6.0, y=0.0, z=6.0),
+        ),
+    ]
+
+    feeders = [
+        Feeder(
+            id="F-MED-MAIN",
+            name="Substation Incomer Feeder",
+            fromBus="TX-MED",
+            toBus="MB-01",
+            loadingPercent=58.0,
+            capacityKw=400.0,
+            activePowerKw=232.0,
+            reactivePowerKvar=45.0,
+            status="normal",
+            isSwitchClosed=True,
+        ),
+        Feeder(
+            id="F-MED-N1",
+            name="North Feeder Segment 1",
+            fromBus="MB-01",
+            toBus="MB-02",
+            loadingPercent=68.0,
+            capacityKw=250.0,
+            activePowerKw=170.0,
+            reactivePowerKvar=32.0,
+            status="normal",
+            isSwitchClosed=True,
+        ),
+        Feeder(
+            id="F-MED-N2",
+            name="North Feeder Segment 2",
+            fromBus="MB-02",
+            toBus="MB-03",
+            loadingPercent=74.0,
+            capacityKw=200.0,
+            activePowerKw=148.0,
+            reactivePowerKvar=28.0,
+            status="normal",
+            isSwitchClosed=True,
+        ),
+        Feeder(
+            id="F-MED-S1",
+            name="South Feeder Segment 1",
+            fromBus="MB-01",
+            toBus="MB-04",
+            loadingPercent=62.0,
+            capacityKw=250.0,
+            activePowerKw=155.0,
+            reactivePowerKvar=30.0,
+            status="normal",
+            isSwitchClosed=True,
+        ),
+        Feeder(
+            id="F-MED-S2",
+            name="South Feeder Segment 2",
+            fromBus="MB-04",
+            toBus="MB-05",
+            loadingPercent=66.0,
+            capacityKw=200.0,
+            activePowerKw=132.0,
+            reactivePowerKvar=25.0,
+            status="normal",
+            isSwitchClosed=True,
+        ),
+        Feeder(
+            id="F-MED-TIE",
+            name="North-South Tie-Line Switch",
+            fromBus="MB-03",
+            toBus="MB-05",
+            loadingPercent=0.0,
+            capacityKw=180.0,
+            activePowerKw=0.0,
+            reactivePowerKvar=0.0,
+            status="normal",
+            isSwitchClosed=False,
+            isReconfigurableAlternate=True,
+        ),
+    ]
+
+    solar_units = [
+        SolarUnit(
+            id="S-MED-01",
+            name="Rooftop Solar Cluster North",
+            busId="MB-02",
+            generationKw=28.0,
+            capacityKw=35.0,
+            irradianceWm2=850.0,
+            status="normal",
+            position=Position3D(x=-9.0, y=0.0, z=0.0),
+        ),
+        SolarUnit(
+            id="S-MED-02",
+            name="Commercial Plaza PV Canopy",
+            busId="MB-03",
+            generationKw=38.0,
+            capacityKw=45.0,
+            irradianceWm2=860.0,
+            status="normal",
+            position=Position3D(x=-9.0, y=0.0, z=6.0),
+        ),
+        SolarUnit(
+            id="S-MED-03",
+            name="Community Solar Carport",
+            busId="MB-04",
+            generationKw=20.0,
+            capacityKw=25.0,
+            irradianceWm2=840.0,
+            status="normal",
+            position=Position3D(x=9.0, y=0.0, z=0.0),
+        ),
+        SolarUnit(
+            id="S-MED-04",
+            name="School Rooftop Solar Array",
+            busId="MB-05",
+            generationKw=30.0,
+            capacityKw=35.0,
+            irradianceWm2=855.0,
+            status="normal",
+            position=Position3D(x=9.0, y=0.0, z=6.0),
+        ),
+    ]
+
+    batteries = [
+        Battery(
+            id="BAT-MED-01",
+            name="District Commercial BESS",
+            busId="MB-03",
+            powerKw=25.0,
+            maxDischargeKw=40.0,
+            maxChargeKw=40.0,
+            socPercent=65.0,
+            capacityKwh=100.0,
+            status="normal",
+            position=Position3D(x=-9.0, y=0.0, z=8.0),
+        ),
+    ]
+
+    loads = [
+        Load(id="L-MED-01", name="Residential Cluster North A", busId="MB-02", powerKw=24.0, powerFactor=0.93, status="normal", position=Position3D(x=-4.0, y=0.0, z=0.0)),
+        Load(id="L-MED-02", name="Apartment Block North", busId="MB-02", powerKw=28.0, powerFactor=0.92, status="normal", position=Position3D(x=-8.0, y=0.0, z=2.0)),
+        Load(id="L-MED-03", name="Small Commercial Strip", busId="MB-03", powerKw=32.0, powerFactor=0.94, status="normal", position=Position3D(x=-4.0, y=0.0, z=6.0)),
+        Load(id="L-MED-04", name="Retail Complex & Bakery", busId="MB-03", powerKw=26.0, powerFactor=0.91, status="normal", position=Position3D(x=-8.0, y=0.0, z=8.0)),
+        Load(id="L-MED-05", name="Residential Cluster South", busId="MB-04", powerKw=22.0, powerFactor=0.93, status="normal", position=Position3D(x=4.0, y=0.0, z=0.0)),
+        Load(id="L-MED-06", name="Community Sports Facility", busId="MB-04", powerKw=18.0, powerFactor=0.90, status="normal", position=Position3D(x=8.0, y=0.0, z=2.0)),
+        Load(id="L-MED-07", name="Public High School", busId="MB-05", powerKw=30.0, powerFactor=0.95, status="normal", position=Position3D(x=4.0, y=0.0, z=6.0)),
+        Load(id="L-MED-08", name="Local Municipal Office", busId="MB-05", powerKw=20.0, powerFactor=0.92, status="normal", position=Position3D(x=8.0, y=0.0, z=8.0)),
+    ]
+
+    med_grid = GridNetwork(
+        id="medium-test-grid",
+        name="Medium Mixed Distribution Grid",
+        gridConnectionStatus="connected",
+        gridFrequencyHz=50.0,
+        substation=substation,
+        buses=buses,
+        feeders=feeders,
+        solarUnits=solar_units,
+        batteries=batteries,
+        loads=loads,
+        lastUpdated=datetime.datetime.now().isoformat(),
+    )
+    _GRIDS[med_grid.id] = med_grid
+    return med_grid
+
+
+def initialize_large_grid() -> GridNetwork:
+    substation = Transformer(
+        id="TX-LRG",
+        name="Regional Substation (33/11 kV)",
+        ratingKva=800.0,
+        primaryVoltageKv=33.0,
+        secondaryVoltageKv=11.0,
+        loadingPercent=64.0,
+        temperatureC=38.0,
+        status="normal",
+        position=Position3D(x=0.0, y=0.6, z=-15.0),
+    )
+
+    buses = [
+        Bus(
+            id="LB-01",
+            name="Main Substation Incomer Bus",
+            voltage=1.020,
+            loadKw=0.0,
+            solarKw=0.0,
+            lineLoadingPercent=64.0,
+            temperatureC=32.0,
+            status="normal",
+            connectedFeeders=["F-LRG-MAIN", "F-LRG-N1", "F-LRG-C1", "F-LRG-S1"],
+            position=Position3D(x=0.0, y=0.0, z=-10.0),
+        ),
+        Bus(
+            id="LB-02",
+            name="Feeder 1 North Hub (Residential)",
+            voltage=1.018,
+            loadKw=65.0,
+            solarKw=35.0,
+            lineLoadingPercent=70.0,
+            temperatureC=33.0,
+            status="normal",
+            connectedFeeders=["F-LRG-N1", "F-LRG-N2"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-01", load="L-LRG-01"),
+            position=Position3D(x=-12.0, y=0.0, z=-4.0),
+        ),
+        Bus(
+            id="LB-03",
+            name="Feeder 1 North Branch (Apartments & EV)",
+            voltage=1.014,
+            loadKw=80.0,
+            solarKw=50.0,
+            lineLoadingPercent=76.0,
+            temperatureC=34.0,
+            status="normal",
+            connectedFeeders=["F-LRG-N2", "F-LRG-N3"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-02", battery="BAT-LRG-01", load="L-LRG-03"),
+            position=Position3D(x=-12.0, y=0.0, z=2.0),
+        ),
+        Bus(
+            id="LB-04",
+            name="Feeder 1 North End (Community Hub)",
+            voltage=1.022,
+            loadKw=55.0,
+            solarKw=40.0,
+            lineLoadingPercent=68.0,
+            temperatureC=33.0,
+            status="normal",
+            connectedFeeders=["F-LRG-N3", "F-LRG-TIE-NC"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-03", load="L-LRG-05"),
+            position=Position3D(x=-12.0, y=0.0, z=8.0),
+        ),
+        Bus(
+            id="LB-05",
+            name="Feeder 2 Central Hub (Hospital & Medical)",
+            voltage=1.016,
+            loadKw=80.0,
+            solarKw=45.0,
+            lineLoadingPercent=72.0,
+            temperatureC=34.0,
+            status="normal",
+            connectedFeeders=["F-LRG-C1", "F-LRG-C2"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-04", battery="BAT-LRG-02", load="L-LRG-07"),
+            position=Position3D(x=0.0, y=0.0, z=-4.0),
+        ),
+        Bus(
+            id="LB-06",
+            name="Feeder 2 Central Branch (Shopping Mall)",
+            voltage=1.028,
+            loadKw=90.0,
+            solarKw=75.0,
+            lineLoadingPercent=82.0,
+            temperatureC=36.0,
+            status="normal",
+            connectedFeeders=["F-LRG-C2", "F-LRG-C3"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-05", load="L-LRG-09"),
+            position=Position3D(x=0.0, y=0.0, z=2.0),
+        ),
+        Bus(
+            id="LB-07",
+            name="Feeder 2 Central End (Office Towers)",
+            voltage=1.032,
+            loadKw=75.0,
+            solarKw=50.0,
+            lineLoadingPercent=78.0,
+            temperatureC=35.0,
+            status="normal",
+            connectedFeeders=["F-LRG-C3", "F-LRG-TIE-NC", "F-LRG-TIE-CS"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-06", load="L-LRG-11"),
+            position=Position3D(x=0.0, y=0.0, z=8.0),
+        ),
+        Bus(
+            id="LB-08",
+            name="Feeder 3 South Hub (Light Industrial)",
+            voltage=1.012,
+            loadKw=75.0,
+            solarKw=65.0,
+            lineLoadingPercent=75.0,
+            temperatureC=35.0,
+            status="normal",
+            connectedFeeders=["F-LRG-S1", "F-LRG-S2"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-07", load="L-LRG-13"),
+            position=Position3D(x=12.0, y=0.0, z=-4.0),
+        ),
+        Bus(
+            id="LB-09",
+            name="Feeder 3 South Branch (Logistics & Depot)",
+            voltage=1.025,
+            loadKw=60.0,
+            solarKw=50.0,
+            lineLoadingPercent=72.0,
+            temperatureC=34.0,
+            status="normal",
+            connectedFeeders=["F-LRG-S2", "F-LRG-S3"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-08", load="L-LRG-15"),
+            position=Position3D(x=12.0, y=0.0, z=2.0),
+        ),
+        Bus(
+            id="LB-10",
+            name="Feeder 3 South End (CleanTech Park)",
+            voltage=1.045,
+            loadKw=50.0,
+            solarKw=100.0,
+            lineLoadingPercent=88.0,
+            temperatureC=38.0,
+            status="normal",
+            connectedFeeders=["F-LRG-S3", "F-LRG-TIE-CS"],
+            connectedAssets=BusConnectedAssets(solar="S-LRG-09", battery="BAT-LRG-03", load="L-LRG-17"),
+            position=Position3D(x=12.0, y=0.0, z=8.0),
+        ),
+    ]
+
+    feeders = [
+        Feeder(id="F-LRG-MAIN", name="Primary Substation Trunk", fromBus="TX-LRG", toBus="LB-01", loadingPercent=64.0, capacityKw=800.0, activePowerKw=512.0, reactivePowerKvar=95.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-N1", name="North Residential Trunk", fromBus="LB-01", toBus="LB-02", loadingPercent=70.0, capacityKw=350.0, activePowerKw=245.0, reactivePowerKvar=48.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-N2", name="North Urban Distribution Line", fromBus="LB-02", toBus="LB-03", loadingPercent=76.0, capacityKw=250.0, activePowerKw=190.0, reactivePowerKvar=38.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-N3", name="North Community Line", fromBus="LB-03", toBus="LB-04", loadingPercent=68.0, capacityKw=200.0, activePowerKw=136.0, reactivePowerKvar=27.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-C1", name="Central Commercial Trunk", fromBus="LB-01", toBus="LB-05", loadingPercent=72.0, capacityKw=400.0, activePowerKw=288.0, reactivePowerKvar=56.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-C2", name="Central Retail Distribution Line", fromBus="LB-05", toBus="LB-06", loadingPercent=82.0, capacityKw=300.0, activePowerKw=246.0, reactivePowerKvar=48.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-C3", name="Central Corporate Line", fromBus="LB-06", toBus="LB-07", loadingPercent=78.0, capacityKw=250.0, activePowerKw=195.0, reactivePowerKvar=38.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-S1", name="South Industrial Trunk", fromBus="LB-01", toBus="LB-08", loadingPercent=75.0, capacityKw=350.0, activePowerKw=262.0, reactivePowerKvar=52.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-S2", name="South Logistics Line", fromBus="LB-08", toBus="LB-09", loadingPercent=72.0, capacityKw=250.0, activePowerKw=180.0, reactivePowerKvar=35.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-S3", name="South CleanTech Park Line", fromBus="LB-09", toBus="LB-10", loadingPercent=88.0, capacityKw=250.0, activePowerKw=220.0, reactivePowerKvar=44.0, status="normal", isSwitchClosed=True),
+        Feeder(id="F-LRG-TIE-NC", name="North-Central Reconfigurable Tie-Line", fromBus="LB-04", toBus="LB-07", loadingPercent=0.0, capacityKw=200.0, activePowerKw=0.0, reactivePowerKvar=0.0, status="normal", isSwitchClosed=False, isReconfigurableAlternate=True),
+        Feeder(id="F-LRG-TIE-CS", name="Central-South Reconfigurable Tie-Line", fromBus="LB-07", toBus="LB-10", loadingPercent=0.0, capacityKw=200.0, activePowerKw=0.0, reactivePowerKvar=0.0, status="normal", isSwitchClosed=False, isReconfigurableAlternate=True),
+    ]
+
+    solar_units = [
+        SolarUnit(id="S-LRG-01", name="Residential Rooftop PV East", busId="LB-02", generationKw=30.0, capacityKw=35.0, irradianceWm2=860.0, status="normal", position=Position3D(x=-15.0, y=0.0, z=-4.0)),
+        SolarUnit(id="S-LRG-02", name="Apartment Rooftop Solar Array", busId="LB-03", generationKw=42.0, capacityKw=50.0, irradianceWm2=855.0, status="normal", position=Position3D(x=-15.0, y=0.0, z=2.0)),
+        SolarUnit(id="S-LRG-03", name="School & Muni Solar Canopy", busId="LB-04", generationKw=34.0, capacityKw=40.0, irradianceWm2=850.0, status="normal", position=Position3D(x=-15.0, y=0.0, z=8.0)),
+        SolarUnit(id="S-LRG-04", name="Hospital Emergency Solar Facility", busId="LB-05", generationKw=38.0, capacityKw=45.0, irradianceWm2=865.0, status="normal", position=Position3D(x=-3.0, y=0.0, z=-4.0)),
+        SolarUnit(id="S-LRG-05", name="Mall Rooftop Solar Megawatt-Fraction", busId="LB-06", generationKw=65.0, capacityKw=75.0, irradianceWm2=870.0, status="normal", position=Position3D(x=-3.0, y=0.0, z=2.0)),
+        SolarUnit(id="S-LRG-06", name="Commercial High-Rise BIPV Facade", busId="LB-07", generationKw=42.0, capacityKw=50.0, irradianceWm2=850.0, status="normal", position=Position3D(x=-3.0, y=0.0, z=8.0)),
+        SolarUnit(id="S-LRG-07", name="Industrial Rooftop Solar Array", busId="LB-08", generationKw=55.0, capacityKw=65.0, irradianceWm2=860.0, status="normal", position=Position3D(x=15.0, y=0.0, z=-4.0)),
+        SolarUnit(id="S-LRG-08", name="Logistics Center Solar Roof", busId="LB-09", generationKw=42.0, capacityKw=50.0, irradianceWm2=855.0, status="normal", position=Position3D(x=15.0, y=0.0, z=2.0)),
+        SolarUnit(id="S-LRG-09", name="CleanTech Solar Farm Extension", busId="LB-10", generationKw=88.0, capacityKw=100.0, irradianceWm2=885.0, status="normal", position=Position3D(x=15.0, y=0.0, z=8.0)),
+    ]
+
+    batteries = [
+        Battery(id="BAT-LRG-01", name="North Sub-district BESS", busId="LB-03", powerKw=35.0, maxDischargeKw=50.0, maxChargeKw=50.0, socPercent=60.0, capacityKwh=120.0, status="normal", position=Position3D(x=-15.0, y=0.0, z=4.0)),
+        Battery(id="BAT-LRG-02", name="Hospital Resiliency BESS", busId="LB-05", powerKw=40.0, maxDischargeKw=60.0, maxChargeKw=60.0, socPercent=70.0, capacityKwh=130.0, status="normal", position=Position3D(x=-3.0, y=0.0, z=-6.0)),
+        Battery(id="BAT-LRG-03", name="CleanTech Buffer BESS", busId="LB-10", powerKw=35.0, maxDischargeKw=50.0, maxChargeKw=50.0, socPercent=55.0, capacityKwh=100.0, status="normal", position=Position3D(x=15.0, y=0.0, z=10.0)),
+    ]
+
+    loads = [
+        Load(id="L-LRG-01", name="Residential Subdivision West", busId="LB-02", powerKw=35.0, powerFactor=0.93, status="normal", position=Position3D(x=-9.0, y=0.0, z=-4.0)),
+        Load(id="L-LRG-02", name="Residential Subdivision East", busId="LB-02", powerKw=30.0, powerFactor=0.92, status="normal", position=Position3D(x=-9.0, y=0.0, z=-2.0)),
+        Load(id="L-LRG-03", name="High-Density Apartment Complex", busId="LB-03", powerKw=45.0, powerFactor=0.94, status="normal", position=Position3D(x=-9.0, y=0.0, z=2.0)),
+        Load(id="L-LRG-04", name="EV Fast Charging Hub North", busId="LB-03", powerKw=35.0, powerFactor=0.98, status="normal", position=Position3D(x=-9.0, y=0.0, z=4.0)),
+        Load(id="L-LRG-05", name="Municipal Recreation Center", busId="LB-04", powerKw=25.0, powerFactor=0.91, status="normal", position=Position3D(x=-9.0, y=0.0, z=8.0)),
+        Load(id="L-LRG-06", name="Elementary & Middle School", busId="LB-04", powerKw=30.0, powerFactor=0.93, status="normal", position=Position3D(x=-9.0, y=0.0, z=10.0)),
+        Load(id="L-LRG-07", name="General Hospital & Medical Center", busId="LB-05", powerKw=55.0, powerFactor=0.96, status="normal", position=Position3D(x=3.0, y=0.0, z=-4.0)),
+        Load(id="L-LRG-08", name="Medical Plaza & Diagnostics", busId="LB-05", powerKw=25.0, powerFactor=0.94, status="normal", position=Position3D(x=3.0, y=0.0, z=-2.0)),
+        Load(id="L-LRG-09", name="Regional Shopping Mall", busId="LB-06", powerKw=60.0, powerFactor=0.92, status="normal", position=Position3D(x=3.0, y=0.0, z=2.0)),
+        Load(id="L-LRG-10", name="Cinema & Dining Complex", busId="LB-06", powerKw=30.0, powerFactor=0.90, status="normal", position=Position3D(x=3.0, y=0.0, z=4.0)),
+        Load(id="L-LRG-11", name="Corporate Office Tower A", busId="LB-07", powerKw=40.0, powerFactor=0.95, status="normal", position=Position3D(x=3.0, y=0.0, z=8.0)),
+        Load(id="L-LRG-12", name="Corporate Office Tower B", busId="LB-07", powerKw=35.0, powerFactor=0.94, status="normal", position=Position3D(x=3.0, y=0.0, z=10.0)),
+        Load(id="L-LRG-13", name="Light Manufacturing Plant A", busId="LB-08", powerKw=45.0, powerFactor=0.88, status="normal", position=Position3D(x=9.0, y=0.0, z=-4.0)),
+        Load(id="L-LRG-14", name="Textile & Fabrication Workshop", busId="LB-08", powerKw=30.0, powerFactor=0.89, status="normal", position=Position3D(x=9.0, y=0.0, z=-2.0)),
+        Load(id="L-LRG-15", name="Automated Distribution Warehouse", busId="LB-09", powerKw=35.0, powerFactor=0.91, status="normal", position=Position3D(x=9.0, y=0.0, z=2.0)),
+        Load(id="L-LRG-16", name="Cold Storage Logistics Depot", busId="LB-09", powerKw=25.0, powerFactor=0.87, status="normal", position=Position3D(x=9.0, y=0.0, z=4.0)),
+        Load(id="L-LRG-17", name="Clean Technology Research Park", busId="LB-10", powerKw=30.0, powerFactor=0.95, status="normal", position=Position3D(x=9.0, y=0.0, z=8.0)),
+        Load(id="L-LRG-18", name="Fleet Depot & EV Yard", busId="LB-10", powerKw=20.0, powerFactor=0.97, status="normal", position=Position3D(x=9.0, y=0.0, z=10.0)),
+    ]
+
+    lrg_grid = GridNetwork(
+        id="large-test-grid",
+        name="Large Renewable Distribution Grid",
+        gridConnectionStatus="connected",
+        gridFrequencyHz=50.0,
+        substation=substation,
+        buses=buses,
+        feeders=feeders,
+        solarUnits=solar_units,
+        batteries=batteries,
+        loads=loads,
+        lastUpdated=datetime.datetime.now().isoformat(),
+    )
+    _GRIDS[lrg_grid.id] = lrg_grid
+    return lrg_grid
+
+
+def _ensure_default_grids():
+    if "default-grid" not in _GRIDS:
+        initialize_default_grid()
+    if "medium-test-grid" not in _GRIDS:
+        initialize_medium_grid()
+    if "large-test-grid" not in _GRIDS:
+        initialize_large_grid()
+
+
 _load_local_cache()
-if not _GRIDS or "default-grid" not in _GRIDS:
-    initialize_default_grid()
+_ensure_default_grids()
+_save_local_cache()
 
 
 class NetworkRepository:
     def __init__(self):
         self.supabase = get_supabase_client()
-        if not _GRIDS:
-            initialize_default_grid()
+        _ensure_default_grids()
 
     def _sync_to_supabase(self, grid: GridNetwork):
         if not self.supabase:
@@ -182,13 +659,19 @@ class NetworkRepository:
 
     async def get_all_grids(self) -> List[GridNetwork]:
         self._sync_all_from_supabase()
-        if not _GRIDS:
-            initialize_default_grid()
+        _ensure_default_grids()
         return list(_GRIDS.values())
 
     async def get_grid(self, grid_id: str) -> Optional[GridNetwork]:
         if grid_id in _GRIDS:
             return _GRIDS[grid_id]
+
+        if grid_id == "default-grid":
+            return initialize_default_grid()
+        elif grid_id == "medium-test-grid":
+            return initialize_medium_grid()
+        elif grid_id == "large-test-grid":
+            return initialize_large_grid()
 
         if self.supabase:
             try:
