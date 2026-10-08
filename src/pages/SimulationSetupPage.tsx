@@ -1,36 +1,28 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
-import { Card, CardHeader, CardContent } from '../components/ui/Card'
+import { Card, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { ScenarioPresetSelector } from '../components/simulation/ScenarioPresetSelector'
-import { SolarInputPanel } from '../components/simulation/SolarInputPanel'
-import { LoadInputPanel } from '../components/simulation/LoadInputPanel'
-import { LiveSolarLoadChart } from '../components/simulation/LiveSolarLoadChart'
-import { NetworkConfigPanel } from '../components/simulation/NetworkConfigPanel'
-import { BatteryConfigPanel } from '../components/simulation/BatteryConfigPanel'
-import { SimulationReviewCard } from '../components/simulation/SimulationReviewCard'
-import { SimulationProgressModal } from '../components/simulation/SimulationProgressModal'
-import { CSVUploader } from '../components/simulation/CSVUploader'
+import { Badge } from '../components/ui/Badge'
 import { useSimulationStore } from '../store/simulationStore'
 import { useGridStore } from '../store/gridStore'
 import { gridService } from '../services/api/gridService'
 import { GridNetwork } from '../types/network'
-import { useNavigate } from 'react-router-dom'
+import { ScenarioSimulationPanel } from '../components/simulation/ScenarioSimulationPanel'
+import { ForecastSimulationPanel } from '../components/simulation/ForecastSimulationPanel'
+import { SimulationProgressModal } from '../components/simulation/SimulationProgressModal'
 import {
-  SlidersHorizontal,
   RotateCcw,
   ArrowRight,
-  ArrowLeft,
   Play,
   CheckCircle2,
-  Zap,
-  Database,
-  Cpu,
+  AlertTriangle,
   Share2,
 } from 'lucide-react'
 
 export const SimulationSetupPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const {
     input,
@@ -39,6 +31,7 @@ export const SimulationSetupPage: React.FC = () => {
     isProgressModalOpen,
     progressSteps,
     currentProgressIndex,
+    fullResult,
     updateInput,
     loadPreset,
     updateSolarPoint,
@@ -58,14 +51,41 @@ export const SimulationSetupPage: React.FC = () => {
   const { network, switchGrid } = useGridStore()
   const [availableGrids, setAvailableGrids] = useState<GridNetwork[]>([])
 
-  const navigate = useNavigate()
+  // Local state to allow explicit switching back to scenario mode if user desires
+  const [userSwitchedToScenario, setUserSwitchedToScenario] = useState<boolean>(false)
 
-  // Load all saved grids from database on mount or network change
+  // Context Detection:
+  // PATH A (Direct Access): Defaults to Scenario Simulation.
+  // PATH B (/forecasts -> /simulation): Detects forecast context via location state, query params, or staged forecast input.
+  const isForecastContext = useMemo(() => {
+    if (userSwitchedToScenario) return false
+
+    const locState = location.state as { fromForecast?: boolean; mode?: string } | null
+    if (locState?.fromForecast || locState?.mode === 'forecast' || location.search.includes('mode=forecast')) {
+      return true
+    }
+
+    // Check if input was staged by ForecastsPage with a Day-Ahead Forecast scenario
+    const isForecastScenario =
+      input.scenarioName.startsWith('Day-Ahead Forecast') ||
+      input.scenarioName.includes('Forecast')
+
+    return isForecastScenario
+  }, [location.state, location.search, input.scenarioName, userSwitchedToScenario])
+
+  // Load available grids from backend or store on mount
   useEffect(() => {
-    gridService.getGrids().then(setAvailableGrids).catch(() => {})
+    gridService
+      .getGrids()
+      .then((grids) => {
+        if (Array.isArray(grids) && grids.length > 0) {
+          setAvailableGrids(grids)
+        }
+      })
+      .catch(() => {})
   }, [network.id])
 
-  // Ensure input.gridId is synchronized with active grid
+  // Synchronize input.gridId with active grid
   useEffect(() => {
     if (!input.gridId && network.id) {
       updateInput({ gridId: network.id })
@@ -77,44 +97,28 @@ export const SimulationSetupPage: React.FC = () => {
     updateInput({ gridId })
   }
 
-  const totalSolarKw = useMemo(
-    () => network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0),
-    [network.solarUnits]
-  )
-  const totalBessKwh = useMemo(
-    () => network.batteries.reduce((acc, b) => acc + (b.capacityKwh || 0), 0),
-    [network.batteries]
-  )
-  const totalLoadKw = useMemo(
-    () => network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0),
-    [network.loads]
-  )
+  // Handle switching from Forecast to Scenario context
+  const handleSwitchToScenario = () => {
+    setUserSwitchedToScenario(true)
+    loadPreset('NORMAL_DAY')
+  }
+
+  // Handle full reset
+  const handleResetAll = () => {
+    setUserSwitchedToScenario(false)
+    resetSimulation()
+  }
 
   // Real-time Form Validation
   const validationErrors = useMemo(() => {
     const errors: string[] = []
 
     if (!input.scenarioName.trim()) {
-      errors.push('Scenario Name is required.')
+      errors.push('Scenario Name / Operating Identifier is required.')
     }
 
     if (input.installedSolarCapacityKw <= 0) {
       errors.push('Installed solar capacity must be greater than 0 kW.')
-    }
-
-    if (input.currentSolarKw > input.installedSolarCapacityKw) {
-      errors.push(
-        `Current solar generation (${input.currentSolarKw} kW) exceeds installed capacity (${input.installedSolarCapacityKw} kW).`
-      )
-    }
-
-    const solarOverPoints = input.solarTimeSeries.filter(
-      (p) => p.solarKw > input.installedSolarCapacityKw
-    )
-    if (solarOverPoints.length > 0) {
-      errors.push(
-        `Solar generation at ${solarOverPoints[0].time} (${solarOverPoints[0].solarKw} kW) exceeds capacity of ${input.installedSolarCapacityKw} kW.`
-      )
     }
 
     if (input.solarTimeSeries.length === 0) {
@@ -145,522 +149,157 @@ export const SimulationSetupPage: React.FC = () => {
     navigate('/actions')
   }
 
-  const steps = [
-    { number: 1, title: 'Scenario', subtitle: 'Metadata & Presets' },
-    { number: 2, title: 'Energy Data', subtitle: 'Solar & Load Profiles' },
-    { number: 3, title: 'Network', subtitle: 'Limits & Battery' },
-    { number: 4, title: 'Review', subtitle: 'Audit & Validation' },
-    { number: 5, title: 'Simulate', subtitle: 'Power-Flow Engine' },
-  ]
-
   return (
     <PageContainer
-      title="Simulation Setup"
-      subtitle="Configure renewable generation and electricity demand before running the digital twin"
+      title="Digital Twin Simulation"
+      subtitle={
+        isForecastContext
+          ? "Evaluate the selected day's ML forecast against the physical grid model."
+          : 'Evaluate how the selected grid behaves under its configured operating conditions.'
+      }
       actions={
         <div className="flex items-center gap-2.5">
-          <CSVUploader onImport={importCsvData} />
+          <Badge variant="neutral" size="sm" className="hidden sm:inline-flex">
+            {isForecastContext ? 'Forecast-Driven Simulation' : 'Scenario-Based Simulation'}
+          </Badge>
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Share2 className="w-3.5 h-3.5" />}
+            onClick={() => navigate('/network')}
+          >
+            Grid Configurator
+          </Button>
           <Button
             variant="secondary"
             size="sm"
             leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-            onClick={resetSimulation}
+            onClick={handleResetAll}
           >
-            Reset All
+            Reset
           </Button>
         </div>
       }
     >
-      {/* Stepper Navigation */}
-      <div className="p-3 sm:p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs transition-colors mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-          {steps.map((s) => {
-            const isCurrent = currentStep === s.number
-            const isCompleted = currentStep > s.number
-
-            return (
-              <button
-                key={s.number}
-                onClick={() => setCurrentStep(s.number)}
-                className={`flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg text-left transition-colors border shadow-xs ${
-                  isCurrent
-                    ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] ring-1 ring-[#A0C878]'
-                    : isCompleted
-                    ? 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#26352A] dark:text-[#F2F5ED] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
-                    : 'bg-[#FFFDF6] dark:bg-[#151F17] text-[#788477] dark:text-[#859483] border-[#DDD9C9] dark:border-[#2C3C2E] hover:text-[#26352A]'
-                }`}
-              >
-                <div
-                  className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
-                    isCurrent
-                      ? 'bg-[#A0C878] text-[#26352A]'
-                      : isCompleted
-                      ? 'bg-[#A0C878] text-[#26352A]'
-                      : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]'
-                  }`}
-                >
-                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : `0${s.number}`}
-                </div>
-                <div className="min-w-0 hidden sm:block">
-                  <div className="text-xs font-bold uppercase truncate">{s.title}</div>
-                  <div className={`text-[10px] truncate ${isCurrent ? 'text-[#26352A] dark:text-[#A0C878] font-semibold' : 'text-[#788477] dark:text-[#859483]'}`}>
-                    {s.subtitle}
-                  </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* STEP 1: Scenario Configuration & Target Grid */}
-      {currentStep === 1 && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            {/* Column 1: Scenario Specification & Preset Selection */}
-            <Card className="flex flex-col justify-between shadow-xs">
-              <CardHeader
-                title="Scenario Configuration"
-                subtitle="Select a benchmark operational preset and define simulation timeline"
-                icon={<SlidersHorizontal className="w-4 h-4 text-[#A0C878]" />}
-              />
-              <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
-                {/* Benchmark Dropdown Selector */}
-                <ScenarioPresetSelector
-                  activePresetKey={activePresetKey}
-                  onSelectPreset={loadPreset}
-                />
-
-                {/* Scenario Metadata Inputs */}
-                <div className="space-y-3 pt-3 border-t border-[#DDD9C9]/70 dark:border-[#2C3C2E]">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                      Scenario Name
-                    </label>
-                    <input
-                      type="text"
-                      value={input.scenarioName}
-                      onChange={(e) => updateInput({ scenarioName: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                        Simulation Date
-                      </label>
-                      <input
-                        type="text"
-                        value={input.simulationDate}
-                        onChange={(e) => updateInput({ simulationDate: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                        Duration
-                      </label>
-                      <select
-                        value={input.simulationDuration}
-                        onChange={(e) => updateInput({ simulationDuration: e.target.value as any })}
-                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                      >
-                        <option value="6 hours">6 hours (Peak Window)</option>
-                        <option value="12 hours">12 hours (Daytime)</option>
-                        <option value="24 hours">24 hours (Full Day)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                        Resolution
-                      </label>
-                      <select
-                        value={input.timeResolution}
-                        onChange={(e) => updateInput({ timeResolution: e.target.value as any })}
-                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                      >
-                        <option value="15 minutes">15 mins (High-Fi)</option>
-                        <option value="30 minutes">30 mins</option>
-                        <option value="1 hour">1 hour (Standard)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                      Scenario Description
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Operational description or test objectives..."
-                      value={input.scenarioDescription || ''}
-                      onChange={(e) => updateInput({ scenarioDescription: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Column 2: Target Grid Digital Twin Topology */}
-            <Card className="flex flex-col justify-between shadow-xs">
-              <CardHeader
-                title={
-                  <div className="flex items-center gap-2">
-                    <span>Target Grid Digital Twin</span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      <Database className="w-3 h-3" />
-                      Database Synced
-                    </span>
-                  </div>
-                }
-                subtitle="Persistent grid topology loaded for power-flow simulation"
-                icon={<Cpu className="w-4 h-4 text-[#A0C878]" />}
-              />
-              <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
-                {/* Grid Selector & Action */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                    Active Grid Topology Model
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                    <select
-                      value={network.id}
-                      onChange={(e) => handleSelectTargetGrid(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                    >
-                      {availableGrids && availableGrids.length > 0 ? (
-                        availableGrids.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders)
-                          </option>
-                        ))
-                      ) : (
-                        <option value={network.id}>{network.name}</option>
-                      )}
-                    </select>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => navigate('/network')}
-                      leftIcon={<Share2 className="w-3.5 h-3.5" />}
-                      className="whitespace-nowrap shrink-0"
-                    >
-                      Configurator
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Grid Asset Telemetry Matrix */}
-                <div className="space-y-2">
-                  <div className="text-[11px] font-bold text-[#788477] uppercase tracking-wider flex items-center justify-between">
-                    <span>Network Asset Telemetry</span>
-                    <span className="font-mono text-[10px] text-[#506052] dark:text-[#A4B3A2]">
-                      ID: {network.id}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Buses</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {network.buses.length}
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">Nodes connected</div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Feeders</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {network.feeders.length}
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">Distribution lines</div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase">Solar PV</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {totalSolarKw} kW
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.solarUnits.length} Solar units</div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold uppercase">BESS Storage</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {totalBessKwh} kWh
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.batteries.length} Battery packs</div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-sky-700 dark:text-sky-400 font-semibold uppercase">Total Load</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {totalLoadKw} kW
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.loads.length} Consumption nodes</div>
-                    </div>
-
-                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Substation</div>
-                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                        {network.substation?.ratingKva || 500} kVA
-                      </div>
-                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">33 / 11 kV Main</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grid Connection & Voltage Compliance Pill */}
-                <div className="p-3 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED]">
-                      {network.gridConnectionStatus === 'islanded' ? 'Islanded Microgrid' : 'Grid-Connected Mode'}
-                    </span>
-                  </div>
-                  <div className="font-mono text-[11px] text-[#788477] dark:text-[#859483]">
-                    Freq: {network.gridFrequencyHz || 50.0} Hz • Bounds: 0.95-1.05 pu
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <Button
-              variant="primary"
-              size="md"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-              onClick={() => setCurrentStep(2)}
-              className="font-bold px-6 shadow-xs"
-            >
-              Continue to Energy Data
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 2: Energy Data (Solar & Load Inputs + Live Chart) */}
-      {currentStep === 2 && (
-        <div className="space-y-6">
-          {/* Live Synchronous Solar vs Load Preview Chart */}
-          <LiveSolarLoadChart
-            solarPoints={input.solarTimeSeries}
-            loadPoints={input.loadTimeSeries}
-            installedCapacityKw={input.installedSolarCapacityKw}
-            peakLoadKw={input.peakLoadKw}
-          />
-
-          {/* Side-by-Side Solar & Load Editors */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <SolarInputPanel
-              installedCapacityKw={input.installedSolarCapacityKw}
-              currentSolarKw={input.currentSolarKw}
-              solarTimeSeries={input.solarTimeSeries}
-              onChangeInstalledCapacity={(val: number) => updateInput({ installedSolarCapacityKw: val })}
-              onChangeCurrentSolar={(val: number) => updateInput({ currentSolarKw: val })}
-              onUpdateSolarPoint={updateSolarPoint}
-              onAddSolarPoint={addSolarPoint}
-              onDeleteSolarPoint={deleteSolarPoint}
-              onGenerateSample={generateSampleSolar}
-            />
-
-            <LoadInputPanel
-              peakLoadKw={input.peakLoadKw}
-              currentLoadKw={input.currentLoadKw}
-              loadTimeSeries={input.loadTimeSeries}
-              onChangePeakLoad={(val: number) => updateInput({ peakLoadKw: val })}
-              onChangeCurrentLoad={(val: number) => updateInput({ currentLoadKw: val })}
-              onUpdateLoadPoint={updateLoadPoint}
-              onAddLoadPoint={addLoadPoint}
-              onDeleteLoadPoint={deleteLoadPoint}
-              onGenerateSample={generateSampleLoad}
-            />
-          </div>
-
-          <div className="flex justify-between pt-2">
-            <Button
-              variant="secondary"
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => setCurrentStep(1)}
-            >
-              Back to Scenario
-            </Button>
-            <Button
-              variant="primary"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-              onClick={() => setCurrentStep(3)}
-            >
-              Continue to Network Configuration
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3: Network & Battery Constraints */}
-      {currentStep === 3 && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <NetworkConfigPanel
-              config={input.networkConfig}
-              onChange={(updates) =>
-                updateInput({ networkConfig: { ...input.networkConfig, ...updates } })
-              }
-            />
-
-            <BatteryConfigPanel
-              config={input.batteryConfig}
-              onChange={(updates) =>
-                updateInput({ batteryConfig: { ...input.batteryConfig, ...updates } })
-              }
-            />
-          </div>
-
-          <div className="flex justify-between pt-2">
-            <Button
-              variant="secondary"
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => setCurrentStep(2)}
-            >
-              Back to Energy Data
-            </Button>
-            <Button
-              variant="primary"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-              onClick={() => setCurrentStep(4)}
-            >
-              Continue to Review
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 4: Review Screen */}
-      {currentStep === 4 && (
-        <div className="space-y-6">
-          <SimulationReviewCard
+      <div className="space-y-6 max-w-7xl mx-auto w-full pb-8">
+        {/* CONTEXT-AWARE CONFIGURATION SECTION */}
+        {isForecastContext ? (
+          <ForecastSimulationPanel
             input={input}
-            validationErrors={validationErrors}
-            isRunning={isRunning}
+            currentGrid={network}
+            onSwitchToScenario={handleSwitchToScenario}
           />
+        ) : (
+          <ScenarioSimulationPanel
+            input={input}
+            activePresetKey={activePresetKey}
+            currentGrid={network}
+            availableGrids={availableGrids}
+            onSelectGrid={handleSelectTargetGrid}
+            onSelectPreset={loadPreset}
+            onUpdateInput={updateInput}
+            onUpdateSolarPoint={updateSolarPoint}
+            onAddSolarPoint={addSolarPoint}
+            onDeleteSolarPoint={deleteSolarPoint}
+            onGenerateSampleSolar={generateSampleSolar}
+            onUpdateLoadPoint={updateLoadPoint}
+            onAddLoadPoint={addLoadPoint}
+            onDeleteLoadPoint={deleteLoadPoint}
+            onGenerateSampleLoad={generateSampleLoad}
+            onImportCsvData={importCsvData}
+          />
+        )}
 
-          <div className="flex justify-between pt-2">
-            <Button
-              variant="secondary"
-              leftIcon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => setCurrentStep(3)}
-            >
-              Back to Network
-            </Button>
-            <Button
-              variant="primary"
-              size="lg"
-              rightIcon={<Play className="w-4 h-4" />}
-              onClick={() => {
-                setCurrentStep(5)
-                handleRun()
-              }}
-              disabled={validationErrors.length > 0}
-              isLoading={isRunning}
-              className="px-8 font-bold tracking-wide"
-            >
-              Run Power-Flow Simulation
-            </Button>
-          </div>
-        </div>
-      )}
+        {/* READY TO SIMULATE & RUN ACTIONS */}
+        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
+                  <h3 className="text-base font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                    Ready to simulate
+                  </h3>
+                </div>
+                <p className="text-xs text-[#506052] dark:text-[#C2CCC0] leading-relaxed">
+                  The Digital Twin will evaluate the selected grid across the configured operating conditions and identify potential network constraints (voltage compliance, thermal overload, and reverse flow).
+                </p>
 
-      {/* STEP 5: Simulation Execution Screen */}
-      {currentStep === 5 && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader
-              title="Digital Twin Simulation Progress"
-              subtitle="Solving nodal AC power flow across configured timeline"
-              icon={<Zap className="w-4 h-4 text-[#A0C878]" />}
-            />
-            <CardContent className="space-y-6 py-6">
-              <div className="space-y-3">
-                {progressSteps.map((step, idx) => {
-                  const isDone = step.status === 'done'
-                  const isProcessing = step.status === 'processing'
-
-                  return (
-                    <div
-                      key={step.id}
-                      className={`p-3.5 rounded-lg border flex items-center justify-between transition-colors ${
-                        isDone
-                          ? 'bg-[#DDEB9D]/35 dark:bg-[#2D3E2F]/40 border-[#A0C878] text-[#26352A] dark:text-[#F2F5ED]'
-                          : isProcessing
-                          ? 'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F]/80 border-[#A0C878] text-[#26352A] dark:text-[#F2F5ED] ring-1 ring-[#A0C878]'
-                          : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2C3C2E] text-[#788477]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            isDone
-                              ? 'bg-[#A0C878] text-[#26352A]'
-                              : isProcessing
-                              ? 'bg-[#A0C878] text-[#26352A] animate-pulse'
-                              : 'bg-[#DDD9C9] dark:bg-[#2C3C2E] text-[#506052]'
-                          }`}
-                        >
-                          {isDone ? '✓' : idx + 1}
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED]">{step.title}</div>
-                          <div className="text-[11px] text-[#788477] dark:text-[#859483]">{step.subtitle}</div>
-                        </div>
-                      </div>
-
-                      <div className="text-xs font-mono font-medium">
-                        {isDone ? (
-                          <span className="text-[#A0C878] font-bold">Complete</span>
-                        ) : isProcessing ? (
-                          <span className="text-[#26352A] dark:text-[#A0C878] font-bold">Processing...</span>
-                        ) : (
-                          <span className="text-[#788477]">Waiting</span>
-                        )}
-                      </div>
+                {validationErrors.length > 0 && (
+                  <div className="mt-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-900 text-xs text-red-800 dark:text-red-300 space-y-1">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                      <span>Resolve configuration issues before running:</span>
                     </div>
-                  )
-                })}
+                    <ul className="list-disc list-inside text-[11px] space-y-0.5 text-red-700 dark:text-red-300">
+                      {validationErrors.map((err, i) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
-              {!isRunning && currentProgressIndex >= 5 && (
-                <div className="p-4 rounded-xl bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40 border border-[#A0C878] flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-[#A0C878] shrink-0" />
-                    <div>
-                      <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED]">Power-Flow Simulation Complete</div>
-                      <div className="text-xs text-[#506052] dark:text-[#C2CCC0]">
-                        Nodal voltages, branch ampacities, and violations have been calculated and synced with the Digital Twin.
-                      </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleRun}
+                  disabled={isRunning || validationErrors.length > 0}
+                  isLoading={isRunning}
+                  leftIcon={!isRunning ? <Play className="w-4 h-4" /> : undefined}
+                  className="font-bold px-8 shadow-sm"
+                >
+                  {isRunning ? 'Running Digital Twin...' : 'Run Digital Twin Simulation'}
+                </Button>
+              </div>
+            </div>
+
+            {/* In-page Result Preview Banner (When simulation has completed) */}
+            {fullResult && !isRunning && (
+              <div className="mt-6 p-4 rounded-xl bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40 border border-[#A0C878] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#2E7D32] dark:text-[#A0C878] shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] flex items-center gap-2">
+                      <span>Power-Flow Simulation Complete</span>
+                      <Badge variant="success" size="sm">
+                        Converged
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-[#506052] dark:text-[#C2CCC0] mt-0.5">
+                      {fullResult.summary.initialViolations > 0
+                        ? `${fullResult.summary.initialViolations} constraint violations detected across simulation horizon. Review corrective actions.`
+                        : 'All nodal voltages and thermal ampacities are compliant within IEEE 1547 operational limits.'}
+                    </p>
+                    <div className="mt-2 flex items-center gap-3 text-[11px] font-mono text-[#506052] dark:text-[#A4B3A2]">
+                      <span>Monitored Bus: {fullResult.comparisonData?.b3Voltage?.before ? `${fullResult.comparisonData.b3Voltage.before.toFixed(3)} pu` : '1.020 pu'}</span>
+                      <span>•</span>
+                      <span>Feeder Loading: {fullResult.comparisonData?.f02Loading?.before ? `${fullResult.comparisonData.f02Loading.before.toFixed(1)}%` : '85.0%'}</span>
+                      <span>•</span>
+                      <span>Initial Violations: {fullResult.summary.initialViolations}</span>
                     </div>
                   </div>
-
-                  <Button
-                    variant="primary"
-                    size="md"
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
-                    onClick={handleViewResults}
-                  >
-                    View Corrective Actions
-                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
-      {/* Progress modal (when triggered from other steps) */}
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleViewResults}
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                  className="shrink-0 font-bold"
+                >
+                  View Corrective Actions
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Simulation Execution Progress Modal */}
       <SimulationProgressModal
-        isOpen={isProgressModalOpen && currentStep !== 5}
+        isOpen={isProgressModalOpen}
         steps={progressSteps}
         currentIndex={currentProgressIndex}
         onClose={closeProgressModal}

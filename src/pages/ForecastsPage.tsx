@@ -1,260 +1,254 @@
-import React, { useMemo } from 'react'
-import { PageContainer } from '../components/layout/PageContainer'
-import { Card, CardHeader, CardContent } from '../components/ui/Card'
-import { Badge } from '../components/ui/Badge'
-import { Button } from '../components/ui/Button'
-import { useForecast } from '../hooks/useForecast'
-import { useSimulationStore } from '../store/simulationStore'
-import { useUIStore } from '../store/uiStore'
-import { ForecastDataPoint } from '../types/forecast'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PageContainer } from '../components/layout/PageContainer'
+import { useGridStore } from '../store/gridStore'
+import { useSimulationStore } from '../store/simulationStore'
+import { gridService } from '../services/api/gridService'
+import { GridNetwork } from '../types/network'
 import {
-  TrendingUp,
-  Zap,
-  SlidersHorizontal,
-} from 'lucide-react'
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts'
+  fetchDayAheadForecast,
+  DayAheadForecastResult,
+} from '../components/forecast/forecastAdapter'
+import { ForecastSimulationControls } from '../components/forecast/ForecastSimulationControls'
+import { ForecastSummaryMetrics } from '../components/forecast/ForecastSummaryMetrics'
+import { ForecastMainChart } from '../components/forecast/ForecastMainChart'
+import { NetDemandChart } from '../components/forecast/NetDemandChart'
+import { ForecastInsightsPanel } from '../components/forecast/ForecastInsightsPanel'
+import { GridResponsePreview } from '../components/forecast/GridResponsePreview'
+import { ForecastEmptyState } from '../components/forecast/ForecastEmptyState'
+import { ForecastErrorState } from '../components/forecast/ForecastErrorState'
 
 export const ForecastsPage: React.FC = () => {
-  const { dataPoints: defaultPoints, metrics } = useForecast()
-  const { input } = useSimulationStore()
-  const { theme } = useUIStore()
-  const isDark = theme === 'dark'
   const navigate = useNavigate()
+  const { network: activeGrid, switchGrid, fetchNetwork } = useGridStore()
+  const { updateInput } = useSimulationStore()
 
-  // Dynamically merge user-entered input data with ML predictions
-  const mergedDataPoints: ForecastDataPoint[] = useMemo(() => {
-    if (!input.solarTimeSeries.length) return defaultPoints
+  // Grid list state
+  const [grids, setGrids] = useState<GridNetwork[]>([activeGrid])
+  const [selectedGridId, setSelectedGridId] = useState<string>(activeGrid.id || 'default-grid')
 
-    const times = Array.from(
-      new Set([
-        ...input.solarTimeSeries.map((s) => s.time),
-        ...input.loadTimeSeries.map((l) => l.time),
-      ])
-    ).sort()
+  // Simulation date state (default: tomorrow)
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const tomorrowStr = tomorrow.toISOString().split('T')[0]
+  const [selectedDate, setSelectedDate] = useState<string>(tomorrowStr)
 
-    return times.map((t) => {
-      const s = input.solarTimeSeries.find((pt) => pt.time === t)
-      const l = input.loadTimeSeries.find((pt) => pt.time === t)
-      const solarKw = s ? s.solarKw : 0
-      const loadKw = l ? l.loadKw : 0
+  // Simulation execution state
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSimulated, setIsSimulated] = useState<boolean>(false)
+  const [forecastResult, setForecastResult] = useState<DayAheadForecastResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-      const predictedSolar = Math.round(solarKw * 0.98 + (solarKw > 20 ? (Math.random() * 4 - 2) : 0))
-      const predictedLoad = Math.round(loadKw * 0.99 + (Math.random() * 4 - 2))
+  // 1. Load available grids from backend or store on mount
+  useEffect(() => {
+    let isMounted = true
 
-      return {
-        time: t,
-        solarGenerationKw: solarKw,
-        loadDemandKw: loadKw,
-        predictedSolarKw: Math.max(0, predictedSolar),
-        predictedLoadKw: Math.max(0, predictedLoad),
-        netPowerKw: solarKw - loadKw,
+    const loadGrids = async () => {
+      try {
+        await fetchNetwork()
+        const fetchedGrids = await gridService.getGrids()
+        if (isMounted && Array.isArray(fetchedGrids) && fetchedGrids.length > 0) {
+          setGrids(fetchedGrids)
+          if (!selectedGridId || !fetchedGrids.some((g) => g.id === selectedGridId)) {
+            setSelectedGridId(activeGrid.id || fetchedGrids[0].id)
+          }
+        }
+      } catch (err) {
+        console.warn('[ForecastsPage] Could not fetch remote grids, using local store grid:', err)
+        if (isMounted && activeGrid) {
+          setGrids([activeGrid])
+          setSelectedGridId(activeGrid.id)
+        }
       }
+    }
+
+    loadGrids()
+    return () => {
+      isMounted = false
+    }
+  }, [fetchNetwork, activeGrid])
+
+  // Current selected grid object
+  const currentGrid = grids.find((g) => g.id === selectedGridId) || activeGrid || grids[0]
+
+  // Handle grid selection change
+  const handleSelectGrid = async (gridId: string) => {
+    setSelectedGridId(gridId)
+    // Synchronize active grid in background so other pages reflect the selected network
+    try {
+      await switchGrid(gridId)
+    } catch (e) {
+      console.warn('[ForecastsPage] Switch grid notification:', e)
+    }
+    // If already simulated, re-run or keep ready
+    if (isSimulated) {
+      setIsSimulated(false)
+      setForecastResult(null)
+    }
+  }
+
+  // Handle simulation run
+  const handleSimulate = useCallback(async () => {
+    if (!currentGrid || !selectedDate) {
+      setError('Please select a valid grid configuration and simulation date.')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Natural responsive delay for professional feedback
+      const [res] = await Promise.all([
+        fetchDayAheadForecast(currentGrid, selectedDate),
+        new Promise((resolve) => setTimeout(resolve, 380)),
+      ])
+
+      setForecastResult(res)
+      setIsSimulated(true)
+    } catch (err: any) {
+      console.error('[ForecastsPage] Forecast generation error:', err)
+      setError(
+        err?.message ||
+          'Unable to generate the day-ahead forecast for this configuration. Please verify connectivity and try again.'
+      )
+      setIsSimulated(false)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [currentGrid, selectedDate])
+
+  // Handle Reset / Reconfigure
+  const handleReset = () => {
+    setIsSimulated(false)
+    setForecastResult(null)
+    setError(null)
+  }
+
+  // Bridge to Digital Twin Simulation:
+  // Transfers 24h forecasted time series into simulationStore and routes to /simulation
+  const handleRunDigitalTwinSimulation = () => {
+    if (!forecastResult || !currentGrid) return
+
+    const solarTimeSeries = forecastResult.dataPoints.map((pt) => ({
+      id: `solar-${pt.time}`,
+      time: pt.time,
+      solarKw: pt.solarKw,
+    }))
+
+    const loadTimeSeries = forecastResult.dataPoints.map((pt) => ({
+      id: `load-${pt.time}`,
+      time: pt.time,
+      loadKw: pt.loadKw,
+    }))
+
+    const installedSolar =
+      currentGrid.solarUnits.reduce((acc, s) => acc + (s.capacityKw || 0), 0) || 250
+    const middayPt = forecastResult.dataPoints.find((p) => p.time === '13:00')
+
+    updateInput({
+      gridId: currentGrid.id,
+      scenarioName: `Day-Ahead Forecast (${selectedDate})`,
+      scenarioDescription: `24-hour lookahead operating profile generated by ML forecasting engine for ${currentGrid.name}.`,
+      simulationDate: selectedDate,
+      solarTimeSeries,
+      loadTimeSeries,
+      installedSolarCapacityKw: Math.max(installedSolar, forecastResult.summary.peakSolarKw),
+      currentSolarKw: middayPt?.solarKw || forecastResult.summary.peakSolarKw,
+      peakLoadKw: forecastResult.summary.peakLoadKw,
+      currentLoadKw: middayPt?.loadKw || 120,
     })
-  }, [input, defaultPoints])
 
-  const peakSolar = Math.max(...mergedDataPoints.map((d) => d.solarGenerationKw), 0)
-  const peakLoad = Math.max(...mergedDataPoints.map((d) => d.loadDemandKw), 0)
-
-  // Chart theme tokens — TeamXsparK palette
-  const gridStroke = isDark ? '#2C3C2E' : '#DDD9C9'
-  const axisStroke = isDark ? '#859483' : '#788477'
-  const tooltipBg = isDark ? '#1E2B20' : '#FAF6E9'
-  const tooltipBorder = isDark ? '#2C3C2E' : '#DDD9C9'
-  const tooltipText = isDark ? '#F2F5ED' : '#26352A'
+    navigate('/simulation')
+  }
 
   return (
     <PageContainer
-      title="Solar PV & Load Demand Forecast"
-      subtitle="24-hour lookahead ML prediction curve comparing user-entered data against Random Forest regressors"
+      title="Renewable & Load Forecast"
+      subtitle="Predict the operating conditions for a selected day and evaluate how the configured grid responds."
       actions={
-        <div className="flex items-center gap-3">
-          <Badge variant="primary" size="md">DEMO FORECAST</Badge>
-          <Button
-            variant="secondary"
-            size="sm"
-            leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-            onClick={() => navigate('/simulation')}
-          >
-            Edit Input Profiles
-          </Button>
+        <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#506052] dark:text-[#C2CCC0]">
+          <div className="flex items-center gap-1.5 font-medium">
+            <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
+            <span className="text-[#26352A] dark:text-[#F2F5ED] font-semibold">
+              ML Forecast Engine
+            </span>
+          </div>
+          <span className="text-[#DDD9C9] dark:text-[#2C3C2E]">|</span>
+          <span className="text-[#788477] dark:text-[#859483] font-mono text-[11px]">
+            Ready
+          </span>
         </div>
       }
     >
-      <div className="space-y-6">
-        {/* 1. Forecast Metrics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Peak Solar Generation</div>
-              <div className="text-xl font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1">{peakSolar} kW</div>
-              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">Capacity: {input.installedSolarCapacityKw} kW</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Peak Load Demand</div>
-              <div className="text-xl font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">{peakLoad} kW</div>
-              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">Peak Load: {input.peakLoadKw} kW</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Solar Model Accuracy</div>
-              <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
-                {metrics?.solarAccuracyPercent ? `${metrics.solarAccuracyPercent}%` : '92.4%'}
-              </div>
-              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">
-                {metrics?.modelType || 'Random Forest Regressor'} (MAE 4.8 kW)
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-xs text-[#788477] dark:text-[#859483] font-medium">Load Model Accuracy</div>
-              <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
-                {metrics?.loadAccuracyPercent ? `${metrics.loadAccuracyPercent}%` : '89.6%'}
-              </div>
-              <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-0.5">
-                {metrics?.modelType || 'Random Forest Regressor'} (MAE 6.2 kW)
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 2. Forecast Line Chart */}
-        <Card>
-          <CardHeader
-            title="24-Hour Solar & Load Lookahead Profile"
-            subtitle="Observed/Input profiles vs. Random Forest ML forecasts across temporal horizon"
-            icon={<TrendingUp className="w-4 h-4 text-[#A0C878]" />}
-            action={
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[#506052] dark:text-[#C2CCC0]">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-0.5 bg-[#B09B29] inline-block" />
-                  <span>Observed Solar</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-0.5 bg-[#B09B29]/60 inline-block border-t border-dashed border-[#B09B29]" />
-                  <span>Predicted Solar</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-0.5 bg-[#A0C878] inline-block" />
-                  <span>Observed Load</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-0.5 bg-[#506052] inline-block border-t border-dashed border-[#506052]" />
-                  <span>Predicted Load</span>
-                </span>
-              </div>
+      <div className="space-y-6 max-w-7xl mx-auto w-full pb-8">
+        {/* SECTION 1 — SIMULATION INPUT */}
+        <ForecastSimulationControls
+          grids={grids}
+          selectedGridId={selectedGridId}
+          onSelectGrid={handleSelectGrid}
+          selectedDate={selectedDate}
+          onSelectDate={(d) => {
+            setSelectedDate(d)
+            if (isSimulated) {
+              setIsSimulated(false)
+              setForecastResult(null)
             }
-          />
-          <CardContent className="p-4">
-            <div className="w-full h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mergedDataPoints} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                  <XAxis dataKey="time" stroke={axisStroke} fontSize={11} tickLine={false} />
-                  <YAxis stroke={axisStroke} fontSize={11} tickLine={false} unit=" kW" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: tooltipBg,
-                      borderColor: tooltipBorder,
-                      borderRadius: '8px',
-                      color: tooltipText,
-                      fontSize: '12px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="solarGenerationKw"
-                    name="Observed Solar (kW)"
-                    stroke="#B09B29"
-                    strokeWidth={2.5}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="predictedSolarKw"
-                    name="Predicted Solar (kW)"
-                    stroke="#B09B29"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="loadDemandKw"
-                    name="Observed Demand (kW)"
-                    stroke="#A0C878"
-                    strokeWidth={2.5}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="predictedLoadKw"
-                    name="Predicted Demand (kW)"
-                    stroke="#506052"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+          }}
+          onSimulate={handleSimulate}
+          onReset={handleReset}
+          isLoading={isLoading}
+          isSimulated={isSimulated}
+        />
 
-        {/* 3. Hourly Forecast Table */}
-        <Card>
-          <CardHeader
-            title="Hourly Time-Series Breakdown"
-            subtitle="Tabular listing of observed inputs and forecasted outputs"
-            icon={<Zap className="w-4 h-4 text-[#A0C878]" />}
+        {/* ERROR STATE */}
+        {error && (
+          <ForecastErrorState
+            message={error}
+            onRetry={handleSimulate}
           />
-          <CardContent className="p-0 overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse min-w-[700px]">
-              <thead className="bg-[#F3EEDC] dark:bg-[#18231A] text-[#788477] dark:text-[#859483] uppercase text-[10px] tracking-wider border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
-                <tr>
-                  <th className="py-3 px-4">Time</th>
-                  <th className="py-3 px-4">Observed Solar (kW)</th>
-                  <th className="py-3 px-4">Predicted Solar (kW)</th>
-                  <th className="py-3 px-4">Observed Load (kW)</th>
-                  <th className="py-3 px-4">Predicted Load (kW)</th>
-                  <th className="py-3 px-4">Net Balance (kW)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#DDD9C9] dark:divide-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-                {mergedDataPoints.map((row) => (
-                  <tr key={row.time} className="hover:bg-[#DDEB9D]/30 dark:hover:bg-[#2D3E2F]/40 transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">{row.time}</td>
-                    <td className="py-3 px-4 font-mono font-bold text-[#B09B29] dark:text-[#D4B838]">{row.solarGenerationKw}</td>
-                    <td className="py-3 px-4 font-mono text-[#788477] dark:text-[#859483]">{row.predictedSolarKw}</td>
-                    <td className="py-3 px-4 font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">{row.loadDemandKw}</td>
-                    <td className="py-3 px-4 font-mono text-[#788477] dark:text-[#859483]">{row.predictedLoadKw}</td>
-                    <td className="py-3 px-4 font-mono font-bold">
-                      <span className={row.netPowerKw >= 0 ? 'text-[#26352A] dark:text-[#A0C878]' : 'text-[#788477] dark:text-[#859483]'}>
-                        {row.netPowerKw >= 0 ? `+${row.netPowerKw}` : row.netPowerKw} kW
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        )}
+
+        {/* EMPTY STATE (Before simulation has been executed) */}
+        {!isSimulated && !isLoading && !error && (
+          <ForecastEmptyState />
+        )}
+
+        {/* RESULTS STATE (After simulation execution) */}
+        {isSimulated && forecastResult && !isLoading && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* 1. Forecast Summary Metrics */}
+            <ForecastSummaryMetrics
+              summary={forecastResult.summary}
+              gridName={currentGrid.name}
+              simulationDate={selectedDate}
+            />
+
+            {/* 2. Main 24-Hour Forecast Chart (Solar vs Load) */}
+            <ForecastMainChart
+              dataPoints={forecastResult.dataPoints}
+            />
+
+            {/* 3. Forecasted Net Demand Chart */}
+            <NetDemandChart
+              dataPoints={forecastResult.dataPoints}
+              summary={forecastResult.summary}
+            />
+
+            {/* 4. Forecast Insights Panel */}
+            <ForecastInsightsPanel
+              insights={forecastResult.insights}
+              modelType={forecastResult.summary.modelType}
+            />
+
+            {/* 5. Grid Response Simulation Bridge */}
+            <GridResponsePreview
+              onRunSimulation={handleRunDigitalTwinSimulation}
+              gridName={currentGrid.name}
+              simulationDate={selectedDate}
+            />
+          </div>
+        )}
       </div>
     </PageContainer>
   )

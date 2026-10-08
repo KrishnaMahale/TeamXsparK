@@ -80,10 +80,10 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
       <div className="flex items-center justify-between text-xs">
         <label className="font-bold text-[#26352A] dark:text-[#F2F5ED] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
           <Sparkles className="w-3.5 h-3.5 text-[#2E7D32] dark:text-[#A0C878]" />
-          Benchmark Scenario Preset
+          Simulation Scenario Preset
         </label>
         <span className="text-[10px] text-[#788477] dark:text-[#859483]">
-          Pre-validated power-flow test cases
+          Predefined operating conditions
         </span>
       </div>
 
@@ -147,7 +147,7 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
               <div className="p-2 border-b border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FAF6E9]/60 dark:bg-[#151F17]/60">
                 <input
                   type="text"
-                  placeholder="Filter benchmark scenarios..."
+                  placeholder="Filter simulation scenarios..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-lg bg-[#FFFDF6] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-xs text-[#26352A] dark:text-[#F2F5ED] placeholder:text-[#788477] focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
@@ -227,7 +227,7 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
                 })
               ) : (
                 <div className="p-4 text-center text-xs text-[#788477]">
-                  No matching benchmark presets found.
+                  No matching scenario presets found.
                 </div>
               )}
             </div>
