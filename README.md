@@ -56,6 +56,7 @@ Instead of forcing utilities to shut down clean solar panels, this Digital Twin:
 - [8. Technology Stack](#8-technology-stack)
 - [9. Project Structure](#9-project-structure)
 - [10. Step-by-Step Installation & Quick Start](#10-step-by-step-installation--quick-start)
+- [Backend & ML Setup](#backend--ml-setup)
 - [11. Interactive Judging Walkthrough & Demo Scenarios](#11-interactive-judging-walkthrough--demo-scenarios)
 - [12. Backend REST API Specification](#12-backend-rest-api-specification)
 - [13. Verification & Automated Testing](#13-verification--automated-testing)
@@ -433,7 +434,7 @@ source .venv/bin/activate
 # Install required packages
 pip install -r requirements.txt
 
-# Train baseline ML forecasting models (saved to ./data/models/)
+# Pre-trained ML models are bundled in ./data/models/ (retraining is optional)
 python scripts/train_models.py
 
 # Seed benchmark scenarios into database
@@ -461,6 +462,167 @@ npm run dev
 The frontend is built with an **intelligent dual-engine architecture**:
 - **Offline / Standalone Mode (`VITE_USE_MOCK_API=true`):** Runs the full simulation and domestic microgrid engines directly in the browser. Zero setup required for hackathon demo booths.
 - **Full-Stack Live API Mode (`VITE_USE_MOCK_API=false`):** Streams requests directly to FastAPI and Supabase at `http://localhost:8000/api`.
+
+---
+
+## Backend & ML Setup
+
+This section documents the setup, execution, and verification of the **FastAPI Backend and Production ML Forecasting Pipeline** (`Steps 4A–4F`) from a clean clone.
+
+### 1. Prerequisites
+- **Python**: `v3.11` or higher (verified on Python 3.11, 3.12, and 3.13)
+- **Node.js**: `v18.0.0` or higher
+- **npm**: `v9.0.0` or higher (bundled with Node.js)
+- **Git**
+
+### 2. Backend Python Environment Setup
+Navigate to the `backend/` directory and create an isolated virtual environment:
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment:
+# On Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+# On Windows (Command Prompt):
+.venv\Scripts\activate.bat
+# On Linux / macOS:
+source .venv/bin/activate
+
+# Install backend and ML dependencies
+pip install -r requirements.txt
+```
+
+### 3. ML Dependencies & Integrated Architecture
+The ML forecasting pipeline is completely integrated into the backend Python service (`backend/app/ml/`). There is no separate external ML server, microservice, or Docker container to configure.
+
+All required machine learning libraries are installed directly via `backend/requirements.txt`:
+- **Data Preprocessing & Resampling:** `numpy>=1.26.0`, `pandas>=2.2.0`
+- **Machine Learning & Regression:** `scikit-learn>=1.5.0`
+- **Model Serialization & Persistence:** `joblib>=1.4.0`
+- **API Engine & Validation:** `fastapi>=0.115.0`, `pydantic>=2.8.0`
+
+```text
+Backend (FastAPI Server)
+  ├── Forecast API Endpoint (/api/forecast/timeseries)
+  ├── ML Forecast Pipeline (ForecastPipeline)
+  │     ├── Grid-Aware Solar Generation Scaler
+  │     └── Grid-Aware Consumer Load Scaler
+  ├── Pre-Trained Model Artifacts (backend/data/models/)
+  └── Digital Twin Simulation Engine (NetworkEngine & PowerFlowEngine)
+```
+
+### 4. ML Model Artifacts (Zero-Training Startup)
+Trained model artifacts are **already included in the repository** under `backend/data/models/`:
+- `solar_ghi_model.joblib`: Pre-trained solar Global Horizontal Irradiance (GHI) model.
+- `load_profile_model.joblib`: Pre-trained normalized residential/commercial load profile model.
+- `temperature_model.joblib`: Ambient temperature derating model.
+- `model_metadata.json`: Model versioning, hyperparameter records, and evaluation metrics.
+- `model_benchmark_report.json`: Chronological evaluation benchmark report.
+
+> **Zero-Setup Startup:** You do **not** need to retrain models to run the project. The backend automatically loads these pre-trained artifacts on demand.
+
+### 5. Preprocessed Datasets & Features
+The repository includes canonical 15-minute preprocessed datasets and feature matrices:
+- `backend/data/processed/`:
+  - `cwprs_solar_15m.csv`: Pune CWPRS solar irradiance (15-minute canonical frequency).
+  - `cwprs_temperature_15m.csv`: Pune CWPRS ambient temperature.
+  - `pecan_residential_load_15m.csv`: PecanStreet residential load telemetry.
+  - `preprocessing_report.json`: Data audit and resampling validation metrics.
+- `backend/data/features/`: Leakage-safe feature matrices (`solar_forecasting_features.csv`, `load_forecasting_features.csv`, etc.).
+
+No external raw dataset downloads are required for normal runtime or demonstration.
+
+### 6. Optional: Retrain ML Models Locally
+If you wish to re-execute the ML pipeline from scratch (for development or experimentation), run the following commands from the `backend/` directory:
+
+```bash
+cd backend
+
+# Step 1: Preprocess raw datasets into 15-minute canonical series
+python -m app.ml.preprocessing
+
+# Step 2: Construct leakage-safe feature matrices
+python -m app.ml.feature_engineering
+
+# Step 3: Train and benchmark models (persists artifacts to backend/data/models/)
+python -m app.ml.train_models
+```
+
+*(This step is completely optional. For normal application usage, pre-trained models are already available.)*
+
+### 7. Environment Variables Configuration
+The backend runs in **zero-setup local mode** by default using an in-memory repository fallback. No external credentials, API keys, or databases are required for standard local development.
+
+If you wish to customize configuration:
+```bash
+# In backend/ directory
+cp .env.example .env
+```
+Key configuration parameters in `backend/.env`:
+- `APP_ENV=development`
+- `CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`
+- `MODEL_PATH=./data/models`
+- `SUPABASE_URL=`, `SUPABASE_ANON_KEY=` *(Optional: leave blank to use fast in-memory storage)*
+
+### 8. Running the Complete System (Clean Clone Walkthrough)
+
+To run the complete application from a fresh clone, open two terminals:
+
+#### Terminal 1 — Start the Backend Server:
+```bash
+cd backend
+# Activate virtual environment
+.venv\Scripts\Activate.ps1   # On Windows (use source .venv/bin/activate on Linux/macOS)
+
+# Start FastAPI server
+uvicorn app.main:app --reload --port 8000
+```
+- Backend API: `http://localhost:8000/api`
+- Interactive OpenAPI Docs: `http://localhost:8000/docs`
+
+#### Terminal 2 — Start the Frontend UI:
+```bash
+# In repository root
+npm install
+npm run dev
+```
+- Frontend UI: `http://localhost:5173`
+
+> **Startup Order:** Ensure the backend server is running in Terminal 1 before launching the frontend so that live ML forecasts and digital twin simulations connect seamlessly.
+
+### 9. Complete End-to-End Pipeline Workflow
+Once both servers are running:
+1. **Open Frontend:** Navigate to `http://localhost:5173/forecasts`.
+2. **Select Grid Network:** Choose between:
+   - `Default Grid` (4 buses, 250 kW solar, 105 kW load)
+   - `Medium Mixed Distribution Grid` (5 buses, 140 kW solar, 200 kW load, 100 kWh BESS)
+   - `Large Renewable Distribution Grid` (10 buses, 510 kW solar, 630 kW load, 350 kWh BESS)
+3. **Select Forecast Date:** Pick a target date (e.g., `2025-06-08`) and click **"Generate ML Forecast"**.
+   - The backend runs `ForecastPipeline` and returns 96 deterministic 15-minute predictions scaled to the selected grid's solar and load capacity.
+4. **Pass to Digital Twin Simulation:** Click **"Simulate with Forecast"** to load the 96 points into `/simulation`.
+5. **Run Power Flow:** The AC DistFlow engine calculates bus voltages and feeder loading for each timestep.
+6. **Detect Violations:** Statutory limits (IEEE 1547 / EN 50160) flag any over-voltages, line overloads, or phase unbalances.
+7. **Dispatch Autonomous Actions:** Navigate to `/actions` to evaluate and simulate corrective dispatches (BESS charge/discharge, feeder tie-line reconfiguration, smart inverter Volt-VAR droop).
+
+### 10. Automated Testing & Verification
+Run the backend test suite covering physics engines, statutory constraints, ML preprocessing, feature engineering, model training, and forecast-simulation integration:
+
+```bash
+cd backend
+
+# Run all automated tests
+pytest -v
+```
+
+To run the frontend type-check and production build:
+```bash
+# In repository root
+npm run build
+```
 
 ---
 
