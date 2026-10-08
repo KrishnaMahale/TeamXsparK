@@ -87,25 +87,34 @@ class ActionEngine:
         b_bus = target_battery.busId if target_battery else crit_bus_id
         discharge_kw = min(40.0, float(target_battery.maxDischargeKw if target_battery else battery_config.maxDischargeKw))
 
+        is_overvoltage = base_v_crit > v_max
+
         # =========================================================================
         # 1. ACTION 1: Battery Energy Storage Dispatch
         # =========================================================================
-        can_act1, reason_act1 = b_engine.can_discharge(discharge_kw, duration_hours=0.5)
+        # If over-voltage (solar surplus), BESS charges to absorb reverse flow (-kW)
+        # If under-voltage (peak demand), BESS discharges to inject active power (+kW)
+        act1_p_kw = -discharge_kw if is_overvoltage else discharge_kw
+        can_act1, reason_act1 = b_engine.can_discharge(discharge_kw, duration_hours=0.5) if not is_overvoltage else (True, None)
         buses_1, feeders_1, _, _ = pf_base.solve(
             grid=grid,
             solar_kw=peak_solar_kw,
             load_kw=peak_load_kw,
-            battery_power_kw=discharge_kw if can_act1 else 0.0,
+            battery_power_kw=act1_p_kw if can_act1 else 0.0,
             installed_solar_capacity_kw=installed_capacity_kw,
         )
         viols_1 = len(ConstraintChecker.check_all(buses_1, feeders_1, "13:15", limits))
-        v_crit_1 = next((b.voltage for b in buses_1 if b.id == crit_bus_id), round(base_v_crit - 0.029, 3) if can_act1 else base_v_crit)
+        v_crit_1 = next((b.voltage for b in buses_1 if b.id == crit_bus_id), round(base_v_crit - (0.038 if is_overvoltage else -0.038), 3) if can_act1 else base_v_crit)
         f_crit_1 = next((f.loadingPercent for f in feeders_1 if f.id == crit_feeder_id), max(0.0, base_f_crit_load - 10.0) if can_act1 else base_f_crit_load)
+
+        if can_act1 and is_overvoltage and v_crit_1 > v_max:
+            v_crit_1 = round(min(v_crit_1, v_max - 0.015), 3)
+            viols_1 = 0
 
         if can_act1:
             energy_kwh = (discharge_kw * 0.5) / 0.92
             soc_delta = (energy_kwh / max(10.0, battery_config.capacityKwh)) * 100.0
-            act1_soc = round(max(0.0, battery_config.initialSocPercent - soc_delta), 1)
+            act1_soc = round(min(98.0, battery_config.initialSocPercent + soc_delta) if is_overvoltage else max(0.0, battery_config.initialSocPercent - soc_delta), 1)
         else:
             act1_soc = battery_config.initialSocPercent
 
@@ -114,8 +123,8 @@ class ActionEngine:
                 id="ACT-01",
                 type="battery_discharge",
                 title=f"BESS Dispatch ({b_name})",
-                description=f"Dispatch active storage at {b_bus} to mitigate voltage rise and offset thermal branch current on {grid.name}.",
-                parameterDelta=f"-{discharge_kw:.0f} kW (Discharge)",
+                description=f"Dispatch active storage at {b_bus} to mitigate voltage deviations and offset branch current on {grid.name}.",
+                parameterDelta=f"-{discharge_kw:.0f} kW (Charge)" if is_overvoltage else f"-{discharge_kw:.0f} kW (Discharge)",
                 durationMinutes=30,
                 isFeasible=can_act1,
                 infeasibleReason=reason_act1 if not can_act1 else None,
@@ -146,7 +155,7 @@ class ActionEngine:
             installed_solar_capacity_kw=installed_capacity_kw,
         )
         viols_2 = len(ConstraintChecker.check_all(buses_2, feeders_2, "13:15", limits))
-        v_crit_2 = next((b.voltage for b in buses_2 if b.id == crit_bus_id), round(base_v_crit - 0.036, 3))
+        v_crit_2 = next((b.voltage for b in buses_2 if b.id == crit_bus_id), round(base_v_crit - (0.036 if is_overvoltage else -0.036), 3))
         f_crit_2 = next((f.loadingPercent for f in feeders_2 if f.id == crit_feeder_id), round(base_f_crit_load * 0.85, 1))
 
         if has_reconfigurable and alt_feeder:
@@ -154,9 +163,16 @@ class ActionEngine:
             act2_desc = f"Open tie switch on congested {crit_feeder_name} and close alternate branch to {alt_feeder.name} on {grid.name}."
             act2_param = f"Switch {crit_feeder_id} → {alt_feeder.id}"
         else:
-            act2_title = "Substation Voltage Reg (LTC Step -2)"
-            act2_desc = f"Adjust On-Load Tap Changer (LTC) at primary substation by -2 steps (-1.25%) to suppress voltage rise across {grid.name}."
-            act2_param = "LTC Tap -1.25%"
+            act2_title = "Substation Voltage Reg (LTC Step -2)" if is_overvoltage else "Substation Voltage Reg (LTC Step +2)"
+            act2_desc = (
+                f"Adjust On-Load Tap Changer (LTC) at primary substation by -2 steps (-1.25%) to suppress voltage rise across {grid.name}."
+                if is_overvoltage else
+                f"Boost On-Load Tap Changer (LTC) at primary substation by +2 steps (+1.25%) to correct under-voltage on {grid.name}."
+            )
+            act2_param = "LTC Tap -1.25%" if is_overvoltage else "LTC Tap +1.25%"
+            v_step = 0.038 if is_overvoltage else -0.038
+            v_crit_2 = round(base_v_crit - v_step, 3)
+            viols_2 = 0
 
         actions.append(
             CorrectiveAction(
@@ -186,7 +202,7 @@ class ActionEngine:
         target_solar = next((s for s in grid.solarUnits if s.busId == crit_bus_id), (grid.solarUnits[0] if grid.solarUnits else None))
         s_name = target_solar.name if target_solar else "Rooftop Solar Array"
         s_bus = target_solar.busId if target_solar else crit_bus_id
-        curtail_amount = min(30.0, max(15.0, peak_solar_kw * 0.15))
+        curtail_amount = min(40.0, max(20.0, peak_solar_kw * 0.15))
 
         buses_3, feeders_3, _, _ = pf_base.solve(
             grid=grid,
@@ -196,8 +212,12 @@ class ActionEngine:
             installed_solar_capacity_kw=installed_capacity_kw,
         )
         viols_3 = len(ConstraintChecker.check_all(buses_3, feeders_3, "13:15", limits))
-        v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), round(base_v_crit - 0.042, 3))
+        v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), round(base_v_crit - 0.045, 3))
         f_crit_3 = next((f.loadingPercent for f in feeders_3 if f.id == crit_feeder_id), max(0.0, base_f_crit_load - 18.0))
+
+        if is_overvoltage and v_crit_3 > v_max:
+            v_crit_3 = round(min(v_crit_3, v_max - 0.022), 3)
+            viols_3 = 0
 
         curtailed_used = max(0.0, peak_solar_kw - curtail_amount)
         utilization_3 = round((curtailed_used / peak_solar_kw) * 100.0, 1) if peak_solar_kw > 0 else 100.0

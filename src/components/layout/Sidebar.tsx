@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -9,20 +9,42 @@ import {
   Wrench,
   Layers,
   FileText,
-  ChevronLeft,
-  ChevronRight,
-  Factory,
-  Home,
   Zap,
 } from 'lucide-react'
-import { useUIStore } from '../../store/uiStore'
 import { useGridStore } from '../../store/gridStore'
-import { useDomesticStore } from '../../store/domesticStore'
 
 export const Sidebar: React.FC = () => {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
-  const { violationSummary } = useGridStore()
-  const { gridType, setGridType } = useDomesticStore()
+  const { network, violationSummary } = useGridStore()
+  const [isHovered, setIsHovered] = useState(false)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+    setIsHovered(true)
+  }
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false)
+    }, 200)
+  }
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const isExpanded = isHovered
 
   const navItems = [
     { name: 'Overview', path: '/', icon: LayoutDashboard },
@@ -51,17 +73,32 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`bg-[#A0C878] dark:bg-[#1A281C] border-r border-[#DDD9C9] dark:border-[#2C3C2E] transition-all duration-200 flex flex-col shrink-0 z-20 select-none h-full ${
-        sidebarCollapsed ? 'w-16' : 'w-56 lg:w-60'
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`relative bg-[#A0C878] dark:bg-[#1A281C] border-r border-[#DDD9C9] dark:border-[#2C3C2E] transition-all duration-300 ease-in-out flex flex-col shrink-0 z-30 select-none h-full ${
+        isExpanded ? 'w-56 lg:w-60 shadow-xl' : 'w-16'
       }`}
     >
+      {/* Invisible proximity trigger zone extending 48px into page when collapsed so moving close to sidebar opens it */}
+      {!isExpanded && (
+        <div
+          className="absolute top-0 right-0 -mr-12 w-12 h-full pointer-events-auto"
+          onMouseEnter={handleMouseEnter}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Brand Logo & Title */}
-      <div className={`flex items-center gap-2.5 px-4 py-5 border-b border-[#8FB867] dark:border-[#2C3C2E] ${sidebarCollapsed ? 'justify-center' : ''}`}>
+      <div
+        className={`flex items-center gap-2.5 px-4 py-5 border-b border-[#8FB867] dark:border-[#2C3C2E] ${
+          !isExpanded ? 'justify-center' : ''
+        }`}
+      >
         <div className="w-8 h-8 rounded-lg bg-[#26352A] dark:bg-[#263629] flex items-center justify-center shrink-0 shadow-xs">
           <Zap className="w-4.5 h-4.5 text-[#DDEB9D] fill-current" />
         </div>
-        {!sidebarCollapsed && (
-          <div className="min-w-0">
+        {isExpanded && (
+          <div className="min-w-0 animate-in fade-in duration-200">
             <div className="text-[13px] font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-tight truncate">
               TeamXsparK
             </div>
@@ -82,11 +119,11 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path}
               end={isOverview}
-              title={sidebarCollapsed ? item.name : undefined}
+              title={!isExpanded ? item.name : undefined}
               aria-label={item.name}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors relative mx-0.5 select-none ${
-                  sidebarCollapsed ? 'justify-center px-2' : ''
+                  !isExpanded ? 'justify-center px-2' : ''
                 } ${
                   isActive
                     ? 'bg-[#FFFDF6] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] font-bold shadow-xs'
@@ -95,15 +132,19 @@ export const Sidebar: React.FC = () => {
               }
             >
               <Icon className="w-4 h-4 shrink-0 pointer-events-none" />
-              {!sidebarCollapsed && <span className="flex-1 truncate pointer-events-none">{item.name}</span>}
-              {!sidebarCollapsed && item.badge !== undefined && (
+              {isExpanded && (
+                <span className="flex-1 truncate pointer-events-none animate-in fade-in duration-150">
+                  {item.name}
+                </span>
+              )}
+              {isExpanded && item.badge !== undefined && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold pointer-events-none ${item.badgeColor}`}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold pointer-events-none animate-in fade-in duration-150 ${item.badgeColor}`}
                 >
                   {item.badge}
                 </span>
               )}
-              {sidebarCollapsed && item.badge !== undefined && (
+              {!isExpanded && item.badge !== undefined && (
                 <span className="w-2 h-2 rounded-full bg-red-600 absolute top-2 right-2 ring-2 ring-[#A0C878] dark:ring-[#1A281C] pointer-events-none" />
               )}
             </NavLink>
@@ -111,71 +152,50 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Active Model Indicator */}
+      {/* Active Grid Indicator */}
       <div className="p-2.5 mb-2 border-t border-[#8FB867] dark:border-[#2C3C2E]">
-        {!sidebarCollapsed ? (
-          <div className="p-2.5 rounded-lg bg-[#FFFDF6]/65 dark:bg-[#141C16]/60 border border-[#8FB867] dark:border-[#2C3C2E] space-y-1.5 shadow-xs">
+        {isExpanded ? (
+          <div className="p-2.5 rounded-lg bg-[#FFFDF6]/65 dark:bg-[#141C16]/60 border border-[#8FB867] dark:border-[#2C3C2E] space-y-1.5 shadow-xs animate-in fade-in duration-150">
             <div className="flex items-center justify-between text-[10px] text-[#3B4E3E] dark:text-[#859483] uppercase font-semibold tracking-wider">
-              <span>Active Model</span>
+              <span>Active Grid</span>
               <span
                 className={`w-2 h-2 rounded-full ${
-                  gridType === 'domestic' ? 'bg-[#B09B29]' : 'bg-[#26352A] dark:bg-[#A0C878]'
+                  network.gridConnectionStatus === 'islanded'
+                    ? 'bg-amber-500'
+                    : 'bg-[#2E7D32] dark:bg-[#A0C878]'
                 }`}
+                title={`Status: ${network.gridConnectionStatus || 'connected'}`}
               />
             </div>
-            <div className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] truncate flex items-center gap-1.5">
-              {gridType === 'domestic' ? (
-                <>
-                  <Home className="w-3.5 h-3.5 text-[#B09B29] shrink-0" />
-                  <span className="truncate">Domestic Solar</span>
-                </>
-              ) : (
-                <>
-                  <Factory className="w-3.5 h-3.5 text-[#26352A] dark:text-[#A0C878] shrink-0" />
-                  <span className="truncate">Industrial Grid</span>
-                </>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                setGridType(gridType === 'domestic' ? 'industrial' : 'domestic')
-              }}
-              className="w-full text-center text-[10px] text-[#3B4E3E] dark:text-[#A4B3A2] hover:text-[#18251B] dark:hover:text-[#F2F5ED] hover:underline pt-0.5 font-medium"
+            <div
+              className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] truncate flex items-center gap-1.5"
+              title={network.name}
             >
-              Switch to {gridType === 'domestic' ? 'Industrial' : 'Domestic'}
-            </button>
+              <Zap className="w-3.5 h-3.5 text-[#26352A] dark:text-[#A0C878] shrink-0" />
+              <span className="truncate">{network.name || 'Default Grid'}</span>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-[#3B4E3E] dark:text-[#A4B3A2] pt-0.5 font-medium">
+              <span>
+                {network.buses?.length ?? 0} Buses • {network.feeders?.length ?? 0} Feeders
+              </span>
+              <NavLink
+                to="/network"
+                className="text-[#26352A] dark:text-[#F2F5ED] hover:underline font-semibold"
+                title="Manage grid in Grid Configurator"
+              >
+                Configure
+              </NavLink>
+            </div>
           </div>
         ) : (
-          <button
-            onClick={() => setGridType(gridType === 'domestic' ? 'industrial' : 'domestic')}
-            className="w-full flex justify-center p-2 rounded-lg bg-[#FFFDF6]/65 dark:bg-[#141C16]/60 text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#FFFDF6]"
-            title={`Active: ${gridType}. Click to switch.`}
+          <NavLink
+            to="/network"
+            className="w-full flex justify-center p-2 rounded-lg bg-[#FFFDF6]/65 dark:bg-[#141C16]/60 text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#FFFDF6] transition-colors"
+            title={`Active Grid: ${network.name || 'Default Grid'} (${network.buses?.length ?? 0} Buses)`}
           >
-            {gridType === 'domestic' ? (
-              <Home className="w-4 h-4 text-[#B09B29]" />
-            ) : (
-              <Factory className="w-4 h-4 text-[#26352A] dark:text-[#A0C878]" />
-            )}
-          </button>
+            <Zap className="w-4 h-4 text-[#26352A] dark:text-[#A0C878]" />
+          </NavLink>
         )}
-      </div>
-
-      {/* Collapse/Expand Toggle */}
-      <div className="p-2.5 pt-0">
-        <button
-          onClick={toggleSidebar}
-          className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold text-[#26352A] dark:text-[#C2CCC0] hover:text-[#18251B] dark:hover:text-[#FFFDF6] hover:bg-[#DDEB9D] dark:hover:bg-[#233325] bg-[#FFFDF6]/50 dark:bg-[#141C16]/50 rounded-lg transition-colors border border-[#8FB867] dark:border-[#2C3C2E]"
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <>
-              <ChevronLeft className="w-4 h-4" />
-              <span>Collapse</span>
-            </>
-          )}
-        </button>
       </div>
     </aside>
   )

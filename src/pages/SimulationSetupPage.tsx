@@ -77,6 +77,19 @@ export const SimulationSetupPage: React.FC = () => {
     updateInput({ gridId })
   }
 
+  const totalSolarKw = useMemo(
+    () => network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0),
+    [network.solarUnits]
+  )
+  const totalBessKwh = useMemo(
+    () => network.batteries.reduce((acc, b) => acc + (b.capacityKwh || 0), 0),
+    [network.batteries]
+  )
+  const totalLoadKw = useMemo(
+    () => network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0),
+    [network.loads]
+  )
+
   // Real-time Form Validation
   const validationErrors = useMemo(() => {
     const errors: string[] = []
@@ -129,7 +142,7 @@ export const SimulationSetupPage: React.FC = () => {
 
   const handleViewResults = () => {
     closeProgressModal()
-    navigate('/')
+    navigate('/actions')
   }
 
   const steps = [
@@ -200,172 +213,229 @@ export const SimulationSetupPage: React.FC = () => {
         </div>
       </div>
 
-      {/* STEP 1: Scenario Metadata & Presets */}
+      {/* STEP 1: Scenario Configuration & Target Grid */}
       {currentStep === 1 && (
         <div className="space-y-6">
-          <ScenarioPresetSelector
-            activePresetKey={activePresetKey}
-            onSelectPreset={loadPreset}
-          />
-
-          {/* Target Grid Model (Database Synced) */}
-          <Card>
-            <CardHeader
-              title={
-                <div className="flex items-center gap-2">
-                  <span>Target Grid Digital Twin</span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                    <Database className="w-3 h-3" />
-                    Database Synced
-                  </span>
-                </div>
-              }
-              subtitle="Select which persistent grid topology from the database to run the scenario simulation on"
-              icon={<Cpu className="w-4 h-4 text-[#A0C878]" />}
-            />
-            <CardContent className="space-y-3">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div className="flex-1">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block mb-1">
-                    Select Saved Grid Model
-                  </label>
-                  <select
-                    value={network.id}
-                    onChange={(e) => handleSelectTargetGrid(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                  >
-                    {availableGrids && availableGrids.length > 0 ? (
-                      availableGrids.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders • {g.solarUnits?.length || 0} Solar • {g.batteries?.length || 0} BESS • {g.loads?.length || 0} Loads)
-                        </option>
-                      ))
-                    ) : (
-                      <option value={network.id}>{network.name}</option>
-                    )}
-                  </select>
-                </div>
-                <div className="flex items-end pt-2 sm:pt-0">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => navigate('/network')}
-                    leftIcon={<Share2 className="w-3.5 h-3.5" />}
-                  >
-                    Edit in Grid Configurator
-                  </Button>
-                </div>
-              </div>
-
-              {/* Grid Summary Stats */}
-              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-mono">
-                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-                  Model ID: <strong>{network.id}</strong>
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-                  {network.buses.length} Buses
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-                  {network.feeders.length} Feeders
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-amber-700 dark:text-amber-400">
-                  {network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)} kW Solar
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-emerald-700 dark:text-emerald-400">
-                  {network.batteries.reduce((acc, b) => acc + (b.capacityKwh || 0), 0)} kWh BESS
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader
-              title="Scenario Information"
-              subtitle="Define metadata and temporal resolution parameters"
-              icon={<SlidersHorizontal className="w-4 h-4 text-[#A0C878]" />}
-            />
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Scenario Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                    Scenario Name
-                  </label>
-                  <input
-                    type="text"
-                    value={input.scenarioName}
-                    onChange={(e) => updateInput({ scenarioName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                  />
-                </div>
-
-                {/* Simulation Date */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                    Simulation Date
-                  </label>
-                  <input
-                    type="text"
-                    value={input.simulationDate}
-                    onChange={(e) => updateInput({ simulationDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                  />
-                </div>
-
-                {/* Duration */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                    Simulation Duration
-                  </label>
-                  <select
-                    value={input.simulationDuration}
-                    onChange={(e) => updateInput({ simulationDuration: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                  >
-                    <option value="6 hours">6 hours (Peak Window)</option>
-                    <option value="12 hours">12 hours (Daytime)</option>
-                    <option value="24 hours">24 hours (Full Day)</option>
-                  </select>
-                </div>
-
-                {/* Time Resolution */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                    Time Resolution
-                  </label>
-                  <select
-                    value={input.timeResolution}
-                    onChange={(e) => updateInput({ timeResolution: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
-                  >
-                    <option value="15 minutes">15 minutes (High-Fidelity)</option>
-                    <option value="30 minutes">30 minutes</option>
-                    <option value="1 hour">1 hour (Standard)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
-                  Scenario Description
-                </label>
-                <input
-                  type="text"
-                  placeholder="Operational description or test objectives..."
-                  value={input.scenarioDescription || ''}
-                  onChange={(e) => updateInput({ scenarioDescription: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+            {/* Column 1: Scenario Specification & Preset Selection */}
+            <Card className="flex flex-col justify-between shadow-xs">
+              <CardHeader
+                title="Scenario Configuration"
+                subtitle="Select a benchmark operational preset and define simulation timeline"
+                icon={<SlidersHorizontal className="w-4 h-4 text-[#A0C878]" />}
+              />
+              <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+                {/* Benchmark Dropdown Selector */}
+                <ScenarioPresetSelector
+                  activePresetKey={activePresetKey}
+                  onSelectPreset={loadPreset}
                 />
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Scenario Metadata Inputs */}
+                <div className="space-y-3 pt-3 border-t border-[#DDD9C9]/70 dark:border-[#2C3C2E]">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                      Scenario Name
+                    </label>
+                    <input
+                      type="text"
+                      value={input.scenarioName}
+                      onChange={(e) => updateInput({ scenarioName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                        Simulation Date
+                      </label>
+                      <input
+                        type="text"
+                        value={input.simulationDate}
+                        onChange={(e) => updateInput({ simulationDate: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                        Duration
+                      </label>
+                      <select
+                        value={input.simulationDuration}
+                        onChange={(e) => updateInput({ simulationDuration: e.target.value as any })}
+                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                      >
+                        <option value="6 hours">6 hours (Peak Window)</option>
+                        <option value="12 hours">12 hours (Daytime)</option>
+                        <option value="24 hours">24 hours (Full Day)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                        Resolution
+                      </label>
+                      <select
+                        value={input.timeResolution}
+                        onChange={(e) => updateInput({ timeResolution: e.target.value as any })}
+                        className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                      >
+                        <option value="15 minutes">15 mins (High-Fi)</option>
+                        <option value="30 minutes">30 mins</option>
+                        <option value="1 hour">1 hour (Standard)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                      Scenario Description
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Operational description or test objectives..."
+                      value={input.scenarioDescription || ''}
+                      onChange={(e) => updateInput({ scenarioDescription: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Column 2: Target Grid Digital Twin Topology */}
+            <Card className="flex flex-col justify-between shadow-xs">
+              <CardHeader
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>Target Grid Digital Twin</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      <Database className="w-3 h-3" />
+                      Database Synced
+                    </span>
+                  </div>
+                }
+                subtitle="Persistent grid topology loaded for power-flow simulation"
+                icon={<Cpu className="w-4 h-4 text-[#A0C878]" />}
+              />
+              <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+                {/* Grid Selector & Action */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] block">
+                    Active Grid Topology Model
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                    <select
+                      value={network.id}
+                      onChange={(e) => handleSelectTargetGrid(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#A0C878]"
+                    >
+                      {availableGrids && availableGrids.length > 0 ? (
+                        availableGrids.map((g) => (
+                          <option key={g.id} value={g.id}>
+                            {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders)
+                          </option>
+                        ))
+                      ) : (
+                        <option value={network.id}>{network.name}</option>
+                      )}
+                    </select>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate('/network')}
+                      leftIcon={<Share2 className="w-3.5 h-3.5" />}
+                      className="whitespace-nowrap shrink-0"
+                    >
+                      Configurator
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Grid Asset Telemetry Matrix */}
+                <div className="space-y-2">
+                  <div className="text-[11px] font-bold text-[#788477] uppercase tracking-wider flex items-center justify-between">
+                    <span>Network Asset Telemetry</span>
+                    <span className="font-mono text-[10px] text-[#506052] dark:text-[#A4B3A2]">
+                      ID: {network.id}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Buses</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {network.buses.length}
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">Nodes connected</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Feeders</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {network.feeders.length}
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">Distribution lines</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold uppercase">Solar PV</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {totalSolarKw} kW
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.solarUnits.length} Solar units</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold uppercase">BESS Storage</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {totalBessKwh} kWh
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.batteries.length} Battery packs</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-sky-700 dark:text-sky-400 font-semibold uppercase">Total Load</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {totalLoadKw} kW
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">{network.loads.length} Consumption nodes</div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="text-[10px] text-[#788477] font-semibold uppercase">Substation</div>
+                      <div className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                        {network.substation?.ratingKva || 500} kVA
+                      </div>
+                      <div className="text-[10px] text-[#506052] dark:text-[#A4B3A2]">33 / 11 kV Main</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grid Connection & Voltage Compliance Pill */}
+                <div className="p-3 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED]">
+                      {network.gridConnectionStatus === 'islanded' ? 'Islanded Microgrid' : 'Grid-Connected Mode'}
+                    </span>
+                  </div>
+                  <div className="font-mono text-[11px] text-[#788477] dark:text-[#859483]">
+                    Freq: {network.gridFrequencyHz || 50.0} Hz • Bounds: 0.95-1.05 pu
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           <div className="flex justify-end pt-2">
             <Button
               variant="primary"
+              size="md"
               rightIcon={<ArrowRight className="w-4 h-4" />}
               onClick={() => setCurrentStep(2)}
+              className="font-bold px-6 shadow-xs"
             >
               Continue to Energy Data
             </Button>
@@ -579,7 +649,7 @@ export const SimulationSetupPage: React.FC = () => {
                     rightIcon={<ArrowRight className="w-4 h-4" />}
                     onClick={handleViewResults}
                   >
-                    View Results on Dashboard
+                    View Corrective Actions
                   </Button>
                 </div>
               )}

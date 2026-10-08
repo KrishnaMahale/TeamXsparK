@@ -419,7 +419,15 @@ const SceneDragManager: React.FC<{
 
 // --- Main 3D Digital Twin Component ---
 
-export const Network3D: React.FC = () => {
+export interface Network3DProps {
+  readOnly?: boolean
+  heightClassName?: string
+}
+
+export const Network3D: React.FC<Network3DProps> = ({
+  readOnly = false,
+  heightClassName,
+}) => {
   const { network, updateNetwork } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
@@ -593,6 +601,7 @@ export const Network3D: React.FC = () => {
 
   // Pointer down on component node: starts drag operation
   const handleStartNodeDrag = (id: string, e: ThreeEvent<PointerEvent>) => {
+    if (readOnly) return // Read-only mode prevents moving/dragging components
     if (activeTool) return // Tool mode (connect / delete) takes priority
     if (e.button !== 0) return // Left mouse button only
 
@@ -837,41 +846,43 @@ export const Network3D: React.FC = () => {
       className={`relative w-full transition-all select-none overflow-hidden ${
         isFullscreen
           ? 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-[#0B1220]'
-          : 'h-[580px] xl:h-[620px] rounded-xl bg-slate-100 dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs'
+          : `${heightClassName || 'h-[580px] xl:h-[620px]'} rounded-xl bg-slate-100 dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs`
       }`}
     >
       
-      {/* Visual Spawn & Edit Palette */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-700 dark:text-slate-300 shadow-sm font-semibold text-center mb-1">
-          {activeTool 
-            ? (activeTool === 'connect' 
-                ? (connectionSource ? 'Click target node' : 'Click source node') 
-                : (activeTool === 'delete' ? 'Click node to delete' : 'Click floor to spawn')) 
-            : 'Tool Palette'}
+      {/* Visual Spawn & Edit Palette (Hidden in readOnly mode) */}
+      {!readOnly && (
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-700 dark:text-slate-300 shadow-sm font-semibold text-center mb-1">
+            {activeTool 
+              ? (activeTool === 'connect' 
+                  ? (connectionSource ? 'Click target node' : 'Click source node') 
+                  : (activeTool === 'delete' ? 'Click node to delete' : 'Click floor to spawn')) 
+              : 'Tool Palette'}
+          </div>
+          <div className="flex flex-col gap-1.5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+            {tools.map(t => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setActiveTool(activeTool === t.id ? null : t.id)
+                  setConnectionSource(null)
+                }}
+                className={`group relative w-10 h-10 flex items-center justify-center rounded-md text-xl transition-all shadow-sm ${
+                  activeTool === t.id 
+                    ? (t.id === 'delete' ? 'bg-rose-500 text-white ring-2 ring-rose-300 scale-110 z-20' : 'bg-sky-500 text-white ring-2 ring-sky-300 scale-110 z-20')
+                    : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                {t.icon}
+                <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                  {t.label}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-1.5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
-          {tools.map(t => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setActiveTool(activeTool === t.id ? null : t.id)
-                setConnectionSource(null)
-              }}
-              className={`group relative w-10 h-10 flex items-center justify-center rounded-md text-xl transition-all shadow-sm ${
-                activeTool === t.id 
-                  ? (t.id === 'delete' ? 'bg-rose-500 text-white ring-2 ring-rose-300 scale-110 z-20' : 'bg-sky-500 text-white ring-2 ring-sky-300 scale-110 z-20')
-                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
-              }`}
-            >
-              {t.icon}
-              <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                {t.label}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       <Canvas camera={{ position: [0, 14, 18], fov: 45 }} style={{ width: '100%', height: '100%', cursor: activeTool ? 'crosshair' : isDraggingNode ? 'grabbing' : 'default' }}>
         <ambientLight intensity={isDark ? 0.7 : 0.9} />
@@ -906,6 +917,7 @@ export const Network3D: React.FC = () => {
           rotation={[-Math.PI / 2, 0, 0]} 
           position={[0, -0.05, 0]}
           onClick={(e) => {
+            if (readOnly) return
             if (Date.now() - lastDragEndTimeRef.current < 250) return
             if (activeTool && activeTool !== 'connect' && activeTool !== 'delete') {
               e.stopPropagation()
@@ -1137,13 +1149,29 @@ export const Network3D: React.FC = () => {
 
       {/* Navigation & Interaction Help Badge */}
       <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 bg-slate-900/80 text-slate-300 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-mono border border-slate-700/60 pointer-events-none select-none shadow-sm">
-        <span className="text-sky-400 font-bold">Drag node: Reposition & Move Wires</span>
-        <span>•</span>
-        <span>Left-click: Rotate</span>
-        <span>•</span>
-        <span>Scroll: Zoom</span>
-        <span>•</span>
-        <span>Right-click: Pan</span>
+        {readOnly ? (
+          <>
+            <span className="text-emerald-400 font-bold">Read-Only Digital Twin</span>
+            <span>•</span>
+            <span>Click node to inspect</span>
+            <span>•</span>
+            <span>Left-click: Rotate</span>
+            <span>•</span>
+            <span>Scroll: Zoom</span>
+            <span>•</span>
+            <span>Right-click: Pan</span>
+          </>
+        ) : (
+          <>
+            <span className="text-sky-400 font-bold">Drag node: Reposition & Move Wires</span>
+            <span>•</span>
+            <span>Left-click: Rotate</span>
+            <span>•</span>
+            <span>Scroll: Zoom</span>
+            <span>•</span>
+            <span>Right-click: Pan</span>
+          </>
+        )}
       </div>
 
       {/* Fullscreen Simulation Button (Bottom-Right in highlighted position) */}

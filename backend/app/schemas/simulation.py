@@ -174,3 +174,10 @@ class SimulationCreateRequest(BaseModel):
 class SimulationCreateResponse(BaseModel):
     simulation_id: str
     status: str
+
+
+class CorrectiveActionsEvaluationRequest(BaseModel):
+    violationIds: Optional[List[str]] = None
+    input: Optional[SimulationInput] = None
+    gridId: Optional[str] = None
+

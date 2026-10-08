@@ -14,7 +14,7 @@
         "voltageLimitMax": 1.05,
         "loadKw": 0.0,
         "solarKw": 0.0,
-        "lineLoadingPercent": 86.2,
+        "lineLoadingPercent": 80.3,
         "temperatureC": 32.0,
         "status": "normal",
         "connectedFeeders": [
@@ -36,7 +36,7 @@
         "voltageLimitMax": 1.05,
         "loadKw": 90.0,
         "solarKw": 150.0,
-        "lineLoadingPercent": 96.6,
+        "lineLoadingPercent": 93.9,
         "temperatureC": 35.0,
         "status": "normal",
         "connectedFeeders": [
@@ -53,12 +53,12 @@
       {
         "id": "B3",
         "name": "Bus 3",
-        "voltage": 1.065,
+        "voltage": 1.072,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 60.0,
         "solarKw": 80.0,
-        "lineLoadingPercent": 106.9,
+        "lineLoadingPercent": 107.6,
         "temperatureC": 42.0,
         "status": "critical",
         "connectedFeeders": [
@@ -76,12 +76,12 @@
       {
         "id": "B4",
         "name": "Bus 4",
-        "voltage": 0.989,
+        "voltage": 0.991,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 120.0,
         "solarKw": 0.0,
-        "lineLoadingPercent": 56.5,
+        "lineLoadingPercent": 50.4,
         "temperatureC": 31.0,
         "status": "normal",
         "connectedFeeders": [
@@ -101,7 +101,7 @@
         "name": "Feeder F-01",
         "fromBus": "TX-MAIN",
         "toBus": "B1",
-        "loadingPercent": 86.2,
+        "loadingPercent": 80.3,
         "loadingLimitPercent": 100.0,
         "capacityKw": 600.0,
         "activePowerKw": 384.0,
@@ -115,7 +115,7 @@
         "name": "Feeder Line 1-2",
         "fromBus": "B1",
         "toBus": "B2",
-        "loadingPercent": 96.6,
+        "loadingPercent": 93.9,
         "loadingLimitPercent": 100.0,
         "capacityKw": 450.0,
         "activePowerKw": 351.0,
@@ -129,7 +129,7 @@
         "name": "Feeder F-02",
         "fromBus": "B2",
         "toBus": "B3",
-        "loadingPercent": 106.9,
+        "loadingPercent": 107.6,
         "loadingLimitPercent": 100.0,
         "capacityKw": 300.0,
         "activePowerKw": 324.0,
@@ -157,7 +157,7 @@
         "name": "Feeder F-04",
         "fromBus": "B3",
         "toBus": "B4",
-        "loadingPercent": 56.5,
+        "loadingPercent": 50.4,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 130.0,
@@ -172,7 +172,7 @@
         "id": "SOLAR-1842",
         "name": "[Utility] Solar Array",
         "busId": "B1",
-        "generationKw": 500.0,
+        "generationKw": 248.0,
         "capacityKw": 500.0,
         "irradianceWm2": 800.0,
         "curtailedKw": 0.0,
@@ -190,30 +190,30 @@
         "id": "LOAD-4133",
         "name": "[Factory] Heavy Industry",
         "busId": "B1",
-        "powerKw": 1000.0,
+        "powerKw": 81.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
-          "x": 9.184398080189236,
+          "x": 8.598555061070712,
           "y": 0.0,
-          "z": -5.299208535700238
+          "z": -5.9390342234214835
         }
       },
       {
         "id": "LOAD-2213",
         "name": "[Commercial] Office Block",
         "busId": "B1",
-        "powerKw": 300.0,
+        "powerKw": 24.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
-          "x": 0.4222848718711827,
+          "x": -2.0435461948083233,
           "y": 0.0,
-          "z": -12.176813998857641
+          "z": -12.104352064301796
         }
       }
     ],
-    "lastUpdated": "2026-10-06T17:29:28.918450"
+    "lastUpdated": "2026-10-08T14:29:39.701476"
   },
   "default-grid": {
     "id": "default-grid",
@@ -226,13 +226,13 @@
       "ratingKva": 500.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 86.2,
+      "loadingPercent": 66.2,
       "temperatureC": 38.5,
       "status": "normal",
       "position": {
-        "x": 0.0,
+        "x": 0.08093768422315462,
         "y": 0.6,
-        "z": -10.0
+        "z": -11.289385240252424
       }
     },
     "buses": [
@@ -244,7 +244,7 @@
         "voltageLimitMax": 1.05,
         "loadKw": 0.0,
         "solarKw": 0.0,
-        "lineLoadingPercent": 86.2,
+        "lineLoadingPercent": 66.2,
         "temperatureC": 32.0,
         "status": "normal",
         "connectedFeeders": [
@@ -265,12 +265,12 @@
       {
         "id": "B2",
         "name": "Bus 2",
-        "voltage": 1.02,
+        "voltage": 1.0,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 90.0,
         "solarKw": 150.0,
-        "lineLoadingPercent": 96.6,
+        "lineLoadingPercent": 60.6,
         "temperatureC": 35.0,
         "status": "normal",
         "connectedFeeders": [
@@ -283,22 +283,22 @@
           "load": "LOAD-01"
         },
         "position": {
-          "x": 0.0,
+          "x": 0.11766451245455656,
           "y": 0.0,
-          "z": 0.0
+          "z": -1.0002994090756179
         }
       },
       {
         "id": "B3",
         "name": "Bus 3",
-        "voltage": 1.065,
+        "voltage": 0.998,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 60.0,
         "solarKw": 80.0,
-        "lineLoadingPercent": 106.9,
+        "lineLoadingPercent": 55.0,
         "temperatureC": 42.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-02",
           "F-04",
@@ -318,12 +318,12 @@
       {
         "id": "B4",
         "name": "Bus 4",
-        "voltage": 0.989,
+        "voltage": 0.991,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 120.0,
         "solarKw": 0.0,
-        "lineLoadingPercent": 56.5,
+        "lineLoadingPercent": 51.2,
         "temperatureC": 31.0,
         "status": "normal",
         "connectedFeeders": [
@@ -347,7 +347,7 @@
         "name": "Feeder F-01",
         "fromBus": "TX-MAIN",
         "toBus": "B1",
-        "loadingPercent": 86.2,
+        "loadingPercent": 66.2,
         "loadingLimitPercent": 100.0,
         "capacityKw": 600.0,
         "activePowerKw": 384.0,
@@ -361,12 +361,12 @@
         "name": "Feeder Line 1-2",
         "fromBus": "B1",
         "toBus": "B2",
-        "loadingPercent": 96.6,
+        "loadingPercent": 60.6,
         "loadingLimitPercent": 100.0,
         "capacityKw": 450.0,
         "activePowerKw": 351.0,
         "reactivePowerKvar": 60.0,
-        "status": "warning",
+        "status": "normal",
         "isSwitchClosed": true,
         "isReconfigurableAlternate": false
       },
@@ -375,12 +375,12 @@
         "name": "Feeder F-02",
         "fromBus": "B2",
         "toBus": "B3",
-        "loadingPercent": 106.9,
+        "loadingPercent": 55.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 300.0,
         "activePowerKw": 324.0,
         "reactivePowerKvar": 85.0,
-        "status": "critical",
+        "status": "normal",
         "isSwitchClosed": true,
         "isReconfigurableAlternate": false
       },
@@ -403,7 +403,7 @@
         "name": "Feeder F-04",
         "fromBus": "B3",
         "toBus": "B4",
-        "loadingPercent": 56.5,
+        "loadingPercent": 51.2,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 130.0,
@@ -418,15 +418,15 @@
         "id": "SOLAR-01",
         "name": "Solar Farm Alpha",
         "busId": "B2",
-        "generationKw": 175.0,
+        "generationKw": 0.0,
         "capacityKw": 250.0,
         "irradianceWm2": 895.0,
         "curtailedKw": 0.0,
         "status": "normal",
         "position": {
-          "x": -10.49590113123509,
+          "x": -9.288657498048698,
           "y": 0.0,
-          "z": -0.5974025102697951
+          "z": -0.6491755828286769
         }
       }
     ],
@@ -454,20 +454,20 @@
         "id": "LOAD-01",
         "name": "Commercial Complex Load",
         "busId": "B2",
-        "powerKw": 45.0,
+        "powerKw": 35.0,
         "powerFactor": 0.94,
         "status": "normal",
         "position": {
-          "x": 7.0,
+          "x": 7.105541287042318,
           "y": 0.0,
-          "z": 0.0
+          "z": -0.8394207446805262
         }
       },
       {
         "id": "LOAD-02",
         "name": "Residential Sub-district A",
         "busId": "B3",
-        "powerKw": 30.0,
+        "powerKw": 25.0,
         "powerFactor": 0.92,
         "status": "normal",
         "position": {
@@ -480,7 +480,7 @@
         "id": "LOAD-03",
         "name": "Industrial Park Load",
         "busId": "B4",
-        "powerKw": 61.0,
+        "powerKw": 50.0,
         "powerFactor": 0.89,
         "status": "normal",
         "position": {
@@ -490,7 +490,7 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-06T17:27:03.095965"
+    "lastUpdated": "2026-10-08T14:33:46.163532"
   },
   "GRID-H4HSGW": {
     "id": "GRID-H4HSGW",
@@ -507,9 +507,9 @@
       "temperatureC": 38.5,
       "status": "normal",
       "position": {
-        "x": 0.40446844706695373,
+        "x": 0.49749702074441515,
         "y": 0.6,
-        "z": -8.91763707330929
+        "z": -8.321198189471438
       }
     },
     "buses": [
@@ -531,15 +531,15 @@
           "load": null
         },
         "position": {
-          "x": 0.1,
+          "x": 0.3905464908666601,
           "y": 0.0,
-          "z": 1.6
+          "z": 1.8831422054599067
         }
       },
       {
         "id": "BUS-8630",
         "name": "Bus 2",
-        "voltage": 1.017,
+        "voltage": 1.018,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 0.0,
@@ -580,7 +580,7 @@
         "name": "Feeder BUS-9037-BUS-8630",
         "fromBus": "BUS-9037",
         "toBus": "BUS-8630",
-        "loadingPercent": 13.6,
+        "loadingPercent": 10.6,
         "loadingLimitPercent": 100.0,
         "capacityKw": 1000.0,
         "activePowerKw": 0.0,
@@ -616,9 +616,9 @@
         "curtailedKw": 0.0,
         "status": "normal",
         "position": {
-          "x": -8.668619582750079,
+          "x": -8.67226486700421,
           "y": 0.0,
-          "z": 1.3918387276123674
+          "z": 1.4291065299767112
         }
       },
       {
@@ -631,9 +631,9 @@
         "curtailedKw": 0.0,
         "status": "normal",
         "position": {
-          "x": -10.3,
+          "x": -9.06978450126373,
           "y": 0.0,
-          "z": -4.8
+          "z": -4.787777061101504
         }
       }
     ],
@@ -661,42 +661,42 @@
         "id": "LOAD-5941",
         "name": "[Commercial] Office Block",
         "busId": "BUS-8630",
-        "powerKw": 31.0,
+        "powerKw": 18.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
-          "x": -8.458288652928314,
+          "x": -8.464981342674852,
           "y": 0.0,
-          "z": 8.987335413685694
+          "z": 8.487742625997756
         }
       },
       {
         "id": "LOAD-5928",
         "name": "[Factory] Heavy Industry",
         "busId": "BUS-8630",
-        "powerKw": 105.0,
+        "powerKw": 60.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
-          "x": 8.103108934079287,
+          "x": 7.931601590242889,
           "y": 0.0,
-          "z": 9.053000172003152
+          "z": 9.299673037580625
         }
       },
       {
         "id": "LOAD-5260",
         "name": "[Residential] House",
         "busId": "BUS-8630",
-        "powerKw": 50.0,
+        "powerKw": 28.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
-          "x": -2.8,
+          "x": 0.18901328256466599,
           "y": 0.0,
-          "z": 19.3
+          "z": 14.362000440594642
         }
       }
     ],
-    "lastUpdated": "2026-10-06T19:58:43.189383"
+    "lastUpdated": "2026-10-08T16:55:11.183828"
   }
 }

@@ -169,11 +169,17 @@ class PowerFlowEngine:
             return [], [], 0.0, 0.0
 
         substation_id = grid.substation.id if grid.substation else "TX-MAIN"
-        # Find substation bus
+        # Find substation slack bus and direct substation feeder
         sub_bus_id = None
+        substation_feeder_id = None
         for f in grid.feeders:
-            if f.fromBus == substation_id:
+            if f.fromBus == substation_id and f.toBus in bus_map:
                 sub_bus_id = f.toBus
+                substation_feeder_id = f.id
+                break
+            elif f.toBus == substation_id and f.fromBus in bus_map:
+                sub_bus_id = f.fromBus
+                substation_feeder_id = f.id
                 break
         
         if not sub_bus_id and grid.buses:
@@ -191,7 +197,7 @@ class PowerFlowEngine:
                 feeder_edges[(f.fromBus, f.toBus)] = f.id
                 feeder_edges[(f.toBus, f.fromBus)] = f.id
 
-        # BFS from substation to build directed tree
+        # BFS from substation bus to build directed tree
         adj = {b.id: [] for b in grid.buses}
         visited = set()
         queue = []
@@ -207,8 +213,6 @@ class PowerFlowEngine:
                     adj[curr].append(neighbor)
                     queue.append(neighbor)
                     
-        # Any unvisited nodes (disconnected islands) have 0 flow, we don't process them in this sweep.
-                
         # Flow calculation (recursive post-order)
         flows = {f.id: 0.0 for f in grid.feeders}
         def get_flow(u: str) -> float:
@@ -226,19 +230,30 @@ class PowerFlowEngine:
         else:
             total_substation_flow = load_kw - solar_kw
 
-        # Forward sweep: Voltage calculation
-        voltages = {b.id: 1.02 for b in grid.buses}
+        # Ensure the main feeder to substation reflects total substation power flow
+        if substation_feeder_id and substation_feeder_id in flows:
+            flows[substation_feeder_id] = total_substation_flow
+
+        # Forward sweep: Voltage calculation with realistic distribution R/X drop & rise
+        voltages = {b.id: 1.020 for b in grid.buses}
         def calc_voltage(u: str):
             for v in adj.get(u, []):
                 f_id = feeder_edges.get((u, v))
                 f_cap = feeder_map[f_id].capacityKw if f_id and f_id in feeder_map and feeder_map[f_id].capacityKw > 0 else 300.0
                 branch_flow = flows.get(f_id, 0.0)
-                v_drop = (branch_flow / f_cap) * 0.02 
+                # Realistic distribution impedance: reverse power flow (branch_flow < 0) causes voltage rise
+                v_drop = (branch_flow / f_cap) * 0.065
                 voltages[v] = round(voltages[u] - v_drop, 3)
                 calc_voltage(v)
                 
         if sub_bus_id:
-            voltages[sub_bus_id] = 1.02
+            if substation_feeder_id:
+                sub_f_cap = feeder_map[substation_feeder_id].capacityKw if (substation_feeder_id in feeder_map and feeder_map[substation_feeder_id].capacityKw > 0) else 300.0
+                effective_cap = min(sub_f_cap, 350.0)
+                sub_v_drop = (total_substation_flow / effective_cap) * 0.075
+                voltages[sub_bus_id] = round(1.020 - sub_v_drop, 3)
+            else:
+                voltages[sub_bus_id] = 1.020
             calc_voltage(sub_bus_id)
             
         tx_rating = grid.substation.ratingKva if (grid.substation and grid.substation.ratingKva > 0) else 500.0

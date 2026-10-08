@@ -420,12 +420,16 @@ export const simulationService = {
   /**
    * Run and evaluate corrective actions
    */
-  async runCorrectiveActions(violationIds?: string[], gridId?: string): Promise<SimulationResponse> {
+  async runCorrectiveActions(
+    violationIds?: string[],
+    gridId?: string,
+    simulationInput?: SimulationInput
+  ): Promise<SimulationResponse> {
     if (IS_MOCK_API) {
       await simulateLatency(450)
-      const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
-      if (gridId) defaultInput.gridId = gridId
-      const full = runMockPowerFlow(defaultInput)
+      const inputToUse = simulationInput || createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
+      if (gridId) inputToUse.gridId = gridId
+      const full = runMockPowerFlow(inputToUse)
       const peak = full.timeStepResults['13:15'] || Object.values(full.timeStepResults)[0]
 
       return {
@@ -437,7 +441,7 @@ export const simulationService = {
     }
     const response = await apiClient.post<SimulationResponse>(
       '/simulation/corrective-actions',
-      { violationIds },
+      { violationIds, input: simulationInput, gridId },
       { params: gridId ? { grid_id: gridId } : undefined }
     )
     return response.data

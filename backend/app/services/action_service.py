@@ -24,15 +24,28 @@ class ActionService:
         self,
         simulation_input: Optional[SimulationInput] = None
     ) -> SimulationResponse:
-        input_data = simulation_input or SimulationInput()
         from app.db.repositories.network_repository import NetworkRepository
+        from app.services.simulation_service import get_active_simulation
         repo = NetworkRepository()
-        target_grid_id = input_data.gridId or await repo.get_active_grid_id()
+        target_grid_id = (simulation_input.gridId if simulation_input else None) or await repo.get_active_grid_id()
         grid = await repo.get_grid(target_grid_id)
         if not grid:
             grid = await repo.get_network()
 
-        full_res = NetworkEngine.run_full_simulation(input_data, grid)
+        active_sim = get_active_simulation()
+        if simulation_input and simulation_input.solarTimeSeries:
+            input_data = simulation_input
+            if not input_data.gridId:
+                input_data.gridId = target_grid_id
+            full_res = NetworkEngine.run_full_simulation(input_data, grid)
+        elif active_sim and (not target_grid_id or active_sim.input.gridId == target_grid_id):
+            full_res = active_sim
+        else:
+            input_data = simulation_input or SimulationInput(gridId=target_grid_id)
+            if not input_data.gridId:
+                input_data.gridId = target_grid_id
+            full_res = NetworkEngine.run_full_simulation(input_data, grid)
+
         peak_key = "13:15" if "13:15" in full_res.timeStepResults else list(full_res.timeStepResults.keys())[0]
         peak_flow = full_res.timeStepResults[peak_key]
 

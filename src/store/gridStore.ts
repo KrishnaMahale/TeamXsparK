@@ -396,14 +396,20 @@ export const useGridStore = create<GridState>((set, get) => ({
     const current = get().network
     const isFeasible = action.isFeasible !== false
 
+    // Dynamically identify critical or target bus and feeder on ANY grid
+    const criticalBus = current.buses.find((b) => b.status === 'critical' || b.voltage > 1.05 || b.voltage < 0.95)
+    const targetBusId = action.targetComponentId || criticalBus?.id || current.buses[0]?.id
+    const criticalFeeder = current.feeders.find((f) => f.status === 'critical' || f.loadingPercent > 100)
+    const targetFeederId = (action.type === 'feeder_reconfiguration' ? action.targetComponentId : null) || criticalFeeder?.id || current.feeders[0]?.id
+
     const updatedBuses = current.buses.map((b) => {
-      if (b.id === 'B3') {
-        const v = isFeasible ? action.expectedVoltagePu : 1.074
+      if (b.id === targetBusId || (isFeasible && b.status === 'critical' && action.remainingViolationsCount === 0)) {
+        const v = isFeasible ? (action.expectedVoltagePu ?? 1.02) : (b.voltage > 1.05 ? b.voltage : 1.074)
         const status = v <= 1.05 && v >= 0.95 ? ('normal' as const) : ('critical' as const)
         return {
           ...b,
           voltage: v,
-          lineLoadingPercent: isFeasible ? action.expectedFeederLoadPercent : 108,
+          lineLoadingPercent: isFeasible ? (action.expectedFeederLoadPercent ?? b.lineLoadingPercent) : b.lineLoadingPercent,
           status,
         }
       }
@@ -411,47 +417,46 @@ export const useGridStore = create<GridState>((set, get) => ({
     })
 
     const updatedFeeders = current.feeders.map((f) => {
-      if (f.id === 'F-02') {
-        const loadPct = isFeasible ? action.expectedFeederLoadPercent : 108
+      if (f.id === targetFeederId || (isFeasible && f.status === 'critical' && action.remainingViolationsCount === 0)) {
+        const loadPct = isFeasible ? (action.expectedFeederLoadPercent ?? f.loadingPercent) : (f.loadingPercent > 100 ? f.loadingPercent : 108)
         const status = loadPct <= 100 ? ('normal' as const) : ('critical' as const)
         return {
           ...f,
           loadingPercent: loadPct,
           status,
-          isSwitchClosed: isFeasible && action.id === 'ACT-02' ? false : true,
+          isSwitchClosed: isFeasible && action.type === 'feeder_reconfiguration' ? false : f.isSwitchClosed,
         }
       }
-      if (f.id === 'F-03') {
-        const isSwitchClosed = isFeasible && action.id === 'ACT-02'
+      if (f.isReconfigurableAlternate || !f.isSwitchClosed) {
+        const isSwitchClosed = isFeasible && action.type === 'feeder_reconfiguration'
         return {
           ...f,
           isSwitchClosed,
-          loadingPercent: isSwitchClosed ? 46 : 0,
+          loadingPercent: isSwitchClosed ? 46 : f.loadingPercent,
           status: 'normal' as const,
         }
       }
       return f
     })
 
+    const targetSolar = current.solarUnits.find((s) => s.busId === targetBusId) || current.solarUnits[0]
     const updatedSolar = current.solarUnits.map((s) => {
-      if (s.id === 'SOLAR-01') {
-        return { ...s, generationKw: Math.round((action.solarUsedKw || 240) * 0.65) }
-      }
-      if (s.id === 'SOLAR-02') {
-        const curtailed = isFeasible && action.id === 'ACT-03' ? 30 : 0
+      if (targetSolar && s.id === targetSolar.id) {
+        const curtailed = isFeasible && action.type === 'solar_curtailment' ? 30 : 0
         return {
           ...s,
-          generationKw: Math.round((action.solarUsedKw || 240) * 0.35),
+          generationKw: Math.round((action.solarUsedKw || s.generationKw) * 0.7),
           curtailedKw: curtailed,
-          status: curtailed > 0 ? ('normal' as const) : isFeasible ? ('normal' as const) : ('warning' as const),
+          status: 'normal' as const,
         }
       }
       return s
     })
 
+    const targetBattery = current.batteries.find((b) => b.busId === targetBusId) || current.batteries[0]
     const updatedBatteries = current.batteries.map((b) => {
-      if (b.id === 'BAT-01') {
-        const power = isFeasible && action.id === 'ACT-01' ? -40 : action.id === 'ACT-04' ? -80 : 0
+      if (targetBattery && b.id === targetBattery.id) {
+        const power = isFeasible && action.type === 'battery_discharge' ? -40 : action.type === 'max_battery_discharge' ? -80 : 0
         return {
           ...b,
           socPercent: action.batterySocPercent ?? b.socPercent,
@@ -472,40 +477,25 @@ export const useGridStore = create<GridState>((set, get) => ({
     } else if (!isFeasible) {
       updatedViolations = [
         {
-          id: 'VIO-B3-ACTION-FAIL',
+          id: `VIO-${targetBusId}-ACTION-FAIL`,
           time: get().currentTime,
           componentType: 'bus',
-          componentId: 'B3',
-          componentName: 'Bus 3',
-          issue: 'Over-voltage (Action Infeasible)',
+          componentId: targetBusId || 'B1',
+          componentName: current.buses.find((b) => b.id === targetBusId)?.name || 'Critical Bus',
+          issue: 'Operating Limit Breach (Action Infeasible)',
           type: 'over_voltage',
-          value: 1.074,
+          value: action.expectedVoltagePu || 1.074,
           unit: 'pu',
-          formattedValue: '1.074 pu',
+          formattedValue: `${action.expectedVoltagePu || 1.074} pu`,
           limit: 1.05,
           formattedLimit: '1.050 pu',
           severity: 'critical',
           status: 'active',
           recommendationHint: action.infeasibleReason || 'Action rejected: Infeasible battery reserve',
         },
-        {
-          id: 'VIO-F02-ACTION-FAIL',
-          time: get().currentTime,
-          componentType: 'feeder',
-          componentId: 'F-02',
-          componentName: 'Feeder F-02',
-          issue: 'Thermal Overload (108%)',
-          type: 'feeder_overload',
-          value: 108,
-          unit: '%',
-          formattedValue: '108%',
-          limit: 100,
-          formattedLimit: '100%',
-          severity: 'critical',
-          status: 'active',
-          recommendationHint: 'Execute Feeder Reconfiguration F-02 -> F-03',
-        },
       ]
+    } else {
+      updatedViolations = get().violations
     }
 
     const updatedNetwork: GridNetwork = {

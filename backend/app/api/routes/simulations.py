@@ -9,6 +9,7 @@ from app.schemas.simulation import (
     SingleTimePowerFlowRequest,
     SimulationCreateRequest,
     SimulationCreateResponse,
+    CorrectiveActionsEvaluationRequest,
 )
 from app.schemas.action import ActionExecutionResult, ActionCandidateRequest
 from app.services.simulation_service import SimulationService
@@ -82,10 +83,22 @@ async def run_power_flow(
 # 3. Corrective Actions Evaluation (Used by simulationService.runCorrectiveActions)
 @router.post("/simulation/corrective-actions", response_model=SimulationResponse)
 async def run_corrective_actions(
+    request: Optional[CorrectiveActionsEvaluationRequest] = None,
     grid_id: Optional[str] = None,
     act_service: ActionService = Depends(get_act_service),
 ):
-    inp = SimulationInput(gridId=grid_id) if grid_id else None
+    inp = None
+    if request and request.input:
+        inp = request.input
+    elif request and request.gridId:
+        inp = SimulationInput(gridId=request.gridId)
+    elif grid_id:
+        inp = SimulationInput(gridId=grid_id)
+
+    target_grid = (inp.gridId if inp else None) or (request.gridId if request else None) or grid_id
+    if inp and target_grid:
+        inp.gridId = target_grid
+
     return await act_service.evaluate_actions_for_simulation(inp)
 
 

@@ -20,7 +20,14 @@ import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
 
-export const Network2D: React.FC = () => {
+export interface Network2DProps {
+  readOnly?: boolean
+  heightClassName?: string
+}
+
+export const Network2D: React.FC<Network2DProps> = ({
+  heightClassName,
+}) => {
   const { network, currentTime } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
@@ -202,7 +209,7 @@ export const Network2D: React.FC = () => {
       className={`relative w-full flex items-center justify-center overflow-hidden transition-all select-none ${
         isFullscreen
           ? 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-white dark:bg-[#0B1220] p-4'
-          : 'h-[580px] xl:h-[620px] rounded-xl bg-white dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4'
+          : `${heightClassName || 'h-[580px] xl:h-[620px]'} rounded-xl bg-white dark:bg-[#0B1220] border border-slate-200 dark:border-slate-800 shadow-xs p-2 sm:p-4`
       }`}
     >
       {/* Subtle Grid Background */}

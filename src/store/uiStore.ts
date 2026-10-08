@@ -52,7 +52,7 @@ export const useUIStore = create<UIState>((set) => {
   applyThemeToDocument(initialTheme)
 
   return {
-    sidebarCollapsed: false,
+    sidebarCollapsed: true,
     is3DEnabled: true,
     isComparisonModalOpen: false,
     activeTab: 'network',

@@ -3,6 +3,7 @@ import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { NetworkDigitalTwin } from '../components/network/NetworkDigitalTwin'
 import { useCorrectiveActions } from '../hooks/useCorrectiveActions'
 import { useGridStore } from '../store/gridStore'
 import { ActionComparisonRow } from '../types/action'
@@ -29,12 +30,32 @@ export const ActionsPage: React.FC = () => {
   } = useCorrectiveActions()
 
   const { network } = useGridStore()
-  const monitoredBusName = comparisonData.monitoredBusName || comparisonData.monitoredBusId || 'Critical Bus'
-  const monitoredFeederName = comparisonData.monitoredFeederName || comparisonData.monitoredFeederId || 'Feeder'
+  const monitoredBusName =
+    comparisonData.monitoredBusName ||
+    comparisonData.monitoredBusId ||
+    network.buses.find((b) => b.status === 'critical')?.name ||
+    network.buses[0]?.name ||
+    'Critical Bus'
+  const monitoredFeederName =
+    comparisonData.monitoredFeederName ||
+    comparisonData.monitoredFeederId ||
+    network.feeders.find((f) => f.status === 'critical')?.name ||
+    network.feeders[0]?.name ||
+    'Feeder'
   const targetGridName = comparisonData.gridName || network.name || 'Selected Grid'
-  const beforeVoltage = comparisonData.b3Voltage?.before ?? 1.074
-  const beforeFeederLoading = comparisonData.f02Loading?.before ?? 108
-  const beforeViolations = comparisonData.beforeViolationsCount ?? 2
+  const beforeVoltage =
+    comparisonData.b3Voltage?.before ??
+    network.buses.find((b) => b.status === 'critical')?.voltage ??
+    network.buses[0]?.voltage ??
+    1.074
+  const beforeFeederLoading =
+    comparisonData.f02Loading?.before ??
+    network.feeders.find((f) => f.status === 'critical')?.loadingPercent ??
+    network.feeders[0]?.loadingPercent ??
+    108
+  const beforeViolations =
+    comparisonData.beforeViolationsCount ??
+    network.buses.filter((b) => b.status === 'critical').length
 
   const comparisonRows: ActionComparisonRow[] = useMemo(() => {
     return actions.map((a) => ({
@@ -66,6 +87,7 @@ export const ActionsPage: React.FC = () => {
 
   return (
     <PageContainer
+      compact={true}
       title="Corrective Actions"
       subtitle={`Evaluate available interventions against operating constraints on ${targetGridName} and compare outcomes`}
       actions={
@@ -85,23 +107,40 @@ export const ActionsPage: React.FC = () => {
         </div>
       }
     >
-      <div className="space-y-6">
-        {/* 1. Action Cards Workspace (4 Action Cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {actions.map((action) => {
-            const isSel = selectedAction?.id === action.id
-            const isFeasible = action.isFeasible
+      <div className="space-y-5">
+        {/* 1. Read-Only Digital Twin Simulation for Active Grid */}
+        <div className="rounded-xl border border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FAF6E9] dark:bg-[#1E2B20] p-3 sm:p-4 shadow-xs">
+          <NetworkDigitalTwin readOnly={true} heightClassName="h-[380px] lg:h-[420px]" />
+        </div>
 
-            return (
-              <div
-                key={action.id}
-                onClick={() => selectAction(action)}
-                className={`p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between shadow-xs ${
-                  isSel
-                    ? 'bg-[#DDEB9D]/35 dark:bg-[#2D3E2F]/60 border-[#A0C878] ring-1 ring-[#A0C878]'
-                    : 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#DDD9C9] dark:border-[#2C3C2E] hover:border-[#A0C878]'
-                }`}
-              >
+        {/* 2. Action Cards Workspace (4 Action Cards) */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-tight">
+                Available Constraint Resolution Interventions
+              </h2>
+              <p className="text-xs text-[#788477] dark:text-[#859483] mt-0.5">
+                Simulate an action to evaluate relief on {monitoredBusName} and {monitoredFeederName}. Telemetry and power flows update live on the digital twin above.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {actions.map((action) => {
+              const isSel = selectedAction?.id === action.id
+              const isFeasible = action.isFeasible
+
+              return (
+                <div
+                  key={action.id}
+                  onClick={() => selectAction(action)}
+                  className={`p-4 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between shadow-xs ${
+                    isSel
+                      ? 'bg-[#DDEB9D]/35 dark:bg-[#2D3E2F]/60 border-[#A0C878] ring-1 ring-[#A0C878]'
+                      : 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#DDD9C9] dark:border-[#2C3C2E] hover:border-[#A0C878]'
+                  }`}
+                >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -168,9 +207,10 @@ export const ActionsPage: React.FC = () => {
               </div>
             )
           })}
+          </div>
         </div>
 
-        {/* 2. Before / After Comparison Section (Prominent Panels) */}
+        {/* 3. Before / After Comparison Section (Prominent Panels) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-tight flex items-center gap-2">
@@ -294,7 +334,7 @@ export const ActionsPage: React.FC = () => {
                   <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredBusName} Voltage</div>
                   <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
                     {selectedAction?.isFeasible
-                      ? `${selectedAction?.expectedVoltagePu || '1.038'} pu`
+                      ? `${selectedAction.expectedVoltagePu?.toFixed(3) ?? beforeVoltage.toFixed(3)} pu`
                       : `${beforeVoltage.toFixed(3)} pu`}
                   </div>
                   <div className="text-[10px] text-[#A0C878] mt-0.5">Within IEEE 1547 (0.95 - 1.05)</div>
@@ -304,7 +344,7 @@ export const ActionsPage: React.FC = () => {
                   <div className="text-xs text-[#788477] dark:text-[#859483] truncate">{monitoredFeederName} Loading</div>
                   <div className="text-xl font-bold font-mono text-[#A0C878] mt-1">
                     {selectedAction?.isFeasible
-                      ? `${selectedAction?.expectedFeederLoadPercent || '92'}%`
+                      ? `${selectedAction.expectedFeederLoadPercent ?? beforeFeederLoading.toFixed(0)}%`
                       : `${beforeFeederLoading.toFixed(0)}%`}
                   </div>
                   <div className="text-[10px] text-[#A0C878] mt-0.5">Below 100% thermal rating</div>
@@ -327,7 +367,7 @@ export const ActionsPage: React.FC = () => {
                 <div>
                   <div className="text-xs text-[#788477] dark:text-[#859483]">Renewable Utilization</div>
                   <div className="text-lg font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">
-                    {selectedAction?.renewableUtilizationPercent || 96}%
+                    {selectedAction?.renewableUtilizationPercent ?? 100}%
                   </div>
                   <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-0.5">
                     {selectedAction?.id === 'solar_curtailment' ? 'Trade-off: Curtailed' : 'Clean energy maintained'}

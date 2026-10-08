@@ -282,10 +282,25 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 
   fetchActions: async () => {
+    const activeGridId = useGridStore.getState().network.id || get().input.gridId
+    const currentInput = { ...get().input, gridId: activeGridId }
+
+    // If we already ran a full simulation that matches the active grid, preserve its computed actions and outcomes
+    const existing = get().fullResult
+    if (existing && existing.availableActions?.length > 0 && (!existing.input?.gridId || existing.input.gridId === activeGridId)) {
+      const recommended = existing.availableActions.find((a) => a.id === existing.recommendedActionId) || existing.availableActions[0]
+      set({
+        availableActions: existing.availableActions,
+        selectedAction: get().selectedAction || recommended,
+        comparisonData: existing.comparisonData,
+        isRunning: false,
+      })
+      return
+    }
+
     set({ isRunning: true, error: null })
     try {
-      const activeGridId = get().input.gridId || useGridStore.getState().network.id
-      const response = await simulationService.runCorrectiveActions(undefined, activeGridId)
+      const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
       const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
       set({
         availableActions: response.availableActions,
@@ -295,7 +310,6 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       })
     } catch (err: any) {
       try {
-        const activeGridId = get().input.gridId || useGridStore.getState().network.id
         const actions = await actionService.getActions(activeGridId)
         const recommended = actions.find((a) => a.id === 'ACT-02') || actions[0]
         set({
@@ -312,8 +326,9 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   runCorrectiveActionsAnalysis: async () => {
     set({ isRunning: true, error: null })
     try {
-      const activeGridId = get().input.gridId || useGridStore.getState().network.id
-      const response = await simulationService.runCorrectiveActions(undefined, activeGridId)
+      const activeGridId = useGridStore.getState().network.id || get().input.gridId
+      const currentInput = { ...get().input, gridId: activeGridId }
+      const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
       const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
 
       set({
@@ -391,17 +406,17 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 
   resetSimulation: () => {
+    const activeGridId = useGridStore.getState().network.id || get().input.gridId
     const input = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
+    if (activeGridId) input.gridId = activeGridId
     set({
       input,
       activePresetKey: 'HIGH_SOLAR_LOW_LOAD',
-      availableActions: mockCorrectiveActions,
-      selectedAction: mockCorrectiveActions[1],
       executionResult: null,
-      comparisonData: defaultComparisonData,
       fullResult: null,
     })
     const gridStore = useGridStore.getState()
     gridStore.fetchNetwork()
+    get().fetchActions()
   },
 }))
