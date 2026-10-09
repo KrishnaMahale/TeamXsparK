@@ -1,1 +1,1 @@
-default-grid
+medium-test-grid

@@ -396,7 +396,16 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       })
 
       const gridStore = useGridStore.getState()
-      gridStore.applyActionToNetwork(targetAction)
+      const executedStateAction = {
+        ...targetAction,
+        expectedVoltagePu: result.afterState.b3Voltage,
+        expectedFeederLoadPercent: result.afterState.f02LoadingPercent,
+        solarUsedKw: result.afterState.solarUsedKw,
+        batterySocPercent: result.afterState.batterySocPercent,
+        remainingViolationsCount: result.afterState.violationsCount,
+        isFeasible: result.success,
+      }
+      gridStore.applyActionToNetwork(executedStateAction)
 
       return result
     } catch (err: any) {

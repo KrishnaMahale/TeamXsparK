@@ -53,11 +53,12 @@ class PowerFlowEngine:
 
             voltage_rise_factor = 0.038 if self.is_alternative else 0.074
             load_suppression = 0.020 * max(0.0, (load_kw - 100.0) / 100.0)
-            battery_suppression = 0.029 * (battery_power_kw / 40.0) if battery_power_kw > 0 else 0.0
+            battery_suppression = 0.029 * (abs(battery_power_kw) / 40.0) if battery_power_kw < 0 else 0.0
+            battery_boost = 0.029 * (battery_power_kw / 40.0) if battery_power_kw > 0 else 0.0
             curtailment_suppression = 0.042 * (solar_curtailment_kw / 30.0) if solar_curtailment_kw > 0 else 0.0
 
             v_b3 = round(
-                1.000 + (voltage_rise_factor * solar_penetration_ratio) - load_suppression - battery_suppression - curtailment_suppression,
+                1.000 + (voltage_rise_factor * solar_penetration_ratio) - load_suppression - battery_suppression + battery_boost - curtailment_suppression,
                 3
             )
             v_b4 = round(1.000 - 0.015 * (load_kw / 180.0), 3)
@@ -66,8 +67,10 @@ class PowerFlowEngine:
             f01_loading = min(130.0, round(45.0 + 35.0 * (load_kw / 180.0) + 15.0 * solar_penetration_ratio, 1))
 
             f02_raw_loading = 55.0 + 53.0 * solar_penetration_ratio
-            if battery_power_kw > 0:
-                f02_raw_loading -= 10.0 * (battery_power_kw / 40.0)
+            if battery_power_kw < 0:
+                f02_raw_loading -= 10.0 * (abs(battery_power_kw) / 40.0)
+            elif battery_power_kw > 0:
+                f02_raw_loading -= 5.0 * (battery_power_kw / 40.0)
             if solar_curtailment_kw > 0:
                 f02_raw_loading -= 18.0 * (solar_curtailment_kw / 30.0)
 
