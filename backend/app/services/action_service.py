@@ -61,6 +61,7 @@ class ActionService:
             availableActions=full_res.availableActions,
             recommendedActionId=full_res.recommendedActionId,
             comparisonData=full_res.comparisonData,
+            hybridPlan=full_res.hybridPlan,
         )
 
     async def execute_action(self, action_id: str, grid_id: Optional[str] = None) -> ActionExecutionResult:
@@ -88,6 +89,8 @@ class ActionService:
             full_res = active_sim
 
         target_action = next((a for a in full_res.availableActions if a.id == action_id), None)
+        if not target_action and full_res.hybridPlan and full_res.hybridPlan.id == action_id:
+            target_action = full_res.hybridPlan
         if not target_action:
             raise ResourceNotFoundException("Action", action_id)
 

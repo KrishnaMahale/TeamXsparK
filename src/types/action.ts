@@ -3,6 +3,7 @@ export type ActionType =
   | 'feeder_reconfiguration'
   | 'solar_curtailment'
   | 'max_battery_discharge'
+  | 'hybrid_plan'
 
 export interface CorrectiveAction {
   id: string
@@ -27,6 +28,11 @@ export interface CorrectiveAction {
   curtailmentKw?: number
   targetTopology?: string
   controlDirection?: string
+  isHybrid?: boolean
+  constituentActions?: string[]
+  fullHorizonSafe?: boolean
+  horizonViolationsCount?: number
+  selectionReason?: string
 }
 
 export interface ActionComparisonRow {

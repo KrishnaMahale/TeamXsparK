@@ -1,7 +1,7 @@
 import copy
 import math
-from typing import List, Tuple, Optional
-from app.schemas.action import CorrectiveAction
+from typing import List, Tuple, Optional, Dict, Any
+from app.schemas.action import CorrectiveAction, HybridActionPlan
 from app.schemas.battery import BatteryStorageConfig
 from app.schemas.simulation import (
     BeforeAfterComparisonData,
@@ -9,9 +9,10 @@ from app.schemas.simulation import (
     BeforeAfterSolarUsed,
     BeforeAfterBatterySoc,
     NetworkLimitsConfig,
+    SimulationInput,
 )
 from app.schemas.network import GridNetwork, Bus, Feeder
-from app.schemas.violation import ViolationType
+from app.schemas.violation import ViolationType, ViolationSeverity
 from app.engine.power_flow import PowerFlowEngine
 from app.engine.constraints import ConstraintChecker
 from app.engine.battery import BatteryEngine
@@ -30,17 +31,23 @@ class ActionEngine:
         grid: Optional[GridNetwork] = None,
         eval_time: str = "13:15",
         eval_battery_soc: Optional[float] = None,
+        all_times: Optional[List[str]] = None,
+        solar_times: Optional[Dict[str, float]] = None,
+        load_times: Optional[Dict[str, float]] = None,
+        input_data: Optional[SimulationInput] = None,
+        include_hybrid: bool = False,
     ) -> Tuple[List[CorrectiveAction], str, BeforeAfterComparisonData]:
         """
         Evaluates candidate corrective actions against the specified grid operating condition.
-        Dynamic Phase 3B features:
+        Dynamic Phase 3B & 3C features:
         - Violation-aware regime detection (Overvoltage, Undervoltage, Feeder Overload, Transformer Overload).
-        - Bounded bisection search for minimal effective battery dispatch.
-        - Bounded bisection search for minimal effective active-power solar curtailment.
+        - Bounded bisection search for minimal effective battery dispatch (tolerance <= 1.0 kW).
+        - Bounded bisection search for minimal effective active-power solar curtailment (tolerance <= 1.0 kW).
         - Supported feeder reconfiguration verification.
+        - Hybrid plan generation and joint magnitude optimization.
+        - Full-horizon safety verification across diurnal operating timeline.
         - Transparent hierarchical safety-first candidate ranking.
         - Explicit numerical control parameters populated for all candidates.
-        - Every candidate evaluated on an isolated deep copy of grid state with genuine solver recalculation.
         """
         if grid is None:
             from app.db.repositories.network_repository import initialize_default_grid
@@ -73,7 +80,7 @@ class ActionEngine:
         )
         base_violations = len(base_step_violations)
 
-        # Identify monitored critical bus (furthest from 1.0 pu)
+        # Identify monitored critical bus (furthest deviation from 1.0 pu)
         if base_buses:
             viol_buses = [b for b in base_buses if b.voltage > v_max or b.voltage < v_min]
             if viol_buses:
@@ -132,25 +139,18 @@ class ActionEngine:
             max_chg_spec = float(target_battery.maxChargeKw or battery_config.maxChargeKw or 40.0)
             max_dischg_spec = float(target_battery.maxDischargeKw or battery_config.maxDischargeKw or 40.0)
 
-            # Determine physics-driven control direction
             if has_overvoltage:
-                # Solar surplus voltage rise: charge battery (negative kW) to absorb power
                 bat_dir = -1.0
             elif has_undervoltage:
-                # Peak demand voltage drop: discharge battery (positive kW) to boost voltage
                 bat_dir = +1.0
             elif has_tx_overload and not (has_overvoltage or has_undervoltage):
-                # Transformer overload without voltage violation: check power direction
                 bat_dir = -1.0 if peak_solar_kw > peak_load_kw else +1.0
             elif has_feeder_overload and not (has_overvoltage or has_undervoltage):
                 bat_dir = -1.0 if peak_solar_kw > peak_load_kw else +1.0
             else:
-                # No primary violation: default to standby / small discharge
                 bat_dir = +1.0
 
-            # Calculate physical headroom and feasibility
             if bat_dir < 0:
-                # Charging limits
                 if soc_start >= 95.0:
                     can_act1 = False
                     reason_act1 = f"Battery SOC too high ({soc_start:.0f}% >= 95% charge limit). Cannot absorb surplus power on {grid.name}."
@@ -158,12 +158,11 @@ class ActionEngine:
                 else:
                     headroom_pct = 95.0 - soc_start
                     headroom_kwh = (headroom_pct / 100.0) * bat_cap_kwh
-                    p_headroom_kw = headroom_kwh / (0.5 * 0.92)  # 30 min duration, 0.92 efficiency
+                    p_headroom_kw = headroom_kwh / (0.5 * 0.92)
                     p_upper = min(max_chg_spec, p_headroom_kw)
                     can_act1 = p_upper >= 1.0
                     reason_act1 = None if can_act1 else f"Insufficient battery headroom for charging ({p_upper:.1f} kW)."
             else:
-                # Discharging limits
                 if soc_start <= 20.0:
                     can_act1 = False
                     reason_act1 = f"Battery SOC too low ({soc_start:.0f}% <= 20% safe reserve floor on {grid.name})."
@@ -177,7 +176,6 @@ class ActionEngine:
                     reason_act1 = None if can_act1 else f"Insufficient battery reserve for discharging ({p_upper:.1f} kW)."
 
             if can_act1 and p_upper >= 1.0:
-                # Helper to evaluate signed dispatch on isolated copy of grid
                 def eval_bat_step(disp_kw: float):
                     g_eval = copy.deepcopy(grid)
                     pf = PowerFlowEngine(is_alternative_topology=False)
@@ -196,15 +194,14 @@ class ActionEngine:
                     )
                     return len(viols), buses, feeders, pf
 
-                # Boundary test at p_upper
                 viols_boundary, _, _, _ = eval_bat_step(bat_dir * p_upper)
-
                 if viols_boundary < base_violations:
-                    # Bounded 1D bisection search for minimal effective dispatch magnitude in [1.0, p_upper]
                     low_p = 1.0
                     high_p = p_upper
                     best_p = p_upper
-                    for _ in range(8):
+                    iter_p = 0
+                    while (high_p - low_p > 1.0) and iter_p < 10:
+                        iter_p += 1
                         mid_p = (low_p + high_p) / 2.0
                         v_mid, _, _, _ = eval_bat_step(bat_dir * mid_p)
                         if v_mid <= viols_boundary:
@@ -214,7 +211,6 @@ class ActionEngine:
                             low_p = mid_p
                     chosen_p_mag = best_p
                 else:
-                    # Even upper bound does not resolve all violations; use full allowable dispatch
                     chosen_p_mag = p_upper
 
                 act1_p_kw = bat_dir * round(chosen_p_mag, 1)
@@ -222,7 +218,6 @@ class ActionEngine:
                 v_crit_1 = next((b.voltage for b in buses_1 if b.id == crit_bus_id), base_v_crit)
                 f_crit_1 = next((f.loadingPercent for f in feeders_1 if f.id == crit_feeder_id), base_f_crit_load)
 
-                # Post-action battery SOC
                 if act1_p_kw < 0:
                     e_kwh = abs(act1_p_kw) * 0.5 * 0.92
                     act1_soc = round(min(98.0, soc_start + (e_kwh / bat_cap_kwh) * 100.0), 1)
@@ -342,7 +337,6 @@ class ActionEngine:
         s_name = target_solar.name if target_solar else "Solar Farm"
         s_bus = target_solar.busId if target_solar else crit_bus_id
 
-        # Regime applicability: In pure undervoltage / demand deficit, curtailing solar is physically counterproductive
         is_pure_undervoltage = has_undervoltage and not (has_overvoltage or has_feeder_overload or has_tx_overload)
 
         if is_pure_undervoltage:
@@ -367,7 +361,6 @@ class ActionEngine:
             can_act3 = True
             reason_act3 = None
 
-            # Helper to evaluate curtailment on isolated copy of grid
             def eval_curtail_step(curt_kw: float):
                 g_eval = copy.deepcopy(grid)
                 pf = PowerFlowEngine(is_alternative_topology=False)
@@ -386,29 +379,27 @@ class ActionEngine:
                 )
                 return len(viols), buses, feeders, pf
 
-            # 1. Test boundary condition: 100% curtailment (C_max = peak_solar_kw)
             c_max = peak_solar_kw
             viols_boundary_c, _, _, _ = eval_curtail_step(c_max)
 
             if viols_boundary_c < base_violations:
-                # Curtailment improves constraints! Bounded bisection search for minimal curtailment
                 low_c = 0.0
                 high_c = c_max
                 best_c = c_max
-                for _ in range(8):
+                iter_c = 0
+                while (high_c - low_c > 1.0) and iter_c < 12:
+                    iter_c += 1
                     mid_c = (low_c + high_c) / 2.0
                     v_mid, _, _, _ = eval_curtail_step(mid_c)
                     if v_mid <= viols_boundary_c:
                         best_c = mid_c
-                        high_c = mid_c  # Search lower to conserve renewable generation
+                        high_c = mid_c
                     else:
                         low_c = mid_c
                 curtail_amount = round(best_c, 1)
             else:
-                # 100% curtailment cannot resolve violations; check minimal intervention
                 curtail_amount = min(peak_solar_kw, 50.0)
 
-            # Recalculate final state at selected minimal curtailment
             viols_3, buses_3, feeders_3, _ = eval_curtail_step(curtail_amount)
             v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), base_v_crit)
             f_crit_3 = next((f.loadingPercent for f in feeders_3 if f.id == crit_feeder_id), base_f_crit_load)
@@ -500,49 +491,118 @@ class ActionEngine:
         )
 
         # =========================================================================
-        # 5. Transparent Hierarchical Safety-First Candidate Ranking
+        # 5. Full-Horizon Safety Verification on Top Single Actions
+        # =========================================================================
+        for a in actions:
+            is_h_safe, h_viols, rej_reason = ActionEngine.verify_full_horizon_safety(
+                candidate=a,
+                grid=grid,
+                input_data=input_data,
+                all_times=all_times,
+                solar_times=solar_times,
+                load_times=load_times,
+                eval_time=eval_time,
+                limits=limits,
+            )
+            a.fullHorizonSafe = is_h_safe
+            a.horizonViolationsCount = h_viols
+            if not is_h_safe and rej_reason:
+                a.selectionReason = rej_reason
+
+        # =========================================================================
+        # 6. Hybrid Candidate Plan Generation (Stage 2 & 3)
+        # =========================================================================
+        hybrid_plan = ActionEngine.evaluate_hybrid_candidate(
+            grid=grid,
+            peak_solar_kw=peak_solar_kw,
+            peak_load_kw=peak_load_kw,
+            installed_capacity_kw=installed_capacity_kw,
+            battery_config=battery_config,
+            soc_start=soc_start,
+            limits=limits,
+            eval_time=eval_time,
+            base_violations=base_violations,
+            base_v_crit=base_v_crit,
+            base_f_crit_load=base_f_crit_load,
+            crit_bus_id=crit_bus_id,
+            crit_feeder_id=crit_feeder_id,
+            has_overvoltage=has_overvoltage,
+            has_undervoltage=has_undervoltage,
+            has_feeder_overload=has_feeder_overload,
+            has_tx_overload=has_tx_overload,
+            act1_single=actions[0],
+            act2_single=actions[1],
+            act3_single=actions[2],
+        )
+
+        if hybrid_plan:
+            is_h_safe, h_viols, rej_reason = ActionEngine.verify_full_horizon_safety(
+                candidate=hybrid_plan,
+                grid=grid,
+                input_data=input_data,
+                all_times=all_times,
+                solar_times=solar_times,
+                load_times=load_times,
+                eval_time=eval_time,
+                limits=limits,
+            )
+            hybrid_plan.fullHorizonSafe = is_h_safe
+            hybrid_plan.horizonViolationsCount = h_viols
+            if not is_h_safe and rej_reason:
+                hybrid_plan.selectionReason = rej_reason
+
+        ActionEngine.last_evaluated_hybrid_plan = hybrid_plan
+
+        # =========================================================================
+        # 7. Transparent Hierarchical Safety-First Candidate Ranking
         # =========================================================================
         def rank_action_key(a: CorrectiveAction) -> Tuple:
             """
             Multi-criteria lexicographic comparison key. Lower tuple is better (min):
             1. Feasible outranks Infeasible (0 vs 1)
-            2. Remaining violations count (lower is better)
-            3. New violations penalty (penalize worsening conditions)
-            4. Voltage and loading safety margins (penalize close-to-boundary operation)
-            5. Negated renewable utilization (-utilization so higher utilization ranks better)
-            6. Minimal intervention stress (lower dispatch/curtailment preferred if equally safe)
-            7. Action type tie-breaker
+            2. Full-horizon safe outranks horizon-unsafe (0 vs 1)
+            3. Remaining violations count at worst timestep (lower is better)
+            4. Total horizon violations count
+            5. New violations penalty (penalize worsening conditions)
+            6. Voltage and loading safety margins (penalize close-to-boundary operation)
+            7. Negated renewable utilization (-utilization so higher utilization ranks better)
+            8. Minimal intervention stress (lower dispatch/curtailment preferred if equally safe)
+            9. Action type tie-breaker
             """
             if not a.isFeasible:
-                return (1, 999, 999.0, 999.0, 0.0, 999.0, 9)
+                return (1, 1, 999, 9999, 999.0, 999.0, 0.0, 999.0, 9)
 
             feas_flag = 0
+            horizon_flag = 0 if (a.fullHorizonSafe is not False) else 1
             rem_viols = a.remainingViolationsCount
+            horiz_viols = a.horizonViolationsCount if a.horizonViolationsCount is not None else rem_viols
 
             # Penalize any candidate that introduces new violations beyond baseline
             new_viol_penalty = max(0, rem_viols - base_violations) * 20.0
 
-            # Proximity-to-limits safety margins
+            # Proximity-to-limits safety margins (only penalize exceeding limits or new violations)
             v_dev = max(0.0, a.expectedVoltagePu - v_max) * 50.0 + max(0.0, v_min - a.expectedVoltagePu) * 50.0
-            f_dev = max(0.0, a.expectedFeederLoadPercent - feeder_max) * 2.0 + (a.expectedFeederLoadPercent / 100.0) * 0.1
+            f_dev = max(0.0, a.expectedFeederLoadPercent - feeder_max) * 2.0
             safety_penalty = round(v_dev + f_dev + new_viol_penalty, 3)
 
-            # Negated renewable utilization
             neg_util = -round(a.renewableUtilizationPercent, 1)
-
-            # Intervention magnitude
             stress = round((a.curtailmentKw or 0.0) * 0.2 + abs(a.dispatchKw or 0.0) * 0.05, 2)
 
             type_preference = {
-                "feeder_reconfiguration": 0,
-                "battery_discharge": 1,
-                "solar_curtailment": 2,
-                "max_battery_discharge": 3,
+                "hybrid_plan": 0,
+                "feeder_reconfiguration": 1,
+                "battery_discharge": 2,
+                "solar_curtailment": 3,
+                "max_battery_discharge": 4,
             }.get(a.type, 9)
 
-            return (feas_flag, rem_viols, safety_penalty, neg_util, stress, type_preference)
+            return (feas_flag, horizon_flag, rem_viols, horiz_viols, safety_penalty, neg_util, stress, type_preference)
 
-        ranked_actions = sorted(actions, key=rank_action_key)
+        all_candidates_for_ranking = list(actions)
+        if hybrid_plan and include_hybrid:
+            all_candidates_for_ranking.append(hybrid_plan)
+
+        ranked_actions = sorted(all_candidates_for_ranking, key=rank_action_key)
         best_candidate = ranked_actions[0]
         recommended_id = best_candidate.id
 
@@ -584,7 +644,465 @@ class ActionEngine:
             gridName=grid.name,
         )
 
-        return actions, recommended_id, comparison_data
+        return all_candidates_for_ranking, recommended_id, comparison_data
+
+    @classmethod
+    def evaluate_hybrid_candidate(
+        cls,
+        grid: GridNetwork,
+        peak_solar_kw: float,
+        peak_load_kw: float,
+        installed_capacity_kw: float,
+        battery_config: BatteryStorageConfig,
+        soc_start: float,
+        limits: NetworkLimitsConfig,
+        eval_time: str,
+        base_violations: int,
+        base_v_crit: float,
+        base_f_crit_load: float,
+        crit_bus_id: str,
+        crit_feeder_id: str,
+        has_overvoltage: bool,
+        has_undervoltage: bool,
+        has_feeder_overload: bool,
+        has_tx_overload: bool,
+        act1_single: CorrectiveAction,
+        act2_single: CorrectiveAction,
+        act3_single: CorrectiveAction,
+    ) -> Optional[CorrectiveAction]:
+        """
+        Formulates and evaluates a candidate compound action plan using joint magnitude search.
+        Evaluates:
+        1. Battery charging + solar curtailment (excess solar / overvoltage / reverse flow).
+        2. Feeder reconfiguration + battery discharge (feeder overload / demand deficit).
+        Enforces maximum solver call budget (<= 20 evaluations).
+        """
+        target_battery = next(
+            (b for b in grid.batteries if b.busId == crit_bus_id),
+            (grid.batteries[0] if grid.batteries else None)
+        )
+        target_solar = next(
+            (s for s in grid.solarUnits if s.busId == crit_bus_id),
+            (grid.solarUnits[0] if grid.solarUnits else None)
+        )
+        has_reconfigurable = any(f.isReconfigurableAlternate or not f.isSwitchClosed for f in grid.feeders)
+        alt_feeder = next((f for f in grid.feeders if f.isReconfigurableAlternate or not f.isSwitchClosed), None)
+
+        is_solar_surplus = has_overvoltage or (has_tx_overload and peak_solar_kw > peak_load_kw) or (has_feeder_overload and peak_solar_kw > peak_load_kw)
+        is_demand_or_congestion = has_undervoltage or has_feeder_overload
+
+        # -------------------------------------------------------------------------
+        # Case A: Battery Charging + Solar Curtailment (Surplus / Overvoltage)
+        # -------------------------------------------------------------------------
+        if is_solar_surplus and target_battery and target_solar and peak_solar_kw > 0.0:
+            if soc_start >= 95.0:
+                return CorrectiveAction(
+                    id="PLAN-HYBRID-01",
+                    type="hybrid_plan",
+                    title="Hybrid Plan (BESS + Curtailment - Infeasible)",
+                    description=f"Cannot formulate hybrid absorption: battery SOC too high ({soc_start:.0f}% >= 95% ceiling).",
+                    parameterDelta="Infeasible",
+                    isFeasible=False,
+                    infeasibleReason=f"Battery SOC too high ({soc_start:.0f}% >= 95% charge ceiling). Cannot participate in hybrid absorption.",
+                    expectedVoltagePu=base_v_crit,
+                    expectedFeederLoadPercent=base_f_crit_load,
+                    solarUsedKw=peak_solar_kw,
+                    batterySocPercent=soc_start,
+                    resolvedViolationsCount=0,
+                    remainingViolationsCount=base_violations,
+                    renewableUtilizationPercent=100.0,
+                    gridId=grid.id,
+                    isHybrid=True,
+                    constituentActions=["battery_discharge", "solar_curtailment"],
+                )
+
+            bat_cap = max(10.0, float(target_battery.capacityKwh or battery_config.capacityKwh or 100.0))
+            max_chg_spec = min(
+                float(target_battery.maxChargeKw or 40.0),
+                float(battery_config.maxChargeKw or 40.0),
+            )
+            headroom_pct = 95.0 - soc_start
+            p_headroom = (headroom_pct / 100.0) * bat_cap / (0.5 * 0.92)
+            p_chg_max = min(max_chg_spec, p_headroom)
+
+            if p_chg_max < 1.0:
+                return CorrectiveAction(
+                    id="PLAN-HYBRID-01",
+                    type="hybrid_plan",
+                    title="Hybrid Plan (BESS + Curtailment - Infeasible)",
+                    description="Insufficient battery charging headroom to participate in hybrid absorption.",
+                    parameterDelta="Infeasible",
+                    isFeasible=False,
+                    infeasibleReason="Insufficient battery headroom for charging.",
+                    expectedVoltagePu=base_v_crit,
+                    expectedFeederLoadPercent=base_f_crit_load,
+                    solarUsedKw=peak_solar_kw,
+                    batterySocPercent=soc_start,
+                    resolvedViolationsCount=0,
+                    remainingViolationsCount=base_violations,
+                    renewableUtilizationPercent=100.0,
+                    gridId=grid.id,
+                    isHybrid=True,
+                    constituentActions=["battery_discharge", "solar_curtailment"],
+                )
+
+            # Solver evaluation helper
+            def eval_joint(p_bat: float, c_kw: float):
+                g_eval = copy.deepcopy(grid)
+                pf = PowerFlowEngine(is_alternative_topology=False)
+                buses, feeders, _, _ = pf.solve(
+                    grid=g_eval,
+                    solar_kw=peak_solar_kw,
+                    load_kw=peak_load_kw,
+                    battery_power_kw=p_bat,
+                    solar_curtailment_kw=c_kw,
+                    installed_solar_capacity_kw=installed_capacity_kw,
+                )
+                viols = ConstraintChecker.check_all(
+                    buses, feeders, eval_time, limits,
+                    transformer=g_eval.substation,
+                    tx_loading_pct=getattr(pf, "last_tx_loading", None),
+                    tx_flow_kva=getattr(pf, "last_tx_flow_kva", None),
+                )
+                return len(viols), buses, feeders, pf
+
+            # 1. Test full battery absorption (-p_chg_max) with 0 curtailment:
+            v_chg_only, _, _, _ = eval_joint(-p_chg_max, 0.0)
+            if v_chg_only == 0:
+                # Battery charge alone solves all violations! Minimal curtailment = 0.
+                best_p = -p_chg_max
+                best_c = 0.0
+                # Bisect charge magnitude to avoid over-dispatch:
+                low_p = 1.0
+                high_p = p_chg_max
+                while (high_p - low_p > 1.0):
+                    mid_p = (low_p + high_p) / 2.0
+                    v_m, _, _, _ = eval_joint(-mid_p, 0.0)
+                    if v_m == 0:
+                        best_p = -mid_p
+                        high_p = mid_p
+                    else:
+                        low_p = mid_p
+            else:
+                # Battery charge alone leaves violations. Apply full charging and bisect minimal curtailment:
+                best_p = -p_chg_max
+                v_bound, _, _, _ = eval_joint(-p_chg_max, peak_solar_kw)
+                if v_bound < base_violations:
+                    low_c = 0.0
+                    high_c = peak_solar_kw
+                    best_c = peak_solar_kw
+                    iter_c = 0
+                    while (high_c - low_c > 1.0) and iter_c < 10:
+                        iter_c += 1
+                        mid_c = (low_c + high_c) / 2.0
+                        v_m, _, _, _ = eval_joint(-p_chg_max, mid_c)
+                        if v_m <= v_bound:
+                            best_c = mid_c
+                            high_c = mid_c
+                        else:
+                            low_c = mid_c
+                else:
+                    best_c = min(peak_solar_kw, 50.0)
+
+            viols_h, buses_h, feeders_h, _ = eval_joint(best_p, best_c)
+            v_crit_h = next((b.voltage for b in buses_h if b.id == crit_bus_id), base_v_crit)
+            f_crit_h = next((f.loadingPercent for f in feeders_h if f.id == crit_feeder_id), base_f_crit_load)
+            curtailed_used_h = max(0.0, peak_solar_kw - best_c)
+            util_h = round((curtailed_used_h / peak_solar_kw) * 100.0, 1) if peak_solar_kw > 0 else 100.0
+            e_kwh = abs(best_p) * 0.5 * 0.92
+            soc_end_h = round(min(98.0, soc_start + (e_kwh / bat_cap) * 100.0), 1)
+
+            return CorrectiveAction(
+                id="PLAN-HYBRID-01",
+                type="hybrid_plan",
+                title="Hybrid Plan (BESS Absorption + Solar Curtailment)",
+                description=(
+                    f"Coordinated {abs(best_p):.0f} kW BESS absorption with {best_c:.0f} kW supplemental curtailment on {grid.name}. "
+                    f"Eliminates local voltage deviations while conserving {curtailed_used_h:.0f} kW clean renewable power."
+                ),
+                parameterDelta=f"{best_p:+.0f} kW BESS / -{best_c:.0f} kW Solar",
+                durationMinutes=30,
+                isFeasible=True,
+                expectedVoltagePu=v_crit_h,
+                expectedFeederLoadPercent=f_crit_h,
+                solarUsedKw=curtailed_used_h,
+                batterySocPercent=soc_end_h,
+                resolvedViolationsCount=max(0, base_violations - viols_h),
+                remainingViolationsCount=viols_h,
+                renewableUtilizationPercent=util_h,
+                targetComponentId=crit_bus_id,
+                targetComponentName=f"{target_battery.name} + {target_solar.name}",
+                gridId=grid.id,
+                dispatchKw=round(best_p, 1),
+                curtailmentKw=round(best_c, 1),
+                targetTopology="standard",
+                controlDirection="charge",
+                isHybrid=True,
+                constituentActions=["battery_discharge", "solar_curtailment"],
+            )
+
+        # -------------------------------------------------------------------------
+        # Case B: Feeder Switching + Battery Discharge (Congestion / Demand Deficit)
+        # -------------------------------------------------------------------------
+        if is_demand_or_congestion and has_reconfigurable and alt_feeder and target_battery:
+            if soc_start <= 20.0:
+                return CorrectiveAction(
+                    id="PLAN-HYBRID-01",
+                    type="hybrid_plan",
+                    title="Hybrid Plan (Switching + BESS - Infeasible)",
+                    description=f"Battery SOC too low ({soc_start:.0f}% <= 20% safe reserve floor). Cannot inject power in hybrid plan.",
+                    parameterDelta="Infeasible",
+                    isFeasible=False,
+                    infeasibleReason=f"Battery SOC too low ({soc_start:.0f}% <= 20% safe reserve floor). Cannot inject power.",
+                    expectedVoltagePu=base_v_crit,
+                    expectedFeederLoadPercent=base_f_crit_load,
+                    solarUsedKw=peak_solar_kw,
+                    batterySocPercent=soc_start,
+                    resolvedViolationsCount=0,
+                    remainingViolationsCount=base_violations,
+                    renewableUtilizationPercent=100.0,
+                    gridId=grid.id,
+                    isHybrid=True,
+                    constituentActions=["feeder_reconfiguration", "battery_discharge"],
+                )
+
+            bat_cap = max(10.0, float(target_battery.capacityKwh or battery_config.capacityKwh or 100.0))
+            max_dischg_spec = min(
+                float(target_battery.maxDischargeKw or 40.0),
+                float(battery_config.maxDischargeKw or 40.0),
+            )
+            reserve_pct = soc_start - 20.0
+            p_reserve = (reserve_pct / 100.0) * bat_cap * 0.92 / 0.5
+            p_dischg_max = min(max_dischg_spec, p_reserve)
+
+            if p_dischg_max < 1.0:
+                return CorrectiveAction(
+                    id="PLAN-HYBRID-01",
+                    type="hybrid_plan",
+                    title="Hybrid Plan (Switching + BESS - Infeasible)",
+                    description="Insufficient battery reserve for discharging.",
+                    parameterDelta="Infeasible",
+                    isFeasible=False,
+                    infeasibleReason="Insufficient battery reserve for discharging.",
+                    expectedVoltagePu=base_v_crit,
+                    expectedFeederLoadPercent=base_f_crit_load,
+                    solarUsedKw=peak_solar_kw,
+                    batterySocPercent=soc_start,
+                    resolvedViolationsCount=0,
+                    remainingViolationsCount=base_violations,
+                    renewableUtilizationPercent=100.0,
+                    gridId=grid.id,
+                    isHybrid=True,
+                    constituentActions=["feeder_reconfiguration", "battery_discharge"],
+                )
+
+            def eval_joint_alt(p_disp: float):
+                g_eval = copy.deepcopy(grid)
+                pf = PowerFlowEngine(is_alternative_topology=True)
+                buses, feeders, _, _ = pf.solve(
+                    grid=g_eval,
+                    solar_kw=peak_solar_kw,
+                    load_kw=peak_load_kw,
+                    battery_power_kw=p_disp,
+                    installed_solar_capacity_kw=installed_capacity_kw,
+                )
+                viols = ConstraintChecker.check_all(
+                    buses, feeders, eval_time, limits,
+                    transformer=g_eval.substation,
+                    tx_loading_pct=getattr(pf, "last_tx_loading", None),
+                    tx_flow_kva=getattr(pf, "last_tx_flow_kva", None),
+                )
+                return len(viols), buses, feeders, pf
+
+            v_alt_only, _, _, _ = eval_joint_alt(0.0)
+            if v_alt_only == 0:
+                best_disp = 0.0
+            else:
+                v_bound_alt, _, _, _ = eval_joint_alt(p_dischg_max)
+                if v_bound_alt < v_alt_only:
+                    low_d = 1.0
+                    high_d = p_dischg_max
+                    best_disp = p_dischg_max
+                    iter_d = 0
+                    while (high_d - low_d > 1.0) and iter_d < 8:
+                        iter_d += 1
+                        mid_d = (low_d + high_d) / 2.0
+                        v_m, _, _, _ = eval_joint_alt(mid_d)
+                        if v_m <= v_bound_alt:
+                            best_disp = mid_d
+                            high_d = mid_d
+                        else:
+                            low_d = mid_d
+                else:
+                    best_disp = p_dischg_max
+
+            viols_h, buses_h, feeders_h, _ = eval_joint_alt(best_disp)
+            v_crit_h = next((b.voltage for b in buses_h if b.id == crit_bus_id), base_v_crit)
+            f_crit_h = next((f.loadingPercent for f in feeders_h if f.id == crit_feeder_id), base_f_crit_load)
+            e_kwh = (best_disp * 0.5) / 0.92
+            soc_end_h = round(max(0.0, soc_start - (e_kwh / bat_cap) * 100.0), 1)
+
+            return CorrectiveAction(
+                id="PLAN-HYBRID-01",
+                type="hybrid_plan",
+                title="Hybrid Plan (Feeder Switching + BESS Discharge)",
+                description=(
+                    f"Coordinated tie-switching ({crit_feeder_id} \u2192 {alt_feeder.id}) with {best_disp:+.0f} kW BESS injection on {grid.name}."
+                ),
+                parameterDelta=f"Switch {crit_feeder_id}\u2192{alt_feeder.id} / {best_disp:+.0f} kW BESS",
+                durationMinutes=60,
+                isFeasible=True,
+                expectedVoltagePu=v_crit_h,
+                expectedFeederLoadPercent=f_crit_h,
+                solarUsedKw=peak_solar_kw,
+                batterySocPercent=soc_end_h,
+                resolvedViolationsCount=max(0, base_violations - viols_h),
+                remainingViolationsCount=viols_h,
+                renewableUtilizationPercent=100.0,
+                targetComponentId=crit_feeder_id,
+                targetComponentName=f"{alt_feeder.name} + {target_battery.name}",
+                gridId=grid.id,
+                dispatchKw=round(best_disp, 1),
+                curtailmentKw=0.0,
+                targetTopology="alternative",
+                controlDirection="discharge",
+                isHybrid=True,
+                constituentActions=["feeder_reconfiguration", "battery_discharge"],
+            )
+
+        # Unsupported fallback
+        return CorrectiveAction(
+            id="PLAN-HYBRID-01",
+            type="hybrid_plan",
+            title="Hybrid Plan (Unsupported)",
+            description=f"No compatible multi-action combination supported for current grid constraints on {grid.name}.",
+            parameterDelta="Unsupported",
+            isFeasible=False,
+            infeasibleReason="No compatible multi-action combination supported for current grid constraints.",
+            expectedVoltagePu=base_v_crit,
+            expectedFeederLoadPercent=base_f_crit_load,
+            solarUsedKw=peak_solar_kw,
+            batterySocPercent=soc_start,
+            resolvedViolationsCount=0,
+            remainingViolationsCount=base_violations,
+            renewableUtilizationPercent=100.0,
+            gridId=grid.id,
+            isHybrid=True,
+            constituentActions=[],
+        )
+
+    @classmethod
+    def verify_full_horizon_safety(
+        cls,
+        candidate: CorrectiveAction,
+        grid: GridNetwork,
+        input_data: Optional[SimulationInput] = None,
+        all_times: Optional[List[str]] = None,
+        solar_times: Optional[Dict[str, float]] = None,
+        load_times: Optional[Dict[str, float]] = None,
+        eval_time: str = "13:15",
+        limits: Optional[NetworkLimitsConfig] = None,
+    ) -> Tuple[bool, int, Optional[str]]:
+        """
+        Evaluates the plan across all 96 simulation timesteps to verify full-horizon safety.
+        Returns:
+            (is_horizon_safe, total_horizon_violations, rejection_reason)
+        """
+        if not candidate.isFeasible:
+            return False, 999, candidate.infeasibleReason or "Infeasible action"
+
+        if not all_times or not solar_times or not load_times or not input_data:
+            return True, candidate.remainingViolationsCount, None
+
+        if limits is None:
+            limits = input_data.networkConfig
+
+        try:
+            eval_idx = all_times.index(eval_time)
+        except ValueError:
+            eval_idx = len(all_times) // 2
+
+        active_window_size = 4 if len(all_times) >= 48 else 2
+        active_indices = set(range(eval_idx, min(len(all_times), eval_idx + active_window_size)))
+
+        horizon_violations = 0
+        new_violations = 0
+        first_breach_time = None
+
+        curr_soc = float(input_data.batteryConfig.initialSocPercent)
+        b_cap = max(10.0, float(input_data.batteryConfig.capacityKwh))
+
+        p_disp = candidate.dispatchKw or 0.0
+        c_curt = candidate.curtailmentKw or 0.0
+        use_alt = (candidate.targetTopology == "alternative")
+
+        pf_normal = PowerFlowEngine(is_alternative_topology=False)
+        pf_alt = PowerFlowEngine(is_alternative_topology=True)
+
+        for idx, t in enumerate(all_times):
+            s_kw = solar_times.get(t, input_data.currentSolarKw)
+            l_kw = load_times.get(t, input_data.currentLoadKw)
+
+            is_active = (idx in active_indices)
+            step_disp = p_disp if is_active else 0.0
+            step_curt = c_curt if is_active else 0.0
+            step_alt = use_alt if is_active else False
+
+            if is_active and step_disp != 0:
+                dt = 0.25 if len(all_times) >= 48 else 1.0
+                if step_disp < 0:
+                    delta_soc = ((abs(step_disp) * dt * 0.92) / b_cap) * 100.0
+                    curr_soc = curr_soc + delta_soc
+                else:
+                    delta_soc = ((step_disp * dt / 0.92) / b_cap) * 100.0
+                    curr_soc = curr_soc - delta_soc
+
+                if curr_soc > 98.0 or curr_soc < 15.0:
+                    return False, 999, f"Action breaches battery reserve limits during operation (SOC reached {curr_soc:.1f}% at {t})."
+
+            pf_engine = pf_alt if step_alt else pf_normal
+            buses, feeders, _, tx_loading = pf_engine.solve(
+                grid=grid,
+                solar_kw=s_kw,
+                load_kw=l_kw,
+                battery_power_kw=step_disp,
+                solar_curtailment_kw=step_curt,
+                installed_solar_capacity_kw=input_data.installedSolarCapacityKw,
+            )
+
+            step_viols = ConstraintChecker.check_all(
+                buses, feeders, t, limits,
+                transformer=grid.substation,
+                tx_loading_pct=tx_loading,
+                tx_flow_kva=getattr(pf_engine, "last_tx_flow_kva", None),
+            )
+            horizon_violations += len(step_viols)
+
+            # Check baseline at this step to see if step_viols created a NEW critical violation
+            buses_b, feeders_b, _, tx_b = pf_normal.solve(
+                grid=grid,
+                solar_kw=s_kw,
+                load_kw=l_kw,
+                installed_solar_capacity_kw=input_data.installedSolarCapacityKw,
+            )
+            base_viols_step = ConstraintChecker.check_all(
+                buses_b, feeders_b, t, limits,
+                transformer=grid.substation,
+                tx_loading_pct=tx_b,
+                tx_flow_kva=getattr(pf_normal, "last_tx_flow_kva", None),
+            )
+
+            crit_now = [v for v in step_viols if v.severity == ViolationSeverity.CRITICAL]
+            crit_base = [v for v in base_viols_step if v.severity == ViolationSeverity.CRITICAL]
+            if len(crit_now) > len(crit_base) and idx not in active_indices:
+                new_violations += (len(crit_now) - len(crit_base))
+                if first_breach_time is None:
+                    first_breach_time = t
+
+        if new_violations > 0:
+            return False, horizon_violations, f"Action creates {new_violations} new critical violations at subsequent timesteps (e.g. at {first_breach_time})."
+
+        return True, horizon_violations, None
 
     @staticmethod
     def apply_action_physics(
@@ -597,10 +1115,24 @@ class ActionEngine:
         """
         Applies action control semantics to an isolated copy of grid and runs the genuine solver.
         Consumes explicit numerical fields first, with fallback to legacy parameter parsing.
+        Supports hybrid_plan compound physics recalculation.
         """
         eval_grid = copy.deepcopy(grid)
 
-        if action.type == "battery_discharge":
+        if action.type == "hybrid_plan":
+            p_kw = (action.dispatchKw if action.isFeasible else 0.0) or 0.0
+            curtail_kw = (action.curtailmentKw if action.isFeasible else 0.0) or 0.0
+            is_alt = (action.targetTopology == "alternative")
+            pf = PowerFlowEngine(is_alternative_topology=is_alt)
+            buses, feeders, _, _ = pf.solve(
+                grid=eval_grid,
+                solar_kw=peak_solar_kw,
+                load_kw=peak_load_kw,
+                battery_power_kw=p_kw,
+                solar_curtailment_kw=curtail_kw,
+                installed_solar_capacity_kw=installed_capacity_kw,
+            )
+        elif action.type == "battery_discharge":
             if action.dispatchKw is not None:
                 p_kw = action.dispatchKw if action.isFeasible else 0.0
             else:

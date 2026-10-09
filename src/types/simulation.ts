@@ -132,6 +132,7 @@ export interface FullSimulationResult {
   recommendedActionId: string
   comparisonData: BeforeAfterComparisonData
   summary: SimulationSummaryInfo
+  hybridPlan?: CorrectiveAction
 }
 
 export interface SimulationResponse {
@@ -140,4 +141,5 @@ export interface SimulationResponse {
   recommendedActionId: string
   comparisonData: BeforeAfterComparisonData
   executionResult?: ActionExecutionResult
+  hybridPlan?: CorrectiveAction
 }

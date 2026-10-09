@@ -29,7 +29,7 @@ class NetworkEngine:
         v_max = config.voltageMaxPu
         v_min = config.voltageMinPu
         f_max = config.feederLoadingLimitPercent
-        tx_max = 100.0
+        tx_max = getattr(config, "transformerLoadingLimitPercent", 100.0) or 100.0
 
         critical_count = 0
         total_count = len(result.violations)
@@ -213,6 +213,10 @@ class NetworkEngine:
             grid=grid,
             eval_time=worst_time,
             eval_battery_soc=eval_soc,
+            all_times=all_times,
+            solar_times=solar_times,
+            load_times=load_times,
+            input_data=input_data,
         )
 
         initial_violations_count = len(worst_result.violations)
@@ -255,4 +259,5 @@ class NetworkEngine:
             recommendedActionId=recommended_action_id,
             comparisonData=comparison_data,
             summary=summary,
+            hybridPlan=getattr(ActionEngine, "last_evaluated_hybrid_plan", None),
         )

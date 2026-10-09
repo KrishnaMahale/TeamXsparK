@@ -151,6 +151,7 @@ class FullSimulationResult(BaseModel):
     recommendedActionId: str
     comparisonData: BeforeAfterComparisonData
     summary: SimulationSummaryInfo
+    hybridPlan: Optional[CorrectiveAction] = None
 
 
 class SimulationResponse(BaseModel):
@@ -159,6 +160,7 @@ class SimulationResponse(BaseModel):
     recommendedActionId: str
     comparisonData: BeforeAfterComparisonData
     executionResult: Optional[ActionExecutionResult] = None
+    hybridPlan: Optional[CorrectiveAction] = None
 
 
 class SingleTimePowerFlowRequest(BaseModel):

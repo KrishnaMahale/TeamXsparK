@@ -251,12 +251,16 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
       const result = await simulationService.runSimulation(currentInput)
 
+      const allActs = result.hybridPlan && !result.availableActions.some((a) => a.id === result.hybridPlan?.id)
+        ? [...result.availableActions, result.hybridPlan]
+        : result.availableActions
+
       set((state) => ({
         currentProgressIndex: 5,
         progressSteps: state.progressSteps.map((s) => ({ ...s, status: 'done' })),
         fullResult: result,
-        availableActions: result.availableActions,
-        selectedAction: result.availableActions.find((a) => a.id === result.recommendedActionId) || result.availableActions[0],
+        availableActions: allActs,
+        selectedAction: allActs.find((a) => a.id === result.recommendedActionId) || allActs[0],
         comparisonData: result.comparisonData,
         isRunning: false,
       }))
@@ -301,9 +305,12 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     set({ isRunning: true, error: null })
     try {
       const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
-      const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
+      const allActs = response.hybridPlan && !response.availableActions.some((a) => a.id === response.hybridPlan?.id)
+        ? [...response.availableActions, response.hybridPlan]
+        : response.availableActions
+      const recommended = allActs.find((a) => a.id === response.recommendedActionId) || allActs[0]
       set({
-        availableActions: response.availableActions,
+        availableActions: allActs,
         selectedAction: recommended,
         comparisonData: response.comparisonData,
         isRunning: false,
@@ -329,10 +336,13 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const activeGridId = useGridStore.getState().network.id || get().input.gridId
       const currentInput = { ...get().input, gridId: activeGridId }
       const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
-      const recommended = response.availableActions.find((a) => a.id === response.recommendedActionId) || response.availableActions[0]
+      const allActs = response.hybridPlan && !response.availableActions.some((a) => a.id === response.hybridPlan?.id)
+        ? [...response.availableActions, response.hybridPlan]
+        : response.availableActions
+      const recommended = allActs.find((a) => a.id === response.recommendedActionId) || allActs[0]
 
       set({
-        availableActions: response.availableActions,
+        availableActions: allActs,
         selectedAction: recommended,
         comparisonData: response.comparisonData,
         isRunning: false,

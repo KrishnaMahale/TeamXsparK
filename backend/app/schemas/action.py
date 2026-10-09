@@ -25,6 +25,16 @@ class CorrectiveAction(BaseModel):
     curtailmentKw: Optional[float] = None
     targetTopology: Optional[str] = None
     controlDirection: Optional[str] = None
+    isHybrid: bool = False
+    constituentActions: Optional[list] = Field(default_factory=list)
+    fullHorizonSafe: Optional[bool] = None
+    horizonViolationsCount: Optional[int] = None
+    selectionReason: Optional[str] = None
+
+
+class HybridActionPlan(CorrectiveAction):
+    type: str = "hybrid_plan"
+    isHybrid: bool = True
 
 
 class ActionComparisonRow(BaseModel):

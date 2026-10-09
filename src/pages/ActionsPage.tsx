@@ -15,6 +15,7 @@ import {
   XCircle,
   Cpu,
   ChevronDown,
+  Layers,
 } from 'lucide-react'
 
 export const ActionsPage: React.FC = () => {
@@ -68,6 +69,8 @@ export const ActionsPage: React.FC = () => {
         return <Network className="w-5 h-5 text-[#506052] dark:text-[#C2CCC0]" />
       case 'solar_curtailment':
         return <Sun className="w-5 h-5 text-[#B09B29]" />
+      case 'hybrid_plan':
+        return <Layers className="w-5 h-5 text-[#A0C878]" />
       default:
         return <Wrench className="w-5 h-5 text-[#788477]" />
     }
@@ -95,7 +98,7 @@ export const ActionsPage: React.FC = () => {
           />
         </div>
 
-        {/* 2. Action Cards Workspace (4 Interactive Solution Tabs with Expanding Hover) */}
+        {/* 2. Action Cards Workspace (Interactive Solution Tabs with Dynamic Grid & Expanding Hover) */}
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -105,20 +108,14 @@ export const ActionsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Cards Grid: Perfectly aligned and fits window size with no overflow, hovered tab expands smoothly */}
+          {/* Cards Grid: Dynamically fits variable number of candidate cards */}
           <div
             className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch transition-all duration-300 ease-out"
             style={{
               gridTemplateColumns:
                 hoveredActionId === null
                   ? undefined
-                  : actions.findIndex((a) => a.id === hoveredActionId) === 0
-                  ? '1.36fr 0.88fr 0.88fr 0.88fr'
-                  : actions.findIndex((a) => a.id === hoveredActionId) === 1
-                  ? '0.88fr 1.36fr 0.88fr 0.88fr'
-                  : actions.findIndex((a) => a.id === hoveredActionId) === 2
-                  ? '0.88fr 0.88fr 1.36fr 0.88fr'
-                  : '0.88fr 0.88fr 0.88fr 1.36fr',
+                  : actions.map((a) => (a.id === hoveredActionId ? '1.36fr' : '0.88fr')).join(' '),
             }}
             onMouseLeave={() => setHoveredActionId(null)}
           >
