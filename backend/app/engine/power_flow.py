@@ -82,7 +82,15 @@ class PowerFlowEngine:
             f04_loading = round(30.0 + 35.0 * (load_kw / 180.0), 1)
 
             total_loss_kw = round(8.5 + 4.5 * solar_penetration_ratio, 1)
-            tx_loading = min(120.0, round((f01_load_kw / 500.0) * 100.0 + 20.0, 1))
+            tx_rating = grid.substation.ratingKva if (grid.substation and grid.substation.ratingKva > 0) else 500.0
+            # Calculate apparent power flow S = sqrt(P^2 + Q^2) with modeled 0.2 reactive ratio
+            f01_q_kvar = f01_load_kw * 0.2
+            tx_flow_kva = math.sqrt(f01_load_kw**2 + f01_q_kvar**2)
+            self.last_tx_flow_kva = round(tx_flow_kva, 1)
+            tx_loading = min(200.0, round((tx_flow_kva / tx_rating) * 100.0 + 20.0, 1))
+            self.last_tx_loading = tx_loading
+            if grid.substation:
+                grid.substation.loadingPercent = tx_loading
 
             bus_voltages = {"B1": v_b1, "B2": v_b2, "B3": v_b3, "B4": v_b4}
             bus_loads = {"B1": 0.0, "B2": round(load_b2, 1), "B3": round(load_b3, 1), "B4": round(load_b4, 1)}
@@ -257,7 +265,14 @@ class PowerFlowEngine:
             calc_voltage(sub_bus_id)
             
         tx_rating = grid.substation.ratingKva if (grid.substation and grid.substation.ratingKva > 0) else 500.0
-        tx_loading = min(120.0, round((abs(total_substation_flow) / tx_rating) * 100.0, 1))
+        # Calculate apparent power flow S = sqrt(P^2 + Q^2) at substation root branch
+        tx_q_kvar = abs(total_substation_flow) * 0.2
+        tx_flow_kva = math.sqrt(total_substation_flow**2 + tx_q_kvar**2)
+        self.last_tx_flow_kva = round(tx_flow_kva, 1)
+        tx_loading = min(200.0, round((tx_flow_kva / tx_rating) * 100.0, 1))
+        self.last_tx_loading = tx_loading
+        if grid.substation:
+            grid.substation.loadingPercent = tx_loading
 
         # Reconstruct Buses
         for b_id, b in bus_map.items():

@@ -593,12 +593,35 @@ def initialize_large_grid() -> GridNetwork:
 
 
 def _ensure_default_grids():
+    if "DEFAULT_GRID" in _GRIDS:
+        del _GRIDS["DEFAULT_GRID"]
+
     if "default-grid" not in _GRIDS:
         initialize_default_grid()
     if "medium-test-grid" not in _GRIDS:
         initialize_medium_grid()
     if "large-test-grid" not in _GRIDS:
         initialize_large_grid()
+
+    # Integrity verification: benchmark grids must maintain distinct canonical ratings
+    def_g = _GRIDS.get("default-grid")
+    med_g = _GRIDS.get("medium-test-grid")
+    lrg_g = _GRIDS.get("large-test-grid")
+
+    if def_g and med_g and lrg_g:
+        load_def = sum(l.powerKw for l in def_g.loads)
+        load_med = sum(l.powerKw for l in med_g.loads)
+        load_lrg = sum(l.powerKw for l in lrg_g.loads)
+        cap_def = sum(s.capacityKw for s in def_g.solarUnits)
+        cap_med = sum(s.capacityKw for s in med_g.solarUnits)
+        cap_lrg = sum(s.capacityKw for s in lrg_g.solarUnits)
+
+        # If benchmark grids have collapsed into identical load or capacity values (e.g. from cache contamination)
+        if load_def == load_med or load_med == load_lrg or cap_def == cap_med or cap_med == cap_lrg:
+            logger.warning("[NetworkRepository] Benchmark grid contamination detected. Restoring canonical benchmark configurations.")
+            initialize_default_grid()
+            initialize_medium_grid()
+            initialize_large_grid()
 
 
 _load_local_cache()

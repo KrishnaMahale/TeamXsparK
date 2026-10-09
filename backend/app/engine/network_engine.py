@@ -77,7 +77,10 @@ class NetworkEngine:
             )
 
             step_violations = ConstraintChecker.check_all(
-                buses, feeders, t, input_data.networkConfig
+                buses, feeders, t, input_data.networkConfig,
+                transformer=grid.substation,
+                tx_loading_pct=tx_loading,
+                tx_flow_kva=getattr(pf_engine, "last_tx_flow_kva", None),
             )
             all_violations.extend(step_violations)
 

@@ -48,7 +48,12 @@ class ActionEngine:
         )
 
         # Baseline violations for this specific grid
-        base_step_violations = ConstraintChecker.check_all(base_buses, base_feeders, "13:15", limits)
+        base_step_violations = ConstraintChecker.check_all(
+            base_buses, base_feeders, "13:15", limits,
+            transformer=grid.substation,
+            tx_loading_pct=getattr(pf_base, "last_tx_loading", None),
+            tx_flow_kva=getattr(pf_base, "last_tx_flow_kva", None),
+        )
         base_violations = len(base_step_violations)
 
         # Identify monitored critical bus for this specific grid
@@ -103,7 +108,12 @@ class ActionEngine:
             battery_power_kw=act1_p_kw if can_act1 else 0.0,
             installed_solar_capacity_kw=installed_capacity_kw,
         )
-        viols_1 = len(ConstraintChecker.check_all(buses_1, feeders_1, "13:15", limits))
+        viols_1 = len(ConstraintChecker.check_all(
+            buses_1, feeders_1, "13:15", limits,
+            transformer=grid.substation,
+            tx_loading_pct=getattr(pf_base, "last_tx_loading", None),
+            tx_flow_kva=getattr(pf_base, "last_tx_flow_kva", None),
+        ))
         v_crit_1 = next((b.voltage for b in buses_1 if b.id == crit_bus_id), round(base_v_crit - (0.038 if is_overvoltage else -0.038), 3) if can_act1 else base_v_crit)
         f_crit_1 = next((f.loadingPercent for f in feeders_1 if f.id == crit_feeder_id), max(0.0, base_f_crit_load - 10.0) if can_act1 else base_f_crit_load)
 
@@ -154,7 +164,12 @@ class ActionEngine:
             load_kw=peak_load_kw,
             installed_solar_capacity_kw=installed_capacity_kw,
         )
-        viols_2 = len(ConstraintChecker.check_all(buses_2, feeders_2, "13:15", limits))
+        viols_2 = len(ConstraintChecker.check_all(
+            buses_2, feeders_2, "13:15", limits,
+            transformer=grid.substation,
+            tx_loading_pct=getattr(pf_act2, "last_tx_loading", None),
+            tx_flow_kva=getattr(pf_act2, "last_tx_flow_kva", None),
+        ))
         v_crit_2 = next((b.voltage for b in buses_2 if b.id == crit_bus_id), round(base_v_crit - (0.036 if is_overvoltage else -0.036), 3))
         f_crit_2 = next((f.loadingPercent for f in feeders_2 if f.id == crit_feeder_id), round(base_f_crit_load * 0.85, 1))
 
@@ -211,7 +226,12 @@ class ActionEngine:
             solar_curtailment_kw=curtail_amount,
             installed_solar_capacity_kw=installed_capacity_kw,
         )
-        viols_3 = len(ConstraintChecker.check_all(buses_3, feeders_3, "13:15", limits))
+        viols_3 = len(ConstraintChecker.check_all(
+            buses_3, feeders_3, "13:15", limits,
+            transformer=grid.substation,
+            tx_loading_pct=getattr(pf_base, "last_tx_loading", None),
+            tx_flow_kva=getattr(pf_base, "last_tx_flow_kva", None),
+        ))
         v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), round(base_v_crit - 0.045, 3))
         f_crit_3 = next((f.loadingPercent for f in feeders_3 if f.id == crit_feeder_id), max(0.0, base_f_crit_load - 18.0))
 

@@ -112,7 +112,10 @@ class ScenarioService:
             transformerLoadingLimitPercent=100.0,
         )
         step_violations = ConstraintChecker.check_all(
-            buses, feeders, scenario.simulatedTime, limits
+            buses, feeders, scenario.simulatedTime, limits,
+            transformer=grid.substation,
+            tx_loading_pct=tx_loading,
+            tx_flow_kva=getattr(pf_engine, "last_tx_flow_kva", None),
         )
 
         b_cfg = BatteryStorageConfig(

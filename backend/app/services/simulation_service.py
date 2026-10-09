@@ -28,6 +28,34 @@ def get_active_simulation() -> Optional[FullSimulationResult]:
     return _ACTIVE_SIMULATION
 
 
+def invalidate_simulation_for_grid(grid_id: Optional[str] = None) -> bool:
+    """
+    Invalidates cached active simulation and power flow results for the specified grid.
+    If grid_id is None, invalidates unconditionally. If grid_id is provided, invalidates
+    only if the active simulation matches this grid or has an unassigned grid ID.
+    Also invalidates the corresponding forecast pipeline in-memory cache.
+    """
+    global _ACTIVE_SIMULATION, _ACTIVE_POWER_FLOW
+    invalidated = False
+    if _ACTIVE_SIMULATION is not None:
+        sim_grid_id = _ACTIVE_SIMULATION.input.gridId
+        if grid_id is None or sim_grid_id is None or sim_grid_id == grid_id:
+            _ACTIVE_SIMULATION = None
+            _ACTIVE_POWER_FLOW = None
+            invalidated = True
+    elif _ACTIVE_POWER_FLOW is not None and grid_id is None:
+        _ACTIVE_POWER_FLOW = None
+        invalidated = True
+
+    try:
+        from app.ml.forecast_pipeline import get_forecast_pipeline
+        get_forecast_pipeline().invalidate_cache(grid_id)
+    except Exception:
+        pass
+
+    return invalidated
+
+
 def interpolate_power_at_time(time_str: str, input_data: SimulationInput) -> Tuple[float, float]:
     """
     Interpolates solar generation (kW) and load demand (kW) for any given timestamp string 'HH:MM'.
@@ -232,7 +260,10 @@ class SimulationService:
         )
 
         step_violations = ConstraintChecker.check_all(
-            buses, feeders, time, active_input.networkConfig
+            buses, feeders, time, active_input.networkConfig,
+            transformer=grid.substation,
+            tx_loading_pct=tx_loading,
+            tx_flow_kva=getattr(pf_engine, "last_tx_flow_kva", None),
         )
 
         pf_result = PowerFlowResult(

@@ -380,6 +380,19 @@ class ForecastPipeline:
         )
         return response
 
+    def invalidate_cache(self, grid_id: Optional[str] = None):
+        """Invalidates in-memory forecast cache for a specific grid or all grids."""
+        if grid_id is None:
+            self._cache.clear()
+            logger.info("[ForecastPipeline] Cleared entire in-memory forecast cache.")
+        else:
+            keys_to_remove = [k for k in self._cache if k[0] == grid_id]
+            for k in keys_to_remove:
+                del self._cache[k]
+            if keys_to_remove:
+                logger.info(f"[ForecastPipeline] Invalidated {len(keys_to_remove)} cached forecast entries for grid '{grid_id}'.")
+
+
 
 _PIPELINE = None
 

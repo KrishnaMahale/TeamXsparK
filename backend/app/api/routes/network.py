@@ -44,6 +44,8 @@ async def update_grid(grid_id: str, grid: GridNetwork = Body(...), repo: Network
     updated = await repo.update_grid(grid_id, grid)
     if not updated:
         raise ResourceNotFoundException("GridNetwork", grid_id)
+    from app.services.simulation_service import invalidate_simulation_for_grid
+    invalidate_simulation_for_grid(grid_id)
     return updated
 
 @router.delete("/networks/grids/{grid_id}")
@@ -53,6 +55,8 @@ async def delete_grid(grid_id: str, repo: NetworkRepository = Depends(get_networ
     success = await repo.delete_grid(grid_id)
     if not success:
         raise ResourceNotFoundException("GridNetwork", grid_id)
+    from app.services.simulation_service import invalidate_simulation_for_grid
+    invalidate_simulation_for_grid(grid_id)
     return {"status": "success"}
 
 # Legacy Frontend gridService routes:
