@@ -7,7 +7,15 @@ import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
 import { gridService } from '../../services/api/gridService'
 import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Compass, ArrowUp, ArrowDown, Maximize2, Minimize2 } from 'lucide-react'
-import { FactoryAsset, ResidentialAsset, CommercialAsset, SolarUtilityAsset, SolarRooftopAsset } from './assets/GridAssets3D'
+import {
+  FactoryAsset,
+  ResidentialAsset,
+  CommercialAsset,
+  SolarUtilityAsset,
+  SolarRooftopAsset,
+  SubstationTransformerAsset,
+  BatteryStorageAsset,
+} from './assets/GridAssets3D'
 
 // --- Reusable 3D Nodes ---
 
@@ -27,11 +35,9 @@ const Bus3DNode: React.FC<{
   const internalRef = useRef<THREE.Mesh>(null)
 
   useFrame((state) => {
-    if (internalRef.current && (isCritical || isConnectionSource)) {
+    if ((isCritical || isConnectionSource) && internalRef.current) {
       const scale = 1 + 0.08 * Math.sin(state.clock.getElapsedTime() * 4)
       internalRef.current.scale.set(scale, scale, scale)
-    } else if (internalRef.current && !isDragging) {
-      internalRef.current.scale.set(1, 1, 1)
     }
   })
 
@@ -65,20 +71,73 @@ const Bus3DNode: React.FC<{
         </mesh>
       )}
 
-      {/* Main Bus Cylinder */}
-      <mesh ref={internalRef} position={[0, isDragging ? 0.2 : 0, 0]}>
-        <cylinderGeometry args={[0.7, 0.7, 0.4, 32]} />
-        <meshStandardMaterial
-          color={isConnectionSource ? '#eab308' : isCritical ? '#dc2626' : isSelected ? '#0284c7' : isDragging ? '#0ea5e9' : '#16a34a'}
-          roughness={0.35}
-          metalness={0.45}
-          emissive={isDragging ? '#0284c7' : isCritical ? '#7f1d1d' : '#000000'}
-          emissiveIntensity={isDragging ? 0.4 : 0.15}
-        />
-      </mesh>
+      {/* Realistic Utility Distribution Pole & Busbar Assembly */}
+      <group position={[0, isDragging ? 0.2 : 0, 0]}>
+        {/* Concrete Base Footing Pad */}
+        <mesh position={[0, 0.06, 0]}>
+          <cylinderGeometry args={[0.55, 0.65, 0.12, 24]} />
+          <meshStandardMaterial color="#94a3b8" roughness={0.9} metalness={0.1} />
+        </mesh>
+
+        {/* Distribution Mast / Utility Pole Upright */}
+        <mesh position={[0, 0.72, 0]}>
+          <cylinderGeometry args={[0.1, 0.14, 1.25, 16]} />
+          <meshStandardMaterial color="#57534e" roughness={0.8} metalness={0.2} />
+        </mesh>
+
+        {/* Steel Crossarm */}
+        <mesh position={[0, 1.18, 0]}>
+          <boxGeometry args={[1.2, 0.08, 0.1]} />
+          <meshStandardMaterial color="#44403c" roughness={0.6} metalness={0.5} />
+        </mesh>
+
+        {/* 3 Porcelain Ceramic Disc Insulators */}
+        {[-0.45, 0, 0.45].map((ix, idx) => (
+          <group key={`ins-${idx}`} position={[ix, 1.26, 0]}>
+            <mesh position={[0, 0.04, 0]}>
+              <cylinderGeometry args={[0.04, 0.08, 0.12, 10]} />
+              <meshStandardMaterial color="#854d0e" roughness={0.3} metalness={0.1} />
+            </mesh>
+            <mesh position={[0, 0.12, 0]}>
+              <sphereGeometry args={[0.03, 8, 8]} />
+              <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.1} />
+            </mesh>
+          </group>
+        ))}
+
+        {/* Central Busbar Collector Disc with Live Voltage Status Glow */}
+        <mesh ref={internalRef} position={[0, 0.35, 0]}>
+          <cylinderGeometry args={[0.5, 0.5, 0.22, 32]} />
+          <meshStandardMaterial
+            color={
+              isConnectionSource
+                ? '#eab308'
+                : isCritical
+                ? '#dc2626'
+                : isSelected
+                ? '#0284c7'
+                : isDragging
+                ? '#0ea5e9'
+                : '#16a34a'
+            }
+            roughness={0.3}
+            metalness={0.5}
+            emissive={
+              isDragging
+                ? '#0284c7'
+                : isCritical
+                ? '#ef4444'
+                : isSelected
+                ? '#0284c7'
+                : '#16a34a'
+            }
+            emissiveIntensity={isDragging || isSelected ? 0.4 : isCritical ? 0.5 : 0.2}
+          />
+        </mesh>
+      </group>
 
       {/* Dynamic HTML Badge */}
-      <Html position={[0, (isDragging ? 1.5 : 1.2), 0]} center distanceFactor={15}>
+      <Html position={[0, (isDragging ? 1.85 : 1.6), 0]} center distanceFactor={15}>
         <div
           className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold tracking-wider whitespace-nowrap shadow-md border transition-all ${
             isConnectionSource
@@ -119,34 +178,15 @@ const Component3DNode: React.FC<{
   const groupRef = useRef<THREE.Group>(null)
 
   useFrame((state) => {
-    if (groupRef.current && isConnectionSource) {
+    if (isConnectionSource && groupRef.current) {
       const scale = 1 + 0.05 * Math.sin(state.clock.getElapsedTime() * 4)
       groupRef.current.scale.set(scale, scale, scale)
-    } else if (groupRef.current && !isDragging) {
-      groupRef.current.scale.set(1, 1, 1)
     }
   })
 
   const renderAsset = () => {
-    if (type === 'transformer') return (
-      <mesh position={[0, 0.6, 0]}>
-        <boxGeometry args={[3, 1.5, 3]} />
-        <meshStandardMaterial color="#1e293b" />
-        <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(3, 1.5, 3)]} /><lineBasicMaterial color={isDragging ? '#38bdf8' : '#06b6d4'} /></lineSegments>
-        <mesh position={[-0.8, 1.0, 0]}><cylinderGeometry args={[0.2, 0.2, 0.6, 8]} /><meshStandardMaterial color="#334155" /></mesh>
-        <mesh position={[0.8, 1.0, 0]}><cylinderGeometry args={[0.2, 0.2, 0.6, 8]} /><meshStandardMaterial color="#334155" /></mesh>
-      </mesh>
-    )
-    if (type === 'battery') return (
-      <group position={[0, 0.6, 0]}>
-        <mesh>
-          <boxGeometry args={[1.8, 1.2, 1.2]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.4} />
-          <lineSegments><edgesGeometry args={[new THREE.BoxGeometry(1.8, 1.2, 1.2)]} /><lineBasicMaterial color={isDragging ? '#38bdf8' : '#10b981'} /></lineSegments>
-        </mesh>
-        <mesh position={[0, 0, 0.61]}><boxGeometry args={[1.2, 0.2, 0.05]} /><meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={1} /></mesh>
-      </group>
-    )
+    if (type === 'transformer') return <SubstationTransformerAsset />
+    if (type === 'battery') return <BatteryStorageAsset />
     if (type === 'solar') {
       if (name.includes('[Rooftop]')) return <SolarRooftopAsset />
       return <SolarUtilityAsset />
@@ -199,7 +239,7 @@ const Component3DNode: React.FC<{
         )}
       </group>
 
-      <Html position={[0, (type === 'transformer' ? 3.0 : 2.5) + (isDragging ? 0.35 : 0), 0]} center distanceFactor={15}>
+      <Html position={[0, (type === 'load' && name.includes('[Commercial]') ? 4.1 : type === 'transformer' ? 3.0 : 2.5) + (isDragging ? 0.35 : 0), 0]} center distanceFactor={15}>
         <div
           className={`px-2.5 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-md backdrop-blur-md transition-all ${
             isConnectionSource
@@ -218,7 +258,14 @@ const Component3DNode: React.FC<{
   )
 }
 
-// --- Dynamic Wire & Power Flow Conductor ---
+// Reusable static vector and matrix scratch objects to eliminate GC pauses and 60FPS allocations
+const _startVec = new THREE.Vector3()
+const _endVec = new THREE.Vector3()
+const _dir = new THREE.Vector3()
+const _up = new THREE.Vector3(0, 1, 0)
+const _upZ = new THREE.Vector3(0, 0, 1)
+const _mid = new THREE.Vector3()
+const _orientation = new THREE.Matrix4()
 
 const DynamicFeederLine: React.FC<{
   startPos: [number, number, number]
@@ -233,65 +280,76 @@ const DynamicFeederLine: React.FC<{
   const wireOffsets = [-0.15, 0, 0.15]
 
   const cylinderRefs = useRef<(THREE.Mesh | null)[]>([])
-  const particles1Refs = useRef<(THREE.Mesh | null)[]>([])
-  const particles2Refs = useRef<(THREE.Mesh | null)[]>([])
-  const particles3Refs = useRef<(THREE.Mesh | null)[]>([])
   const hitMeshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const particle1Ref = useRef<THREE.Mesh>(null)
+  const particle2Ref = useRef<THREE.Mesh>(null)
+  const distRef = useRef<number>(1)
+  const prevCoordsRef = useRef({ x1: NaN, y1: NaN, z1: NaN, x2: NaN, y2: NaN, z2: NaN })
 
-  useFrame((state) => {
+  const updateGeometry = () => {
     if (!groupRef.current) return
+    const p = prevCoordsRef.current
+    if (
+      p.x1 === startPos[0] &&
+      p.y1 === startPos[1] &&
+      p.z1 === startPos[2] &&
+      p.x2 === endPos[0] &&
+      p.y2 === endPos[1] &&
+      p.z2 === endPos[2]
+    ) {
+      return
+    }
+    p.x1 = startPos[0]
+    p.y1 = startPos[1]
+    p.z1 = startPos[2]
+    p.x2 = endPos[0]
+    p.y2 = endPos[1]
+    p.z2 = endPos[2]
 
-    // Elevate wire slightly above ground for physical realism
-    const startVec = new THREE.Vector3(startPos[0], startPos[1] + 0.35, startPos[2])
-    const endVec = new THREE.Vector3(endPos[0], endPos[1] + 0.35, endPos[2])
-    const distance = startVec.distanceTo(endVec)
+    _startVec.set(startPos[0], startPos[1] + 0.35, startPos[2])
+    _endVec.set(endPos[0], endPos[1] + 0.35, endPos[2])
+    const distance = _startVec.distanceTo(_endVec)
+    distRef.current = distance
 
-    // Hide degenerate lines
     if (distance < 0.08) {
       groupRef.current.visible = false
       return
     }
     groupRef.current.visible = true
 
-    // Position group at midpoint
-    const position = startVec.clone().lerp(endVec, 0.5)
-    groupRef.current.position.copy(position)
+    _mid.copy(_startVec).lerp(_endVec, 0.5)
+    groupRef.current.position.copy(_mid)
 
-    // Calculate orientation safe from vertical gimbal lock
-    const dir = endVec.clone().sub(startVec).normalize()
-    const up = Math.abs(dir.y) > 0.98 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0)
-    const orientation = new THREE.Matrix4()
-    orientation.lookAt(startVec, endVec, up)
-    groupRef.current.rotation.setFromRotationMatrix(orientation)
+    _dir.copy(_endVec).sub(_startVec).normalize()
+    const upVec = Math.abs(_dir.y) > 0.98 ? _upZ : _up
+    _orientation.lookAt(_startVec, _endVec, upVec)
+    groupRef.current.rotation.setFromRotationMatrix(_orientation)
 
-    // Scale wires and click targets to match dynamic span length
     wireOffsets.forEach((_, i) => {
       if (cylinderRefs.current[i]) cylinderRefs.current[i]!.scale.set(1, 1, distance)
       if (hitMeshRefs.current[i]) hitMeshRefs.current[i]!.scale.set(1, 1, distance)
     })
+  }
 
-    // Animate power flow along the dynamically repositioned wire
+  useEffect(() => {
+    updateGeometry()
+  })
+
+  useFrame((state) => {
+    updateGeometry()
+
     if (flowDirection !== 'none') {
-      const speed = (isCritical ? 1.5 : 0.6) + Math.min(Math.abs(flowMagnitude) / 1000, 2.5)
-      let t1 = (state.clock.elapsedTime * speed) % 1
-      let t2 = ((state.clock.elapsedTime * speed) + 0.33) % 1
-      let t3 = ((state.clock.elapsedTime * speed) + 0.66) % 1
+      const distance = distRef.current
+      const speed = (isCritical ? 1.5 : 0.7) + Math.min(Math.abs(flowMagnitude) / 1000, 2.0)
+      const t1 = (state.clock.elapsedTime * speed) % 1
+      const t2 = (t1 + 0.5) % 1
+      const factor1 = flowDirection === 'reverse' ? 1 - t1 : t1
+      const factor2 = flowDirection === 'reverse' ? 1 - t2 : t2
 
-      if (flowDirection === 'reverse') {
-        t1 = 1 - t1
-        t2 = 1 - t2
-        t3 = 1 - t3
-      }
-
-      const localZ1 = (distance / 2) - (t1 * distance)
-      const localZ2 = (distance / 2) - (t2 * distance)
-      const localZ3 = (distance / 2) - (t3 * distance)
-
-      wireOffsets.forEach((_, i) => {
-        if (particles1Refs.current[i]) particles1Refs.current[i]!.position.set(0, 0, localZ1)
-        if (particles2Refs.current[i]) particles2Refs.current[i]!.position.set(0, 0, localZ2)
-        if (particles3Refs.current[i]) particles3Refs.current[i]!.position.set(0, 0, localZ3)
-      })
+      const z1 = (distance / 2) - (factor1 * distance)
+      const z2 = (distance / 2) - (factor2 * distance)
+      if (particle1Ref.current) particle1Ref.current.position.z = z1
+      if (particle2Ref.current) particle2Ref.current.position.z = z2
     }
   })
 
@@ -299,35 +357,17 @@ const DynamicFeederLine: React.FC<{
     <group ref={groupRef}>
       {wireOffsets.map((offsetX, i) => (
         <group key={`wire-${i}`} position={[offsetX, 0, 0]}>
-          {/* Overhead Conductor Cable */}
+          {/* Overhead Conductor Cable (Sleek High-Conductivity Steel Aluminum Wire) */}
           <mesh ref={(el) => { if (el) cylinderRefs.current[i] = el }} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.018, 0.018, 1, 8]} />
             <meshStandardMaterial
-              color={isCritical ? '#dc2626' : '#334155'}
-              roughness={0.4}
-              metalness={0.7}
+              color={isCritical ? '#dc2626' : '#64748b'}
+              roughness={0.25}
+              metalness={0.85}
               emissive={isCritical ? '#ef4444' : '#000000'}
               emissiveIntensity={isCritical ? 0.35 : 0}
             />
           </mesh>
-
-          {/* Animated Power Flow Energy Pulses */}
-          {flowDirection !== 'none' && (
-            <>
-              <mesh ref={(el) => { if (el) particles1Refs.current[i] = el }}>
-                <sphereGeometry args={[0.07, 10, 10]} />
-                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-              </mesh>
-              <mesh ref={(el) => { if (el) particles2Refs.current[i] = el }}>
-                <sphereGeometry args={[0.07, 10, 10]} />
-                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-              </mesh>
-              <mesh ref={(el) => { if (el) particles3Refs.current[i] = el }}>
-                <sphereGeometry args={[0.06, 8, 8]} />
-                <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-              </mesh>
-            </>
-          )}
 
           {/* Invisible Hit Testing Mesh for line clicks */}
           <mesh 
@@ -345,6 +385,20 @@ const DynamicFeederLine: React.FC<{
           </mesh>
         </group>
       ))}
+
+      {/* High-Performance Power Flow Energy Pulses on Central Conductor */}
+      {flowDirection !== 'none' && (
+        <>
+          <mesh ref={particle1Ref} position={[0, 0, 0]}>
+            <sphereGeometry args={[0.08, 8, 8]} />
+            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
+          </mesh>
+          <mesh ref={particle2Ref} position={[0, 0, 0]}>
+            <sphereGeometry args={[0.08, 8, 8]} />
+            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
+          </mesh>
+        </>
+      )}
     </group>
   )
 }
@@ -884,10 +938,23 @@ export const Network3D: React.FC<Network3DProps> = ({
         </div>
       )}
 
-      <Canvas camera={{ position: [0, 14, 18], fov: 45 }} style={{ width: '100%', height: '100%', cursor: activeTool ? 'crosshair' : isDraggingNode ? 'grabbing' : 'default' }}>
-        <ambientLight intensity={isDark ? 0.7 : 0.9} />
-        <directionalLight position={[10, 20, 15]} intensity={isDark ? 1.0 : 1.3} />
-        <pointLight position={[0, 5, 0]} intensity={0.5} color="#0284c7" />
+      <Canvas
+        dpr={[1, 1.5]}
+        gl={{
+          powerPreference: 'high-performance',
+          antialias: true,
+          stencil: false,
+          depth: true,
+        }}
+        camera={{ position: [0, 14, 18], fov: 45 }}
+        style={{ width: '100%', height: '100%', cursor: activeTool ? 'crosshair' : isDraggingNode ? 'grabbing' : 'default' }}
+      >
+        <ambientLight intensity={isDark ? 0.75 : 0.9} />
+        <directionalLight position={[12, 24, 16]} intensity={isDark ? 1.1 : 1.35} />
+        <hemisphereLight
+          args={[isDark ? '#38bdf8' : '#e0f2fe', isDark ? '#0c1322' : '#cbd5e1', 0.4]}
+        />
+        <pointLight position={[0, 8, 0]} intensity={0.5} color="#38bdf8" />
 
         <OrbitControls
           ref={orbitRef}
