@@ -66,6 +66,17 @@ interface SimulationState {
   resetSimulation: () => void
 }
 
+export const mergeActionsWithHybrid = (baseActions: CorrectiveAction[], hybridPlan?: CorrectiveAction | null): CorrectiveAction[] => {
+  const map = new Map<string, CorrectiveAction>()
+  baseActions.forEach((a) => {
+    if (a && a.id) map.set(a.id, a)
+  })
+  if (hybridPlan && hybridPlan.id) {
+    map.set(hybridPlan.id, hybridPlan)
+  }
+  return Array.from(map.values())
+}
+
 const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
 
 export const useSimulationStore = create<SimulationState>((set, get) => ({
@@ -251,9 +262,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
       const result = await simulationService.runSimulation(currentInput)
 
-      const allActs = result.hybridPlan && !result.availableActions.some((a) => a.id === result.hybridPlan?.id)
-        ? [...result.availableActions, result.hybridPlan]
-        : result.availableActions
+      const allActs = mergeActionsWithHybrid(result.availableActions, result.hybridPlan)
 
       set((state) => ({
         currentProgressIndex: 5,
@@ -305,9 +314,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     set({ isRunning: true, error: null })
     try {
       const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
-      const allActs = response.hybridPlan && !response.availableActions.some((a) => a.id === response.hybridPlan?.id)
-        ? [...response.availableActions, response.hybridPlan]
-        : response.availableActions
+      const allActs = mergeActionsWithHybrid(response.availableActions, response.hybridPlan)
       const recommended = allActs.find((a) => a.id === response.recommendedActionId) || allActs[0]
       set({
         availableActions: allActs,
@@ -336,9 +343,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const activeGridId = useGridStore.getState().network.id || get().input.gridId
       const currentInput = { ...get().input, gridId: activeGridId }
       const response = await simulationService.runCorrectiveActions(undefined, activeGridId, currentInput)
-      const allActs = response.hybridPlan && !response.availableActions.some((a) => a.id === response.hybridPlan?.id)
-        ? [...response.availableActions, response.hybridPlan]
-        : response.availableActions
+      const allActs = mergeActionsWithHybrid(response.availableActions, response.hybridPlan)
       const recommended = allActs.find((a) => a.id === response.recommendedActionId) || allActs[0]
 
       set({

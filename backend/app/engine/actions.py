@@ -1022,7 +1022,9 @@ class ActionEngine:
         except ValueError:
             eval_idx = len(all_times) // 2
 
-        active_window_size = 4 if len(all_times) >= 48 else 2
+        step_minutes = 15 if len(all_times) >= 48 else 60
+        duration_mins = float(candidate.durationMinutes or 30)
+        active_window_size = max(1, round(duration_mins / step_minutes))
         active_indices = set(range(eval_idx, min(len(all_times), eval_idx + active_window_size)))
 
         horizon_violations = 0
@@ -1049,7 +1051,7 @@ class ActionEngine:
             step_alt = use_alt if is_active else False
 
             if is_active and step_disp != 0:
-                dt = 0.25 if len(all_times) >= 48 else 1.0
+                dt = step_minutes / 60.0
                 if step_disp < 0:
                     delta_soc = ((abs(step_disp) * dt * 0.92) / b_cap) * 100.0
                     curr_soc = curr_soc + delta_soc

@@ -108,15 +108,9 @@ export const ActionsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Cards Grid: Dynamically fits variable number of candidate cards */}
+          {/* Cards Grid: Dynamically fits candidate cards with consistent responsive grid */}
           <div
-            className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-stretch transition-all duration-300 ease-out"
-            style={{
-              gridTemplateColumns:
-                hoveredActionId === null
-                  ? undefined
-                  : actions.map((a) => (a.id === hoveredActionId ? '1.36fr' : '0.88fr')).join(' '),
-            }}
+            className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 items-stretch"
             onMouseLeave={() => setHoveredActionId(null)}
           >
             {actions.map((action) => {
@@ -131,11 +125,11 @@ export const ActionsPage: React.FC = () => {
                   key={action.id}
                   onClick={() => selectAction(action)}
                   onMouseEnter={() => setHoveredActionId(action.id)}
-                  className={`w-full min-w-0 overflow-hidden relative rounded-xl border cursor-pointer flex flex-col justify-between transition-all duration-300 ease-out ${
+                  className={`w-full min-w-0 overflow-hidden relative rounded-xl border cursor-pointer flex flex-col justify-between transition-all duration-200 ${
                     isHovered
-                      ? 'bg-[#FFFDF6] dark:bg-[#18231A] border-[#A0C878] ring-2 ring-[#A0C878]/40 shadow-md p-4 z-20'
+                      ? 'bg-[#FFFDF6] dark:bg-[#18231A] border-[#A0C878] ring-2 ring-[#A0C878]/50 shadow-md p-4 z-10'
                       : isOther
-                      ? 'bg-[#FAF6E9]/80 dark:bg-[#1E2B20]/70 border-[#DDD9C9]/80 dark:border-[#2C3C2E]/80 p-3 opacity-80'
+                      ? 'bg-[#FAF6E9]/90 dark:bg-[#1E2B20]/80 border-[#DDD9C9] dark:border-[#2C3C2E] p-3.5 opacity-90'
                       : isSel
                       ? 'bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/50 border-[#A0C878] ring-1 ring-[#A0C878] p-3.5 shadow-xs'
                       : 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#DDD9C9] dark:border-[#2C3C2E] hover:border-[#A0C878]/70 p-3.5 shadow-xs'
@@ -144,7 +138,7 @@ export const ActionsPage: React.FC = () => {
                   {/* Tab Top / Header */}
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         <div
                           className={`p-1.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] shrink-0 transition-colors ${
                             isHovered || isSel ? 'border-[#A0C878]' : ''
@@ -152,11 +146,21 @@ export const ActionsPage: React.FC = () => {
                         >
                           {getActionIcon(action.type)}
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wide truncate">
-                            {action.title}
-                          </h3>
-                          <span className="text-[10px] text-[#788477] dark:text-[#859483] font-mono block truncate">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wide truncate">
+                              {action.isHybrid ? 'Hybrid Action Plan' : action.title}
+                            </h3>
+                            {action.isHybrid && (
+                              <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-[#A0C878]/25 text-[#2E7D32] dark:text-[#A0C878] border border-[#A0C878]/40 shrink-0">
+                                HYBRID
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className="text-[10px] text-[#788477] dark:text-[#859483] font-mono block truncate"
+                            title={action.parameterDelta}
+                          >
                             {action.parameterDelta}
                           </span>
                         </div>
@@ -167,7 +171,7 @@ export const ActionsPage: React.FC = () => {
                         size="sm"
                         className="shrink-0 text-[10px] px-1.5 py-0.5"
                       >
-                        {isFeasible ? 'FEASIBLE' : 'NOT FEASIBLE'}
+                        {isFeasible ? 'FEASIBLE' : 'INFEASIBLE'}
                       </Badge>
                     </div>
 
@@ -184,11 +188,11 @@ export const ActionsPage: React.FC = () => {
                         </strong>
                       </span>
                       <span className="italic flex items-center gap-0.5 text-[9px] text-[#788477] dark:text-[#859483] shrink-0">
-                        Hover for details <ChevronDown className="w-2.5 h-2.5" />
+                        Details <ChevronDown className="w-2.5 h-2.5" />
                       </span>
                     </div>
 
-                    {/* Expanded Solution Information (ONLY displayed when hovered) */}
+                    {/* Expanded Solution Information (Displayed when hovered) */}
                     <div
                       className={`transition-all duration-300 ease-out overflow-hidden ${
                         isHovered
@@ -199,6 +203,26 @@ export const ActionsPage: React.FC = () => {
                       <p className="text-xs text-[#506052] dark:text-[#C2CCC0] line-clamp-2 leading-relaxed">
                         {action.description}
                       </p>
+
+                      {/* Constituent action tags for hybrid plans */}
+                      {action.isHybrid && action.constituentActions && action.constituentActions.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {action.constituentActions.map((c, i) => (
+                            <span
+                              key={i}
+                              className="text-[9px] px-1.5 py-0.5 rounded bg-[#FAF6E9] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0] font-mono"
+                            >
+                              {c === 'battery_discharge'
+                                ? 'BESS Dispatch'
+                                : c === 'solar_curtailment'
+                                ? 'Solar Curtailment'
+                                : c === 'feeder_reconfiguration'
+                                ? 'Feeder Switching'
+                                : c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {!isFeasible && action.infeasibleReason && (
                         <div className="mt-2 p-2 rounded-md bg-red-50/90 dark:bg-red-950/70 border border-red-300 dark:border-red-900/80 text-[11px] text-red-700 dark:text-red-300">
@@ -358,74 +382,106 @@ export const ActionsPage: React.FC = () => {
             </div>
 
             {/* AFTER Panel */}
-            <div className="p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#A0C878] dark:border-[#A0C878]/70 shadow-xs flex flex-col justify-between transition-all duration-200">
-              <div>
-                <div className="flex items-center justify-between pb-2.5 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#A0C878] shadow-xs" />
-                    <h3 className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wider">After Dispatch</h3>
+            {(() => {
+              const isExecuted = executionResult && executionResult.actionId === selectedAction?.id
+              const afterVoltage = isExecuted
+                ? executionResult.afterState.b3Voltage
+                : (selectedAction?.isFeasible && selectedAction.expectedVoltagePu !== undefined
+                  ? selectedAction.expectedVoltagePu
+                  : beforeVoltage)
+              const afterFeederLoading = isExecuted
+                ? executionResult.afterState.f02LoadingPercent
+                : (selectedAction?.isFeasible && selectedAction.expectedFeederLoadPercent !== undefined
+                  ? selectedAction.expectedFeederLoadPercent
+                  : beforeFeederLoading)
+              const afterViolations = isExecuted
+                ? executionResult.afterState.violationsCount
+                : (selectedAction?.isFeasible && selectedAction.remainingViolationsCount !== undefined
+                  ? selectedAction.remainingViolationsCount
+                  : beforeViolations)
+              const isSafe = selectedAction?.isFeasible && afterViolations === 0
+              const isPartial = selectedAction?.isFeasible && afterViolations > 0 && afterViolations < beforeViolations
+
+              return (
+                <div className="p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#A0C878] dark:border-[#A0C878]/70 shadow-xs flex flex-col justify-between transition-all duration-200">
+                  <div>
+                    <div className="flex items-center justify-between pb-2.5 border-b border-[#DDD9C9] dark:border-[#2C3C2E]">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${isSafe ? 'bg-[#A0C878]' : isPartial ? 'bg-amber-500' : 'bg-red-500'} shadow-xs`} />
+                        <h3 className="text-xs font-bold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wider">After Dispatch</h3>
+                        {isExecuted && (
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#A0C878]/20 text-[#2E7D32] dark:text-[#A0C878]">
+                            MEASURED
+                          </span>
+                        )}
+                      </div>
+                      <Badge variant={isSafe ? 'success' : isPartial ? 'warning' : 'danger'} size="sm">
+                        {isSafe ? 'Grid Safe & Compliant' : isPartial ? 'Partially Resolved' : 'Unresolved'}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5 mt-3">
+                      {/* Resolved Bus Voltage */}
+                      <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
+                        <span className="text-[10px] text-[#788477] dark:text-[#859483] block truncate">{monitoredBusName} Voltage</span>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className={`text-lg font-bold font-mono ${afterVoltage > 1.05 || afterVoltage < 0.95 ? 'text-red-600 dark:text-red-400' : 'text-[#A0C878]'}`}>
+                            {afterVoltage.toFixed(3)}
+                          </span>
+                          <span className="text-[10px] text-[#788477] dark:text-[#859483] font-mono">pu</span>
+                        </div>
+                        <span className={`inline-block mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                          afterVoltage <= 1.05 && afterVoltage >= 0.95
+                            ? 'text-[#A0C878] bg-[#A0C878]/15'
+                            : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60'
+                        }`}>
+                          {afterVoltage <= 1.05 && afterVoltage >= 0.95 ? 'Nominal Bandwidth ✓' : 'Out of Bandwidth'}
+                        </span>
+                      </div>
+
+                      {/* Resolved Feeder Loading */}
+                      <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
+                        <span className="text-[10px] text-[#788477] dark:text-[#859483] block truncate">{monitoredFeederName} Loading</span>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className={`text-lg font-bold font-mono ${afterFeederLoading > 100 ? 'text-red-600 dark:text-red-400' : 'text-[#A0C878]'}`}>
+                            {afterFeederLoading.toFixed(0)}%
+                          </span>
+                        </div>
+                        <span className={`inline-block mt-1 text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                          afterFeederLoading <= 100
+                            ? 'text-[#A0C878] bg-[#A0C878]/15'
+                            : 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60'
+                        }`}>
+                          {afterFeederLoading <= 100 ? 'Below Thermal Limit ✓' : 'Thermal Overload'}
+                        </span>
+                      </div>
+
+                      {/* Remaining Violations */}
+                      <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
+                        <span className="text-[10px] text-[#788477] dark:text-[#859483] block">Remaining Violations</span>
+                        <div className={`text-lg font-bold font-mono mt-0.5 ${afterViolations === 0 ? 'text-[#A0C878]' : 'text-red-600 dark:text-red-400'}`}>
+                          {afterViolations} Breaches
+                        </div>
+                        <span className={`text-[10px] block mt-1 ${isSafe ? 'text-[#A0C878]' : isPartial ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {isSafe ? 'All Constraints Cleared ✓' : isPartial ? `${afterViolations} Violations Remain` : 'Violation Persists'}
+                        </span>
+                      </div>
+
+                      {/* Renewable Retained */}
+                      <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
+                        <span className="text-[10px] text-[#788477] dark:text-[#859483] block">Renewable Kept</span>
+                        <div className="text-lg font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
+                          {selectedAction?.renewableUtilizationPercent ?? 100}%
+                        </div>
+                        <span className={`text-[10px] block mt-1 ${selectedAction?.id === 'solar_curtailment' ? 'text-amber-600 dark:text-amber-400' : 'text-[#A0C878]'}`}>
+                          {selectedAction?.id === 'solar_curtailment' ? 'Solar Curtailed' : 'Zero Curtailment'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <Badge variant={selectedAction?.isFeasible ? 'success' : 'danger'} size="sm">
-                    {selectedAction?.isFeasible ? 'Grid Safe & Compliant' : 'Unresolved'}
-                  </Badge>
                 </div>
-
-                <div className="grid grid-cols-2 gap-2.5 mt-3">
-                  {/* Resolved Bus Voltage */}
-                  <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
-                    <span className="text-[10px] text-[#788477] dark:text-[#859483] block truncate">{monitoredBusName} Voltage</span>
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-lg font-bold font-mono text-[#A0C878]">
-                        {selectedAction?.isFeasible
-                          ? selectedAction.expectedVoltagePu?.toFixed(3)
-                          : beforeVoltage.toFixed(3)}
-                      </span>
-                      <span className="text-[10px] text-[#788477] dark:text-[#859483] font-mono">pu</span>
-                    </div>
-                    <span className="inline-block mt-1 text-[10px] font-medium text-[#A0C878] bg-[#A0C878]/15 px-1.5 py-0.5 rounded">
-                      Nominal Bandwidth ✓
-                    </span>
-                  </div>
-
-                  {/* Resolved Feeder Loading */}
-                  <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
-                    <span className="text-[10px] text-[#788477] dark:text-[#859483] block truncate">{monitoredFeederName} Loading</span>
-                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-lg font-bold font-mono text-[#A0C878]">
-                        {selectedAction?.isFeasible
-                          ? `${selectedAction.expectedFeederLoadPercent}%`
-                          : `${beforeFeederLoading.toFixed(0)}%`}
-                      </span>
-                    </div>
-                    <span className="inline-block mt-1 text-[10px] font-medium text-[#A0C878] bg-[#A0C878]/15 px-1.5 py-0.5 rounded">
-                      Below Thermal Limit ✓
-                    </span>
-                  </div>
-
-                  {/* Remaining Violations */}
-                  <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
-                    <span className="text-[10px] text-[#788477] dark:text-[#859483] block">Remaining Violations</span>
-                    <div className="text-lg font-bold font-mono text-[#A0C878] mt-0.5">
-                      {selectedAction?.isFeasible ? `${selectedAction.remainingViolationsCount ?? 0} Breaches` : `${beforeViolations} Breaches`}
-                    </div>
-                    <span className="text-[10px] text-[#A0C878] block mt-1">
-                      {selectedAction?.isFeasible ? 'All Constraints Cleared ✓' : 'Violation Persists'}
-                    </span>
-                  </div>
-
-                  {/* Renewable Retained */}
-                  <div className="p-2.5 rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9]/80 dark:border-[#2C3C2E]">
-                    <span className="text-[10px] text-[#788477] dark:text-[#859483] block">Renewable Kept</span>
-                    <div className="text-lg font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-0.5">
-                      {selectedAction?.renewableUtilizationPercent ?? 100}%
-                    </div>
-                    <span className={`text-[10px] block mt-1 ${selectedAction?.id === 'solar_curtailment' ? 'text-amber-600 dark:text-amber-400' : 'text-[#A0C878]'}`}>
-                      {selectedAction?.id === 'solar_curtailment' ? 'Solar Curtailed' : 'Zero Curtailment'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              )
+            })()}
           </div>
         </div>
 

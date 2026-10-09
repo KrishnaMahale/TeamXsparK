@@ -23,6 +23,12 @@ export const ViolationsPage: React.FC = () => {
   const {
     violations,
     summary,
+    viewScope,
+    setViewScope,
+    worstTime,
+    worstTimestepViolations,
+    fullHorizonViolations,
+    hasFullSimulation,
     severityFilter,
     setSeverityFilter,
     statusFilter,
@@ -41,13 +47,39 @@ export const ViolationsPage: React.FC = () => {
   return (
     <PageContainer
       title="Grid Health & Violations Log"
-      subtitle={`Chronological log of voltage, line ampacity, and transformer constraint violations for ${network.name} (${network.id})`}
+      subtitle={
+        viewScope === 'worst_timestep'
+          ? `Operating violations at peak stress timestep (${worstTime}) for ${network.name} — Identical baseline used by Corrective Actions`
+          : `Full 24-hour diurnal chronological log of all constraint violations across 96 simulation intervals for ${network.name}`
+      }
       actions={
         <div className="flex items-center gap-2.5">
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-            <Cpu className="w-3.5 h-3.5 text-[#A0C878]" />
-            <span>{network.name}</span>
-          </span>
+          {/* Scope Selector: Aligns Worst Timestep with Actions Page */}
+          <div className="flex items-center bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg p-0.5 text-xs font-semibold">
+            <button
+              onClick={() => setViewScope('worst_timestep')}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewScope === 'worst_timestep'
+                  ? 'bg-[#A0C878] text-[#26352A] shadow-xs'
+                  : 'text-[#506052] dark:text-[#C2CCC0] hover:text-[#26352A]'
+              }`}
+            >
+              Worst Timestep ({worstTime})
+            </button>
+            <button
+              onClick={() => setViewScope('full_horizon')}
+              disabled={!hasFullSimulation}
+              className={`px-2.5 py-1 rounded-md transition-colors ${
+                viewScope === 'full_horizon'
+                  ? 'bg-[#A0C878] text-[#26352A] shadow-xs'
+                  : 'text-[#506052] dark:text-[#C2CCC0] hover:text-[#26352A] disabled:opacity-50'
+              }`}
+              title={hasFullSimulation ? 'View all violations across 24h simulation' : 'Run 24h simulation to view full horizon'}
+            >
+              Full Horizon (24h)
+            </button>
+          </div>
+
           <Button
             variant="primary"
             size="sm"
@@ -60,6 +92,28 @@ export const ViolationsPage: React.FC = () => {
       }
     >
       <div className="space-y-6">
+        {/* Scope Context Banner */}
+        <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#18231A] border border-[#DDD9C9] dark:border-[#2C3C2E] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
+            <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED]">
+              {viewScope === 'worst_timestep'
+                ? `Evaluation Scope: Worst Operating Timestep (${worstTime})`
+                : `Evaluation Scope: Full 24-Hour Horizon (96 Timesteps)`}
+            </span>
+            <span className="text-[#DDD9C9] dark:text-[#2C3C2E]">|</span>
+            <span className="text-[#788477] dark:text-[#859483]">
+              {viewScope === 'worst_timestep'
+                ? `Matches Actions Page Before-Dispatch State (${summary.critical} Active Violations)`
+                : `${fullHorizonViolations.length} total constraint breaches detected across full diurnal cycle`}
+            </span>
+          </div>
+
+          <span className="font-mono text-[11px] text-[#A0C878] font-bold">
+            Grid: {network.name} ({network.id})
+          </span>
+        </div>
+
         {/* 1. Grid Health Summary Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Critical Issues */}
@@ -80,7 +134,9 @@ export const ViolationsPage: React.FC = () => {
               <div className="text-2xl font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">
                 {summary.critical}
               </div>
-              <div className="text-[11px] text-red-700 dark:text-red-400 mt-0.5 font-medium">Immediate intervention required</div>
+              <div className="text-[11px] text-red-700 dark:text-red-400 mt-0.5 font-medium">
+                {viewScope === 'worst_timestep' ? `Active at ${worstTime} peak` : 'Across diurnal sequence'}
+              </div>
             </div>
             <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
