@@ -21,6 +21,10 @@ class CorrectiveAction(BaseModel):
     targetComponentId: Optional[str] = None
     targetComponentName: Optional[str] = None
     gridId: Optional[str] = None
+    dispatchKw: Optional[float] = None
+    curtailmentKw: Optional[float] = None
+    targetTopology: Optional[str] = None
+    controlDirection: Optional[str] = None
 
 
 class ActionComparisonRow(BaseModel):

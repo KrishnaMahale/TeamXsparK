@@ -49,8 +49,12 @@ class ActionService:
                 input_data.gridId = target_grid_id
             full_res = NetworkEngine.run_full_simulation(input_data, grid)
 
-        peak_key = "13:15" if "13:15" in full_res.timeStepResults else list(full_res.timeStepResults.keys())[0]
-        peak_flow = full_res.timeStepResults[peak_key]
+        worst_time = (
+            full_res.summary.simulationTime
+            if (full_res.summary and full_res.summary.simulationTime in full_res.timeStepResults)
+            else ("13:15" if "13:15" in full_res.timeStepResults else list(full_res.timeStepResults.keys())[0])
+        )
+        peak_flow = full_res.timeStepResults[worst_time]
 
         return SimulationResponse(
             powerFlow=peak_flow,
@@ -132,16 +136,21 @@ class ActionService:
             await self.repository.save_execution_result(result)
             return result
 
-        # Genuine solver recalculation during execution
-        peak_solar = comp.solarUsed.before
-        peak_load = full_res.summary.loadKw if hasattr(full_res, "summary") else 120.0
+        # Genuine solver recalculation during execution at selected operating condition
+        eval_time = (
+            full_res.summary.simulationTime
+            if (full_res.summary and full_res.summary.simulationTime)
+            else "13:15"
+        )
+        eval_solar = full_res.summary.solarKw if (full_res.summary and hasattr(full_res.summary, "solarKw")) else comp.solarUsed.before
+        eval_load = full_res.summary.loadKw if (full_res.summary and hasattr(full_res.summary, "loadKw")) else 120.0
         installed_cap = comp.solarUsed.capacity if hasattr(comp.solarUsed, "capacity") else 250.0
 
         pf_exec, buses, feeders = ActionEngine.apply_action_physics(
             action=target_action,
             grid=grid,
-            peak_solar_kw=peak_solar,
-            peak_load_kw=peak_load,
+            peak_solar_kw=eval_solar,
+            peak_load_kw=eval_load,
             installed_capacity_kw=installed_cap,
         )
 
@@ -149,7 +158,7 @@ class ActionService:
         measured_violations = ConstraintChecker.check_all(
             buses=buses,
             feeders=feeders,
-            time_str="13:15",
+            time_str=eval_time,
             config=limits,
             transformer=grid.substation,
             tx_loading_pct=getattr(pf_exec, "last_tx_loading", None),

@@ -23,6 +23,10 @@ export interface CorrectiveAction {
   targetComponentId?: string
   targetComponentName?: string
   gridId?: string
+  dispatchKw?: number
+  curtailmentKw?: number
+  targetTopology?: string
+  controlDirection?: string
 }
 
 export interface ActionComparisonRow {
