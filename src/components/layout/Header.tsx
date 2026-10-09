@@ -65,7 +65,7 @@ export const Header: React.FC = () => {
       return { title: 'Operating Scenarios', icon: Layers }
     }
     if (path.startsWith('/reports')) {
-      return { title: 'Audit Reports', icon: FileText }
+      return { title: 'Digital Twin Simulation Reports', icon: FileText }
     }
     return { title: 'Dashboard', icon: LayoutDashboard }
   }

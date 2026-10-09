@@ -2,6 +2,7 @@ import React from 'react'
 import { Network2D } from './Network2D'
 import { Network3D } from './Network3D'
 import { NetworkLegend } from './NetworkLegend'
+import { GridSideLegendInfo } from './GridSideLegendInfo'
 import { useUIStore } from '../../store/uiStore'
 import { useGridStore } from '../../store/gridStore'
 import { Cpu, Box, Layers, Lock } from 'lucide-react'
@@ -10,16 +11,21 @@ import { Button } from '../ui/Button'
 export interface NetworkDigitalTwinProps {
   readOnly?: boolean
   heightClassName?: string
+  showSidebar?: boolean
+  headerRightExtra?: React.ReactNode
 }
 
 export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
   readOnly = false,
   heightClassName,
+  showSidebar,
+  headerRightExtra,
 }) => {
   const { is3DEnabled, toggle3D } = useUIStore()
   const { network } = useGridStore()
 
   const isCustomGrid = network.id !== 'default-grid'
+  const hasSideLegend = showSidebar !== undefined ? showSidebar : readOnly
 
   return (
     <div className="flex flex-col h-full space-y-3">
@@ -27,37 +33,40 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
       <div className="flex items-center justify-between gap-3 px-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <Cpu className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+            <Cpu className="w-4 h-4 text-[#A0C878] shrink-0" />
             <span className="text-xs font-semibold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wider">
               {readOnly ? 'Active Simulation Grid:' : 'Topology Model:'} {network.name || '11kV Radial Distribution Feeder'}
             </span>
-            <span className="text-[11px] font-mono text-[#788477] dark:text-[#859483]">
-              ({network.buses.length} Buses • {network.feeders.length} Feeders)
-            </span>
-            {readOnly && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#DDEB9D]/60 dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border border-[#A0C878]/50">
-                <Lock className="w-2.5 h-2.5 text-[#506052] dark:text-[#C2CCC0]" />
-                Read-Only Digital Twin
+            {/* If not readOnly, retain standard topology badge */}
+            {!readOnly && (
+              <span className="text-[11px] font-mono text-[#788477] dark:text-[#859483]">
+                ({network.buses.length} Buses • {network.feeders.length} Feeders)
               </span>
             )}
           </div>
-          <NetworkLegend />
+          {/* Top horizontal legend only when sidebar is NOT shown */}
+          {!hasSideLegend && <NetworkLegend />}
         </div>
 
-        {/* 2D / 3D Mode Toggle Button */}
-        <button
-          type="button"
-          onClick={toggle3D}
-          className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold border transition-colors shadow-xs ${
-            is3DEnabled
-              ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] hover:bg-[#cde088]'
-              : 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
-          }`}
-          title={is3DEnabled ? 'Switch to 2D Schematic' : 'Switch to 3D Isometric View'}
-        >
-          {is3DEnabled ? <Box className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
-          <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic'}</span>
-        </button>
+        {/* Top Right Controls */}
+        <div className="flex items-center gap-2 shrink-0">
+          {headerRightExtra}
+
+          {/* 2D / 3D Mode Toggle Button */}
+          <button
+            type="button"
+            onClick={toggle3D}
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold border transition-colors shadow-xs ${
+              is3DEnabled
+                ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] hover:bg-[#cde088]'
+                : 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
+            }`}
+            title={is3DEnabled ? 'Switch to 2D Schematic' : 'Switch to 3D Isometric View'}
+          >
+            {is3DEnabled ? <Box className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
+            <span>{is3DEnabled ? '3D Isometric View' : '2D Schematic'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Custom Grid Notification in 2D mode (Only when interactive/editing) */}
@@ -76,14 +85,33 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
       )}
 
       {/* Main View Container */}
-      <div className="w-full relative min-h-0 flex-1">
-        {is3DEnabled ? (
-          <Network3D readOnly={readOnly} heightClassName={heightClassName} />
-        ) : (
-          <Network2D readOnly={readOnly} heightClassName={heightClassName} />
-        )}
-      </div>
+      {hasSideLegend ? (
+        <div className="flex flex-col lg:flex-row gap-3.5 items-stretch min-h-0 flex-1">
+          {/* Shortened Grid Canvas on Left */}
+          <div className="flex-1 min-w-0 relative rounded-xl overflow-hidden border border-[#DDD9C9] dark:border-[#2C3C2E]">
+            {is3DEnabled ? (
+              <Network3D readOnly={readOnly} heightClassName={heightClassName} />
+            ) : (
+              <Network2D readOnly={readOnly} heightClassName={heightClassName} />
+            )}
+          </div>
+
+          {/* Right Space: Grid Map Legend + Important Grid Info */}
+          <div className="w-full lg:w-72 xl:w-80 shrink-0 flex flex-col justify-between">
+            <GridSideLegendInfo />
+          </div>
+        </div>
+      ) : (
+        <div className="w-full relative min-h-0 flex-1">
+          {is3DEnabled ? (
+            <Network3D readOnly={readOnly} heightClassName={heightClassName} />
+          ) : (
+            <Network2D readOnly={readOnly} heightClassName={heightClassName} />
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
+export default NetworkDigitalTwin

@@ -1151,8 +1151,6 @@ export const Network3D: React.FC<Network3DProps> = ({
       <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 bg-slate-900/80 text-slate-300 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-mono border border-slate-700/60 pointer-events-none select-none shadow-sm">
         {readOnly ? (
           <>
-            <span className="text-emerald-400 font-bold">Read-Only Digital Twin</span>
-            <span>•</span>
             <span>Click node to inspect</span>
             <span>•</span>
             <span>Left-click: Rotate</span>
