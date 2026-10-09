@@ -4,28 +4,42 @@ import { apiClient, IS_MOCK_API, simulateLatency } from './apiClient'
 
 export const forecastService = {
   /**
-   * Fetch 24-hour solar and load predictions
+   * Fetch 24-hour solar and load predictions for a given grid and date
    */
-  async getForecast(horizonHours: number = 24): Promise<ForecastResponse> {
+  async getForecast(
+    horizonHours: number = 24,
+    gridId?: string,
+    targetDate?: string
+  ): Promise<ForecastResponse> {
     if (IS_MOCK_API) {
       await simulateLatency()
       return JSON.parse(JSON.stringify(mockForecastResponse))
     }
+    const params: Record<string, any> = { horizon: horizonHours }
+    if (gridId) params.grid_id = gridId
+    if (targetDate) params.target_date = targetDate
+
     const response = await apiClient.get<ForecastResponse>('/forecast/timeseries', {
-      params: { horizon: horizonHours },
+      params,
     })
     return response.data
   },
 
   /**
-   * Fetch model metrics (Random Forest accuracy, peak projections)
+   * Fetch model metrics
    */
-  async getForecastMetrics(): Promise<ForecastMetrics> {
+  async getForecastMetrics(gridId?: string, targetDate?: string): Promise<ForecastMetrics> {
     if (IS_MOCK_API) {
       await simulateLatency()
       return { ...mockForecastMetrics }
     }
-    const response = await apiClient.get<ForecastMetrics>('/forecast/metrics')
+    const params: Record<string, any> = {}
+    if (gridId) params.grid_id = gridId
+    if (targetDate) params.target_date = targetDate
+
+    const response = await apiClient.get<ForecastMetrics>('/forecast/metrics', {
+      params,
+    })
     return response.data
   },
 }

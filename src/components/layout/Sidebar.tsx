@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
+  Home,
   SlidersHorizontal,
   Share2,
   TrendingUp,
@@ -14,6 +14,7 @@ import {
 import { useGridStore } from '../../store/gridStore'
 
 export const Sidebar: React.FC = () => {
+  const location = useLocation()
   const { network, violationSummary } = useGridStore()
   const [isHovered, setIsHovered] = useState(false)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -47,7 +48,7 @@ export const Sidebar: React.FC = () => {
   const isExpanded = isHovered
 
   const navItems = [
-    { name: 'Overview', path: '/', icon: LayoutDashboard },
+    { name: 'Home', path: '/home', icon: Home },
     { name: 'Simulation', path: '/simulation', icon: SlidersHorizontal },
     { name: 'Grid Configurator', path: '/network', icon: Share2 },
     { name: 'Forecast', path: '/forecasts', icon: TrendingUp },
@@ -88,9 +89,19 @@ export const Sidebar: React.FC = () => {
         />
       )}
 
-      {/* Brand Logo & Title */}
+      {/* Brand Logo & Title: Clicking refreshes current page without navigating */}
       <div
-        className={`flex items-center gap-2.5 px-4 py-5 border-b border-[#8FB867] dark:border-[#2C3C2E] ${
+        onClick={() => window.location.reload()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            window.location.reload()
+          }
+        }}
+        title="TeamXsparK — Click to reload current page"
+        className={`flex items-center gap-2.5 px-4 py-5 border-b border-[#8FB867] dark:border-[#2C3C2E] cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${
           !isExpanded ? 'justify-center' : ''
         }`}
       >
@@ -113,23 +124,25 @@ export const Sidebar: React.FC = () => {
       <nav className="p-2.5 space-y-1 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isOverview = item.path === '/'
+          const isHome = item.path === '/home'
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              end={isOverview}
               title={!isExpanded ? item.name : undefined}
               aria-label={item.name}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors relative mx-0.5 select-none ${
+              className={({ isActive }) => {
+                const isCurrentActive =
+                  isActive ||
+                  (isHome && (location.pathname === '/' || location.pathname === '/home'))
+                return `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs tracking-wide transition-colors relative mx-0.5 select-none ${
                   !isExpanded ? 'justify-center px-2' : ''
                 } ${
-                  isActive
+                  isCurrentActive
                     ? 'bg-[#FFFDF6] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] font-bold shadow-xs'
                     : 'text-[#26352A] dark:text-[#C2CCC0] font-medium hover:text-[#18251B] dark:hover:text-[#FFFDF6] hover:bg-[#DDEB9D] dark:hover:bg-[#233325]'
                 }`
-              }
+              }}
             >
               <Icon className="w-4 h-4 shrink-0 pointer-events-none" />
               {isExpanded && (

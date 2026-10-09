@@ -1,0 +1,118 @@
+{
+  "title": "STEP 4B FEATURE ENGINEERING & LEAKAGE AUDIT REPORT",
+  "description": "Standardized, leakage-safe ML feature matrices for Renewable Distribution Grid Digital Twin.",
+  "canonical_timestep": "15 minutes (96 intervals/day)",
+  "datasets": {
+    "solar": {
+      "dataset_file": "solar_forecasting_features.csv",
+      "row_count": 37845,
+      "feature_count": 23,
+      "target_column": "target_ghi_wm2",
+      "date_start": "2024-05-11 00:00:00+0530",
+      "date_end": "2025-06-09 05:00:00+0530",
+      "splits": {
+        "train": 28224,
+        "validation": 5856,
+        "test_or_holdout": 3765
+      },
+      "sequence_count": 466,
+      "missing_feature_counts": {
+        "target_ghi_wm2": 7653,
+        "ghi_lag_15m": 8119,
+        "ghi_lag_30m": 8585,
+        "ghi_lag_45m": 9051,
+        "ghi_lag_24h": 27865,
+        "ghi_roll_mean_2h": 11073,
+        "ghi_roll_std_2h": 11073,
+        "temperature_c": 9183,
+        "temperature_lag_24h": 31040
+      },
+      "leakage_checks": {
+        "dataset": "solar",
+        "target": "target_ghi_wm2",
+        "target_identity_leakage": false,
+        "lag_direction_leakage": false,
+        "sequence_boundary_leakage": false,
+        "cross_home_leakage": false,
+        "chronological_split_leakage": false,
+        "passed_all_leakage_checks": true
+      },
+      "limitations": [
+        "Target is GHI in W/m2 from Khadakvasla, Pune, NOT PV inverter kW.",
+        "Lags cannot bridge across the 8-day August 2024 outage (preserved as NaNs until 24h history is re-established)."
+      ]
+    },
+    "temperature": {
+      "dataset_file": "temperature_forecasting_features.csv",
+      "row_count": 37845,
+      "feature_count": 15,
+      "target_column": "target_temperature_c",
+      "date_start": "2024-05-11 00:00:00+0530",
+      "date_end": "2025-06-09 05:00:00+0530",
+      "splits": {
+        "train": 28224,
+        "validation": 5856,
+        "test_or_holdout": 3765
+      },
+      "sequence_count": 664,
+      "missing_feature_counts": {
+        "target_temperature_c": 8519,
+        "temperature_lag_15m": 9183,
+        "temperature_lag_24h": 31040,
+        "temperature_roll_mean_1h": 11173,
+        "temperature_roll_std_1h": 11173
+      },
+      "leakage_checks": {
+        "dataset": "temperature",
+        "target": "target_temperature_c",
+        "target_identity_leakage": false,
+        "lag_direction_leakage": false,
+        "sequence_boundary_leakage": false,
+        "cross_home_leakage": false,
+        "chronological_split_leakage": false,
+        "passed_all_leakage_checks": true
+      },
+      "limitations": [
+        "Ambient telemetry from Pune; sequence breaks preserved."
+      ]
+    },
+    "load": {
+      "dataset_file": "load_forecasting_features.csv",
+      "row_count": 2890,
+      "feature_count": 12,
+      "target_column": "target_gross_load_kw",
+      "home_count": 10,
+      "date_start": "2018-08-23 00:00:00+0000",
+      "date_end": "2018-08-26 00:00:00+0000",
+      "splits": {
+        "train": 960,
+        "validation": 960,
+        "test_or_holdout": 970
+      },
+      "missing_feature_counts": {
+        "target_gross_load_kw": 10,
+        "load_lag_15m": 10,
+        "load_lag_30m": 20,
+        "load_lag_24h": 960,
+        "load_roll_mean_1h": 40,
+        "load_roll_std_1h": 40
+      },
+      "leakage_checks": {
+        "dataset": "load",
+        "target": "target_gross_load_kw",
+        "target_identity_leakage": false,
+        "lag_direction_leakage": false,
+        "sequence_boundary_leakage": false,
+        "cross_home_leakage": false,
+        "chronological_split_leakage": false,
+        "passed_all_leakage_checks": true
+      },
+      "limitations": [
+        "Empirical 3-day summer residential data from Austin, Texas.",
+        "Used strictly as a normalized diurnal residential load-shape calibration prototype, NOT as an annual Indian distribution grid load dataset."
+      ]
+    }
+  },
+  "leakage_audit_status": "ALL_LEAKAGE_CHECKS_PASSED",
+  "status": "STEP_4B_FEATURE_ENGINEERING_COMPLETE"
+}

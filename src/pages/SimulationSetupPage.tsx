@@ -117,8 +117,8 @@ export const SimulationSetupPage: React.FC = () => {
       errors.push('Scenario Name / Operating Identifier is required.')
     }
 
-    if (input.installedSolarCapacityKw <= 0) {
-      errors.push('Installed solar capacity must be greater than 0 kW.')
+    if (input.installedSolarCapacityKw < 0) {
+      errors.push('Installed solar capacity cannot be negative.')
     }
 
     if (input.solarTimeSeries.length === 0) {

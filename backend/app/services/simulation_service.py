@@ -119,6 +119,31 @@ class SimulationService:
         if input_data.networkConfig.voltageMinPu >= input_data.networkConfig.voltageMaxPu:
             raise ValidationException("Minimum voltage cannot be greater than or equal to maximum voltage.")
 
+        is_forecast = (
+            input_data.simulationSource == "forecast"
+            or (bool(input_data.scenarioName) and input_data.scenarioName.startswith("Day-Ahead Forecast"))
+        )
+
+        if is_forecast:
+            if not input_data.solarTimeSeries or not input_data.loadTimeSeries:
+                raise ValidationException("Forecast data unavailable")
+            if len(input_data.solarTimeSeries) != 96 or len(input_data.loadTimeSeries) != 96:
+                raise ValidationException(
+                    f"Forecast must contain 96 points (solar={len(input_data.solarTimeSeries)}, load={len(input_data.loadTimeSeries)})"
+                )
+
+            expected_times = [f"{h:02d}:{m:02d}" for h in range(24) for m in (0, 15, 30, 45)]
+            for idx, pt in enumerate(input_data.solarTimeSeries):
+                if pt.time != expected_times[idx]:
+                    raise ValidationException(
+                        f"Forecast timestamps are not 15 minutes apart: solar point {idx} is '{pt.time}', expected '{expected_times[idx]}'"
+                    )
+            for idx, pt in enumerate(input_data.loadTimeSeries):
+                if pt.time != expected_times[idx]:
+                    raise ValidationException(
+                        f"Forecast timestamps are not 15 minutes apart: load point {idx} is '{pt.time}', expected '{expected_times[idx]}'"
+                    )
+
         sim_id = f"SIM-{uuid.uuid4().hex[:8].upper()}"
         
         repo = NetworkRepository()
@@ -147,7 +172,7 @@ class SimulationService:
             if s in normalized_name or normalized_name in s:
                 matched_scenario = s
                 break
-        res.scenarioId = matched_scenario
+        res.scenarioId = matched_scenario or input_data.scenarioName
 
         _ACTIVE_SIMULATION = res
         peak_time = res.summary.simulationTime or "13:15"

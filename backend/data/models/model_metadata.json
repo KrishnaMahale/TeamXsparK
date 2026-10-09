@@ -1,0 +1,306 @@
+{
+  "environment": {
+    "python_version": "3.11.9",
+    "numpy_version": "2.4.6",
+    "pandas_version": "3.0.6",
+    "sklearn_version": "1.9.1",
+    "joblib_version": "1.6.0"
+  },
+  "solar_ghi_model": {
+    "model_name": "solar_ghi_model",
+    "model_type": "HistGradientBoostingRegressor",
+    "target": "target_ghi_wm2",
+    "training_start": "2024-05-11 00:00:00+0530",
+    "training_end": "2025-04-30 23:45:00+0530",
+    "validation_start": "2025-03-01 00:00:00+0530",
+    "validation_end": "2025-04-30 23:45:00+0530",
+    "test_start": "2025-05-01 00:00:00+0530",
+    "test_end": "2025-06-09 05:00:00+0530",
+    "feature_names": [
+      "minute_of_day",
+      "slot_15m",
+      "hour",
+      "day_of_week",
+      "day_of_year",
+      "month",
+      "day_of_year_sin",
+      "day_of_year_cos",
+      "slot_15m_sin",
+      "slot_15m_cos",
+      "solar_elevation_deg",
+      "solar_elevation_sin",
+      "solar_elevation_cos",
+      "is_night",
+      "clearsky_proxy_wm2",
+      "ghi_lag_15m",
+      "ghi_lag_30m",
+      "ghi_lag_45m",
+      "ghi_lag_24h",
+      "ghi_roll_mean_2h",
+      "ghi_roll_std_2h",
+      "temperature_c",
+      "temperature_lag_24h"
+    ],
+    "feature_count": 23,
+    "random_state": 42,
+    "hyperparameters": {
+      "max_iter": 150,
+      "learning_rate": 0.05,
+      "max_leaf_nodes": 31,
+      "l2_regularization": 1.0,
+      "post_processing": "np.maximum(0, pred); pred[solar_elevation<=0]=0"
+    },
+    "selection_metric": "validation_mae",
+    "validation_metrics": {
+      "MAE": 15.3467,
+      "RMSE": 38.3901,
+      "R2": 0.985,
+      "WAPE": 6.76,
+      "sMAPE": 102.9295
+    },
+    "final_test_metrics": {
+      "MAE": 36.1296,
+      "RMSE": 82.258,
+      "R2": 0.92,
+      "WAPE": 19.2662,
+      "sMAPE": 21.0938
+    },
+    "final_test_daylight_metrics": {
+      "MAE": 70.9151,
+      "RMSE": 115.8136,
+      "R2": 0.8656,
+      "WAPE": 19.103,
+      "sMAPE": 25.5656
+    },
+    "final_test_nighttime_metrics": {
+      "MAE": 0.763,
+      "RMSE": 2.9844,
+      "R2": -0.0699,
+      "WAPE": 100.0,
+      "sMAPE": 16.5473
+    },
+    "test_persistence_metrics": {
+      "MAE": 34.7435,
+      "RMSE": 81.1964,
+      "R2": 0.9204,
+      "WAPE": 18.9195,
+      "sMAPE": 19.0567
+    },
+    "offline_24h_recursive_experiment": {
+      "test_day": "2025-05-02",
+      "timesteps": 95,
+      "MAE": 74.7906,
+      "RMSE": 112.6324,
+      "daylight_mae": 138.7538,
+      "nighttime_mae": 0.6514
+    },
+    "dataset_provenance": "CWPRS Pune Solar Radiation Telemetry (2024-05 to 2025-06)",
+    "limitations": "Model trained on Pune sub-tropical climate. Multi-step forecasting requires recursive estimation where errors accumulate during overcast monsoon days.",
+    "training_timestamp": "2026-10-08T16:25:33.698300+00:00"
+  },
+  "temperature_model": {
+    "model_name": "temperature_model",
+    "model_type": "Ridge_Regression_Pipeline",
+    "target": "target_temperature_c",
+    "training_start": "2024-05-11 00:00:00+0530",
+    "training_end": "2025-04-30 22:45:00+0530",
+    "validation_start": "2025-03-01 00:00:00+0530",
+    "validation_end": "2025-04-30 22:45:00+0530",
+    "test_start": "2025-05-01 00:00:00+0530",
+    "test_end": "2025-06-09 04:45:00+0530",
+    "feature_names": [
+      "minute_of_day",
+      "slot_15m",
+      "hour",
+      "day_of_week",
+      "day_of_year",
+      "month",
+      "day_of_year_sin",
+      "day_of_year_cos",
+      "slot_15m_sin",
+      "slot_15m_cos",
+      "solar_elevation_deg",
+      "temperature_lag_15m",
+      "temperature_lag_24h",
+      "temperature_roll_mean_1h",
+      "temperature_roll_std_1h"
+    ],
+    "feature_count": 15,
+    "random_state": 42,
+    "hyperparameters": {
+      "alpha": 10.0,
+      "scaler": "StandardScaler",
+      "imputer": "SimpleImputer(median)"
+    },
+    "selection_metric": "validation_mae",
+    "validation_metrics": {
+      "MAE": 0.5068,
+      "RMSE": 1.314,
+      "R2": 0.9629,
+      "WAPE": 1.7693,
+      "sMAPE": 1.823
+    },
+    "final_test_metrics": {
+      "MAE": 0.4256,
+      "RMSE": 0.9687,
+      "R2": 0.9334,
+      "WAPE": 1.5923,
+      "sMAPE": 1.5539
+    },
+    "test_persistence_metrics": {
+      "MAE": 0.2757,
+      "RMSE": 0.445,
+      "R2": 0.9859,
+      "WAPE": 1.0327,
+      "sMAPE": 0.9889
+    },
+    "dataset_provenance": "CWPRS Pune Temperature Telemetry (2024-05 to 2025-06)",
+    "limitations": "Model trained on Pune station telemetry. Linear ridge formulation prioritizes stability and diurnal regularization.",
+    "training_timestamp": "2026-10-08T16:25:34.048812+00:00"
+  },
+  "load_profile_model": {
+    "model_name": "load_profile_model",
+    "model_type": "HistGradientBoostingRegressor_CategoricalPipeline",
+    "target": "target_gross_load_kw",
+    "training_start": "2018-08-23 00:00:00+0000",
+    "training_end": "2018-08-24 23:45:00+0000",
+    "validation_start": "2018-08-24 00:00:00+0000",
+    "validation_end": "2018-08-24 23:45:00+0000",
+    "test_start": "2018-08-25 00:00:00+0000",
+    "test_end": "2018-08-25 23:45:00+0000",
+    "feature_names": [
+      "home_id",
+      "minute_of_day",
+      "slot_15m",
+      "hour",
+      "day_of_week",
+      "is_weekend",
+      "slot_15m_sin",
+      "slot_15m_cos",
+      "load_lag_15m",
+      "load_lag_30m",
+      "load_roll_mean_1h",
+      "load_roll_std_1h"
+    ],
+    "feature_count": 12,
+    "random_state": 42,
+    "hyperparameters": {
+      "max_iter": 100,
+      "learning_rate": 0.05,
+      "max_leaf_nodes": 15,
+      "l2_regularization": 2.0,
+      "categorical_features": [
+        0
+      ],
+      "post_processing": "np.maximum(0, pred)"
+    },
+    "selection_metric": "validation_mae",
+    "validation_metrics": {
+      "MAE": 0.8018,
+      "RMSE": 1.0584,
+      "R2": 0.5753,
+      "WAPE": 30.7328,
+      "sMAPE": 37.7403
+    },
+    "final_test_metrics": {
+      "MAE": 0.805,
+      "RMSE": 1.0976,
+      "R2": 0.6158,
+      "WAPE": 30.4583,
+      "sMAPE": 37.6506
+    },
+    "per_home_metrics": {
+      "Home_1": {
+        "MAE": 0.8951,
+        "RMSE": 1.2248,
+        "R2": 0.5704,
+        "WAPE": 24.4809,
+        "sMAPE": 30.1201
+      },
+      "Home_2": {
+        "MAE": 0.9037,
+        "RMSE": 1.1208,
+        "R2": 0.6123,
+        "WAPE": 25.1804,
+        "sMAPE": 29.6603
+      },
+      "Home_3": {
+        "MAE": 0.6015,
+        "RMSE": 0.9022,
+        "R2": 0.6037,
+        "WAPE": 18.1917,
+        "sMAPE": 22.7182
+      },
+      "Home_4": {
+        "MAE": 0.6434,
+        "RMSE": 1.0424,
+        "R2": 0.3845,
+        "WAPE": 21.6789,
+        "sMAPE": 23.8374
+      },
+      "Home_5": {
+        "MAE": 1.3149,
+        "RMSE": 1.6596,
+        "R2": 0.2454,
+        "WAPE": 40.4944,
+        "sMAPE": 45.5776
+      },
+      "Home_6": {
+        "MAE": 0.5512,
+        "RMSE": 0.7248,
+        "R2": 0.2668,
+        "WAPE": 45.0347,
+        "sMAPE": 46.1927
+      },
+      "Home_7": {
+        "MAE": 1.26,
+        "RMSE": 1.477,
+        "R2": 0.5241,
+        "WAPE": 38.9308,
+        "sMAPE": 52.8398
+      },
+      "Home_8": {
+        "MAE": 0.6866,
+        "RMSE": 0.8878,
+        "R2": 0.203,
+        "WAPE": 42.4227,
+        "sMAPE": 48.8567
+      },
+      "Home_9": {
+        "MAE": 0.7754,
+        "RMSE": 0.9107,
+        "R2": 0.5215,
+        "WAPE": 30.9613,
+        "sMAPE": 36.3139
+      },
+      "Home_10": {
+        "MAE": 0.4183,
+        "RMSE": 0.5591,
+        "R2": 0.2626,
+        "WAPE": 38.7411,
+        "sMAPE": 40.3892
+      }
+    },
+    "median_home_mae": 0.731,
+    "best_home_mae": 0.4183,
+    "worst_home_mae": 1.3149,
+    "test_persistence_metrics": {
+      "MAE": 1.0189,
+      "RMSE": 1.4593,
+      "R2": 0.321,
+      "WAPE": 38.5503,
+      "sMAPE": 47.5368
+    },
+    "offline_24h_recursive_experiment": {
+      "benchmark_type": "24h_recursive_micro_benchmark",
+      "holdout_day": "2018-08-25",
+      "homes_evaluated": 10,
+      "timesteps_per_home": 96,
+      "MAE": 1.1353,
+      "RMSE": 1.4252
+    },
+    "dataset_provenance": "PecanStreet Austin Texas 10 Homes (2018-08-23 to 2018-08-25)",
+    "limitations": "Empirical residential profile forecasting only. Dataset spans ~3 days in Austin summer. Does NOT generalize to Indian distribution feeders without physics-based scaling or local AMI telemetry.",
+    "training_timestamp": "2026-10-08T16:25:37.436364+00:00"
+  }
+}

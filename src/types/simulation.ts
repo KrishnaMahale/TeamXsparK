@@ -36,6 +36,7 @@ export interface SimulationInput {
   simulationDate: string
   simulationDuration: '6 hours' | '12 hours' | '24 hours'
   timeResolution: '15 minutes' | '30 minutes' | '1 hour'
+  simulationSource?: 'scenario' | 'forecast'
   installedSolarCapacityKw: number
   currentSolarKw: number
   solarTimeSeries: TimeSeriesSolarPoint[]

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Search,
   Bell,
+  Home,
   LayoutDashboard,
   SlidersHorizontal,
   Share2,
@@ -39,8 +40,11 @@ export const Header: React.FC = () => {
   // Resolve active page header title and icon
   const getPageInfo = () => {
     const path = location.pathname
-    if (path === '/' || path === '/simulation/results') {
-      return { title: 'Overview Dashboard', icon: LayoutDashboard }
+    if (path === '/' || path === '/home') {
+      return { title: 'Home', icon: Home }
+    }
+    if (path === '/simulation/results') {
+      return { title: 'Simulation Results', icon: SlidersHorizontal }
     }
     if (path.startsWith('/simulation')) {
       return { title: 'Simulation Setup', icon: SlidersHorizontal }
