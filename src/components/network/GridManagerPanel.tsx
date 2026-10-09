@@ -307,7 +307,7 @@ export const GridManagerPanel: React.FC = () => {
   const totalLoadKw = network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
 
   return (
-    <Card className="mb-4 overflow-hidden border-[#DDD9C9] dark:border-[#2A3A2C] shadow-sm">
+    <Card className="overflow-hidden border-[#DDD9C9] dark:border-[#2A3A2C] shadow-sm">
       <CardHeader
         title={
           <div className="flex items-center gap-2">

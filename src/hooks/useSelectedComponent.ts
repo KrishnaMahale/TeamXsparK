@@ -28,7 +28,7 @@ export const useSelectedComponent = () => {
       const load = network.loads.find((l) => l.id === selectedComponent.id)
       return load ? { type: 'load' as const, id: load.id, data: load } : selectedComponent
     }
-    if (selectedComponent.type === 'transformer') {
+    if (selectedComponent.type === 'transformer' || (selectedComponent.type as string) === 'substation') {
       return { type: 'transformer' as const, id: network.substation?.id || 'SUB', data: network.substation }
     }
     return selectedComponent

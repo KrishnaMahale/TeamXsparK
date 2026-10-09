@@ -1,121 +1,146 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Card, CardHeader, CardContent } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useGridStore } from '../../store/gridStore'
-import { useUIStore } from '../../store/uiStore'
-import { Bus, Feeder, SolarUnit, Battery, Load, ComponentSelection, GridNetwork } from '../../types/network'
+import { useSimulationStore } from '../../store/simulationStore'
+import { Bus, Feeder, SolarUnit, Battery, Load, GridNetwork } from '../../types/network'
 import {
-  Zap,
-  Activity,
   Cpu,
-  Sun,
-  BatteryMedium,
-  TrendingDown,
   ChevronDown,
   ChevronRight,
-  Move,
-  Link2,
-  Trash2,
   Sliders,
   CheckCircle2,
+  Edit3,
+  Save,
+  X,
+  XCircle,
 } from 'lucide-react'
-import { formatVoltage, formatPercent, formatTemp } from '../../utils/formatters'
+import { formatVoltage, formatPercent } from '../../utils/formatters'
 
 export const ComponentDetailsPanel: React.FC = () => {
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
-  const { network, updateNetwork, removeComponent } = useGridStore()
-  const { is3DEnabled, toggle3D } = useUIStore()
+  const { network, updateNetwork } = useGridStore()
 
-  // Collapsible section states (open by default for fast scanning)
+  // Collapsible section states (Position box and Actions box completely removed per request)
   const [openSections, setOpenSections] = useState({
     component: true,
-    position: true,
     connections: true,
     electrical: true,
-    actions: true,
   })
 
-  // Local coordinate state for real-time inspector editing
-  const [coords, setCoords] = useState<{ x: number; y: number; z: number }>({ x: 0, y: 0, z: 0 })
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [showConnectPicker, setShowConnectPicker] = useState(false)
 
-  // Synchronize coordinates whenever selected component changes
-  useEffect(() => {
-    setDeleteConfirm(false)
-    setShowConnectPicker(false)
+  // Interactive Electrical Data Editing State
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState<Record<string, any>>({})
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
-    if (!selectedComponent) return
-
-    const { type, data } = selectedComponent
-    let next: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }
-
+  // Always resolve live component data from active network state
+  const liveComponent = useMemo(() => {
+    if (!selectedComponent) return null
+    const { type, id } = selectedComponent
     if (type === 'bus') {
-      const b = data as Bus
-      next = { x: b.position?.x ?? 0, y: b.position?.y ?? 0.6, z: b.position?.z ?? 0 }
-    } else if (type === 'solar') {
-      const s = data as SolarUnit
-      next = { x: s.position?.x ?? 0, y: s.position?.y ?? 0, z: s.position?.z ?? 0 }
-    } else if (type === 'battery') {
-      const b = data as Battery
-      next = { x: b.position?.x ?? 0, y: b.position?.y ?? 0, z: b.position?.z ?? 0 }
-    } else if (type === 'load') {
-      const l = data as Load
-      next = { x: l.position?.x ?? 0, y: l.position?.y ?? 0, z: l.position?.z ?? 0 }
-    } else if (type === 'transformer' || type === 'substation') {
+      const b = network.buses.find((i) => i.id === id)
+      return b ? { type: 'bus' as const, id: b.id, data: b } : selectedComponent
+    }
+    if (type === 'feeder') {
+      const f = network.feeders.find((i) => i.id === id)
+      return f ? { type: 'feeder' as const, id: f.id, data: f } : selectedComponent
+    }
+    if (type === 'solar') {
+      const s = network.solarUnits.find((i) => i.id === id)
+      return s ? { type: 'solar' as const, id: s.id, data: s } : selectedComponent
+    }
+    if (type === 'battery') {
+      const b = network.batteries.find((i) => i.id === id)
+      return b ? { type: 'battery' as const, id: b.id, data: b } : selectedComponent
+    }
+    if (type === 'load') {
+      const l = network.loads.find((i) => i.id === id)
+      return l ? { type: 'load' as const, id: l.id, data: l } : selectedComponent
+    }
+    if (type === 'transformer' || (type as string) === 'substation') {
       const sub = network.substation
-      next = { x: sub?.position?.x ?? 0, y: sub?.position?.y ?? 0.6, z: sub?.position?.z ?? -10 }
+      return sub ? { type: 'transformer' as const, id: sub.id, data: sub } : selectedComponent
+    }
+    return selectedComponent
+  }, [selectedComponent, network])
+
+  // Populate editForm whenever selected component changes
+  useEffect(() => {
+    setShowConnectPicker(false)
+    setIsEditing(false)
+    setSaveSuccess(false)
+
+    if (!liveComponent) {
+      setEditForm({})
+      return
     }
 
-    setCoords((prev) => {
-      if (prev.x === next.x && prev.y === next.y && prev.z === next.z) return prev
-      return next
-    })
-  }, [selectedComponent?.type, selectedComponent?.id, network.substation?.position?.x, network.substation?.position?.y, network.substation?.position?.z])
+    const { type, data } = liveComponent
+    if (type === 'load') {
+      const l = data as Load
+      setEditForm({
+        name: l.name || '',
+        powerKw: l.powerKw ?? 50,
+        powerFactor: l.powerFactor ?? 0.92,
+      })
+    } else if (type === 'solar') {
+      const s = data as SolarUnit
+      setEditForm({
+        name: s.name || '',
+        generationKw: s.generationKw ?? 50,
+        capacityKw: s.capacityKw ?? 100,
+      })
+    } else if (type === 'battery') {
+      const b = data as Battery
+      setEditForm({
+        name: b.name || '',
+        socPercent: b.socPercent ?? 60,
+        powerKw: b.powerKw ?? 0,
+        capacityKwh: b.capacityKwh ?? 100,
+        maxDischargeKw: b.maxDischargeKw ?? 50,
+      })
+    } else if (type === 'bus') {
+      const b = data as Bus
+      setEditForm({
+        name: b.name || '',
+        voltage: b.voltage ?? 1.0,
+        voltageLimitMin: b.voltageLimitMin ?? 0.95,
+        voltageLimitMax: b.voltageLimitMax ?? 1.05,
+        loadKw: b.loadKw ?? 0,
+        solarKw: b.solarKw ?? 0,
+      })
+    } else if (type === 'feeder') {
+      const f = data as Feeder
+      setEditForm({
+        name: f.name || '',
+        capacityKw: f.capacityKw ?? 500,
+        activePowerKw: f.activePowerKw ?? 0,
+        isSwitchClosed: f.isSwitchClosed ?? true,
+      })
+    } else if (type === 'transformer' || (type as string) === 'substation') {
+      const sub = network.substation
+      setEditForm({
+        name: sub?.name || 'Main Substation',
+        ratingKva: sub?.ratingKva ?? 2500,
+        loadingPercent: sub?.loadingPercent ?? 68,
+      })
+    }
+  }, [liveComponent?.type, liveComponent?.id])
 
   const toggleSection = (key: keyof typeof openSections) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // Update position in grid store and synchronise digital twin
-  const handlePositionChange = async (axis: 'x' | 'y' | 'z', val: number) => {
-    const nextCoords = { ...coords, [axis]: val }
-    setCoords(nextCoords)
-
-    if (!selectedComponent) return
-    const updatedNetwork = JSON.parse(JSON.stringify(network)) as GridNetwork
-    const { type, id } = selectedComponent
-
-    if (type === 'bus') {
-      const b = updatedNetwork.buses.find((i) => i.id === id)
-      if (b) b.position = nextCoords
-    } else if (type === 'solar') {
-      const s = updatedNetwork.solarUnits.find((i) => i.id === id)
-      if (s) s.position = nextCoords
-    } else if (type === 'battery') {
-      const b = updatedNetwork.batteries.find((i) => i.id === id)
-      if (b) b.position = nextCoords
-    } else if (type === 'load') {
-      const l = updatedNetwork.loads.find((i) => i.id === id)
-      if (l) l.position = nextCoords
-    } else if (type === 'transformer' || type === 'substation') {
-      if (updatedNetwork.substation) updatedNetwork.substation.position = nextCoords
-    }
-
-    try {
-      await updateNetwork(updatedNetwork)
-    } catch (e) {
-      console.error('Failed to update component position:', e)
-    }
-  }
-
   // Quick connect / reassign component to target bus
   const handleReassignBus = async (targetBusId: string) => {
-    if (!selectedComponent) return
+    if (!liveComponent) return
     const updatedNetwork = JSON.parse(JSON.stringify(network)) as GridNetwork
-    const { type, id } = selectedComponent
+    const { type, id } = liveComponent
 
     if (type === 'solar') {
       const s = updatedNetwork.solarUnits.find((i) => i.id === id)
@@ -134,9 +159,9 @@ export const ComponentDetailsPanel: React.FC = () => {
 
   // Feeder line tie-line switch toggle
   const handleToggleSwitch = async () => {
-    if (!selectedComponent || selectedComponent.type !== 'feeder') return
+    if (!liveComponent || liveComponent.type !== 'feeder') return
     const updatedNetwork = JSON.parse(JSON.stringify(network)) as GridNetwork
-    const f = updatedNetwork.feeders.find((i) => i.id === selectedComponent.id)
+    const f = updatedNetwork.feeders.find((i) => i.id === liveComponent.id)
     if (f) {
       f.isSwitchClosed = !f.isSwitchClosed
       f.status = f.isSwitchClosed ? 'normal' : 'warning'
@@ -144,24 +169,132 @@ export const ComponentDetailsPanel: React.FC = () => {
     }
   }
 
-  // Move action: toggles 3D mode if needed and highlights position
-  const handleMoveAction = () => {
-    if (!is3DEnabled) {
-      toggle3D()
-    }
-    setOpenSections((prev) => ({ ...prev, position: true }))
-  }
+  // Save edited electrical data and propagate everywhere
+  const handleSaveElectrical = async () => {
+    if (!liveComponent) return
+    setIsSaving(true)
+    try {
+      const updatedNetwork = JSON.parse(JSON.stringify(network)) as GridNetwork
+      const { type, id } = liveComponent
 
-  // Delete component from topology
-  const handleDeleteComponent = async () => {
-    if (!selectedComponent) return
-    await removeComponent(selectedComponent.type, selectedComponent.id)
-    setSelectedComponent(null)
-    setDeleteConfirm(false)
+      if (type === 'load') {
+        const item = updatedNetwork.loads.find((l) => l.id === id)
+        if (item) {
+          if (editForm.name) item.name = editForm.name.trim()
+          item.powerKw = Math.max(0, Number(editForm.powerKw) || 0)
+          item.powerFactor = Math.min(1.0, Math.max(0.1, Number(editForm.powerFactor) || 0.92))
+
+          // Propagate to connected bus loadKw
+          if (item.busId) {
+            const bus = updatedNetwork.buses.find((b) => b.id === item.busId)
+            if (bus) {
+              const busLoads = updatedNetwork.loads.filter((l) => l.busId === bus.id)
+              bus.loadKw = busLoads.reduce(
+                (sum, l) => sum + (l.id === item.id ? item.powerKw : (l.powerKw || 0)),
+                0
+              )
+            }
+          }
+        }
+      } else if (type === 'solar') {
+        const item = updatedNetwork.solarUnits.find((s) => s.id === id)
+        if (item) {
+          if (editForm.name) item.name = editForm.name.trim()
+          item.generationKw = Math.max(0, Number(editForm.generationKw) || 0)
+          item.capacityKw = Math.max(
+            item.generationKw,
+            Number(editForm.capacityKw) || item.generationKw
+          )
+
+          // Propagate to connected bus solarKw
+          if (item.busId) {
+            const bus = updatedNetwork.buses.find((b) => b.id === item.busId)
+            if (bus) {
+              const busSolars = updatedNetwork.solarUnits.filter((s) => s.busId === bus.id)
+              bus.solarKw = busSolars.reduce(
+                (sum, s) => sum + (s.id === item.id ? item.generationKw : (s.generationKw || 0)),
+                0
+              )
+            }
+          }
+        }
+      } else if (type === 'battery') {
+        const item = updatedNetwork.batteries.find((b) => b.id === id)
+        if (item) {
+          if (editForm.name) item.name = editForm.name.trim()
+          item.socPercent = Math.min(100, Math.max(0, Number(editForm.socPercent) || 0))
+          item.powerKw = Number(editForm.powerKw) || 0
+          if (editForm.capacityKwh !== undefined)
+            item.capacityKwh = Math.max(1, Number(editForm.capacityKwh) || 100)
+          if (editForm.maxDischargeKw !== undefined)
+            item.maxDischargeKw = Math.max(0, Number(editForm.maxDischargeKw) || 50)
+        }
+      } else if (type === 'bus') {
+        const item = updatedNetwork.buses.find((b) => b.id === id)
+        if (item) {
+          if (editForm.name) item.name = editForm.name.trim()
+          item.voltage = Number(editForm.voltage) || 1.0
+          item.voltageLimitMin = Number(editForm.voltageLimitMin) || 0.95
+          item.voltageLimitMax = Number(editForm.voltageLimitMax) || 1.05
+          item.loadKw = Math.max(0, Number(editForm.loadKw) || 0)
+          item.solarKw = Math.max(0, Number(editForm.solarKw) || 0)
+          item.status =
+            item.voltage > item.voltageLimitMax || item.voltage < item.voltageLimitMin
+              ? 'critical'
+              : 'normal'
+        }
+      } else if (type === 'feeder') {
+        const item = updatedNetwork.feeders.find((f) => f.id === id)
+        if (item) {
+          if (editForm.name) item.name = editForm.name.trim()
+          item.capacityKw = Math.max(1, Number(editForm.capacityKw) || 500)
+          item.activePowerKw = Math.max(0, Number(editForm.activePowerKw) || 0)
+          item.loadingPercent = Math.round((item.activePowerKw / item.capacityKw) * 100)
+          item.isSwitchClosed = Boolean(editForm.isSwitchClosed)
+          item.status =
+            item.loadingPercent > (item.loadingLimitPercent || 100)
+              ? 'critical'
+              : item.loadingPercent > 90
+              ? 'warning'
+              : 'normal'
+        }
+      } else if (type === 'transformer' || (type as string) === 'substation') {
+        if (updatedNetwork.substation) {
+          if (editForm.name) updatedNetwork.substation.name = editForm.name.trim()
+          updatedNetwork.substation.ratingKva = Math.max(1, Number(editForm.ratingKva) || 2500)
+          updatedNetwork.substation.loadingPercent = Math.min(
+            100,
+            Math.max(0, Number(editForm.loadingPercent) || 68)
+          )
+        }
+      }
+
+      // Persist to store & backend
+      await updateNetwork(updatedNetwork)
+
+      // Also propagate aggregate solar / load into simulationStore so simulation inputs stay synchronized
+      const totalSolarSum = updatedNetwork.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)
+      const totalLoadSum = updatedNetwork.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
+      const simStore = useSimulationStore.getState()
+      if (simStore && simStore.updateInput) {
+        simStore.updateInput({
+          installedSolarCapacityKw: Math.max(simStore.input.installedSolarCapacityKw, totalSolarSum),
+          peakLoadKw: Math.max(simStore.input.peakLoadKw, totalLoadSum),
+        })
+      }
+
+      setIsEditing(false)
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (err) {
+      console.error('Failed to update electrical parameters:', err)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // Quick selector dropdown value
-  const activeSelectorValue = selectedComponent ? `${selectedComponent.type}:${selectedComponent.id}` : ''
+  const activeSelectorValue = liveComponent ? `${liveComponent.type}:${liveComponent.id}` : ''
 
   const handleDropdownSelect = (val: string) => {
     if (!val) {
@@ -185,21 +318,69 @@ export const ComponentDetailsPanel: React.FC = () => {
       const l = network.loads.find((i) => i.id === id)
       if (l) setSelectedComponent({ type: 'load', id: l.id, data: l })
     } else if (t === 'substation') {
-      if (network.substation) setSelectedComponent({ type: 'transformer', id: 'GRID', data: network.substation })
+      if (network.substation)
+        setSelectedComponent({ type: 'transformer', id: 'GRID', data: network.substation })
     }
   }
 
+  // Calculate live bus electrical telemetry
+  const busData = useMemo(() => {
+    if (!liveComponent || liveComponent.type !== 'bus') return null
+    const b = liveComponent.data as Bus
+    const connectedFeeders = network.feeders.filter((f) => f.fromBus === b.id || f.toBus === b.id)
+    const connectedLoads = network.loads.filter((l) => l.busId === b.id)
+    const connectedSolar = network.solarUnits.filter((s) => s.busId === b.id)
+    const connectedBatteries = network.batteries.filter((bat) => bat.busId === b.id)
+
+    const demandKw =
+      connectedLoads.length > 0
+        ? connectedLoads.reduce((sum, l) => sum + (l.powerKw || 0), 0)
+        : b.loadKw || 0
+
+    const solarKw =
+      connectedSolar.length > 0
+        ? connectedSolar.reduce((sum, s) => sum + (s.generationKw || 0), 0)
+        : b.solarKw || 0
+
+    const netKw = solarKw - demandKw
+
+    return {
+      bus: b,
+      connectedFeeders,
+      connectedLoads,
+      connectedSolar,
+      connectedBatteries,
+      demandKw,
+      solarKw,
+      netKw,
+    }
+  }, [liveComponent, network])
+
   return (
-    <Card className="h-full border-[#DDD9C9] dark:border-[#2C3C2E] shadow-sm">
+    <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] shadow-sm flex flex-col">
       <CardHeader
-        title={<span className="font-semibold text-sm text-[#26352A] dark:text-[#F2F5ED]">Component Management</span>}
-        subtitle="Control-room engineering inspector"
+        title={
+          <span className="font-semibold text-sm text-[#26352A] dark:text-[#F2F5ED]">
+            Component Inspector
+          </span>
+        }
+        subtitle="Telemetry & Electrical Parameters"
         icon={<Sliders className="w-4 h-4 text-[#A0C878]" />}
         action={
-          selectedComponent ? (
-            <Badge variant="primary" size="sm">
-              {selectedComponent.id}
-            </Badge>
+          liveComponent ? (
+            <div className="flex items-center gap-1.5">
+              <Badge variant="primary" size="sm">
+                {liveComponent.id}
+              </Badge>
+              <button
+                type="button"
+                onClick={() => setSelectedComponent(null)}
+                className="text-[#788477] hover:text-red-600 dark:hover:text-red-400 p-0.5 rounded cursor-pointer"
+                title="Deselect Component"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <Badge variant="neutral" size="sm">
               Standby
@@ -208,7 +389,7 @@ export const ComponentDetailsPanel: React.FC = () => {
         }
       />
 
-      <CardContent className="space-y-3.5 pt-1 text-xs">
+      <CardContent className="space-y-3 pt-1 text-xs flex-1 flex flex-col">
         {/* Quick Component Selector Dropdown */}
         <div>
           <select
@@ -261,17 +442,29 @@ export const ComponentDetailsPanel: React.FC = () => {
         </div>
 
         {/* Selected Component Inspector */}
-        {!selectedComponent ? (
+        {!liveComponent ? (
           <div className="py-8 px-4 text-center rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E]">
             <Cpu className="w-7 h-7 mx-auto mb-2 text-[#788477] dark:text-[#859483] opacity-70" />
-            <div className="font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED]">No Component Selected</div>
+            <div className="font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED]">
+              No Component Selected
+            </div>
             <p className="text-[11px] text-[#788477] dark:text-[#859483] mt-1 max-w-[240px] mx-auto">
-              Select a component from the list or click a node on the digital twin schematic.
+              Select a bus, solar unit, load, or feeder line to inspect and edit its electrical parameters.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {/* Section 1: Component Information */}
+          <div className="space-y-2.5">
+            {/* Success notification banner */}
+            {saveSuccess && (
+              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-2 text-emerald-800 dark:text-emerald-200 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-medium">
+                  Electrical parameters updated and propagated across Digital Twin!
+                </span>
+              </div>
+            )}
+
+            {/* Section 1: Component Header Information */}
             <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
               <button
                 type="button"
@@ -279,20 +472,24 @@ export const ComponentDetailsPanel: React.FC = () => {
                 className="w-full flex items-center justify-between px-3 py-2 text-left font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#DDEB9D]/20 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-1.5">
-                  {openSections.component ? <ChevronDown className="w-3.5 h-3.5 text-[#788477]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />}
-                  <span>Component</span>
+                  {openSections.component ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-[#788477]" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />
+                  )}
+                  <span>Component Details</span>
                 </div>
                 <Badge
                   variant={
-                    (selectedComponent.data as any)?.status === 'critical'
+                    (liveComponent.data as any)?.status === 'critical'
                       ? 'danger'
-                      : (selectedComponent.data as any)?.status === 'warning'
+                      : (liveComponent.data as any)?.status === 'warning'
                       ? 'warning'
                       : 'success'
                   }
                   size="sm"
                 >
-                  {(selectedComponent.data as any)?.status?.toUpperCase() || 'NORMAL'}
+                  {(liveComponent.data as any)?.status?.toUpperCase() || 'NORMAL'}
                 </Badge>
               </button>
 
@@ -300,75 +497,599 @@ export const ComponentDetailsPanel: React.FC = () => {
                 <div className="px-3 pb-3 pt-1 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[#788477]">Name:</span>
-                    <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED]">{(selectedComponent.data as any)?.name || selectedComponent.id}</span>
+                    <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED] truncate max-w-[200px]">
+                      {(liveComponent.data as any)?.name || liveComponent.id}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#788477]">Type:</span>
-                    <span className="font-mono uppercase font-semibold text-[#506052] dark:text-[#A0B0A2]">{selectedComponent.type}</span>
+                    <span className="font-mono uppercase font-semibold text-[#506052] dark:text-[#A0B0A2]">
+                      {liveComponent.type}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#788477]">ID:</span>
-                    <span className="font-mono text-[#26352A] dark:text-[#F2F5ED]">{selectedComponent.id}</span>
+                    <span className="font-mono font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                      {liveComponent.id}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Section 2: Position (Compact X, Y, Z controls) */}
-            {selectedComponent.type !== 'feeder' && (
-              <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
+            {/* Section 2: Electrical Data & Interactive Parameter Editing */}
+            <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
+              <div className="w-full flex items-center justify-between px-3 py-2 border-b border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60">
                 <button
                   type="button"
-                  onClick={() => toggleSection('position')}
-                  className="w-full flex items-center justify-between px-3 py-2 text-left font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#DDEB9D]/20 transition-colors cursor-pointer"
+                  onClick={() => toggleSection('electrical')}
+                  className="flex items-center gap-1.5 font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:text-[#506052] cursor-pointer"
                 >
-                  <div className="flex items-center gap-1.5">
-                    {openSections.position ? <ChevronDown className="w-3.5 h-3.5 text-[#788477]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />}
-                    <span>Position</span>
-                  </div>
-                  <span className="font-mono text-[11px] text-[#788477]">
-                    [{coords.x.toFixed(1)}, {coords.y.toFixed(1)}, {coords.z.toFixed(1)}]
-                  </span>
+                  {openSections.electrical ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-[#788477]" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />
+                  )}
+                  <span>Electrical Data</span>
                 </button>
 
-                {openSections.position && (
-                  <div className="px-3 pb-3 pt-1 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60 space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <span className="text-[10px] text-[#788477] block mb-0.5 font-medium">X (m)</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={coords.x}
-                          onChange={(e) => handlePositionChange('x', parseFloat(e.target.value) || 0)}
-                          className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-[#788477] block mb-0.5 font-medium">Y (m)</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={coords.y}
-                          onChange={(e) => handlePositionChange('y', parseFloat(e.target.value) || 0)}
-                          className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-[#788477] block mb-0.5 font-medium">Z (m)</span>
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={coords.z}
-                          onChange={(e) => handlePositionChange('z', parseFloat(e.target.value) || 0)}
-                          className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
-                        />
-                      </div>
-                    </div>
+                {!isEditing ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    leftIcon={<Edit3 className="w-3 h-3 text-[#A0C878]" />}
+                    className="text-[11px] py-0.5 px-2.5 h-6"
+                  >
+                    Edit Data
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={handleSaveElectrical}
+                      disabled={isSaving}
+                      leftIcon={<Save className="w-3 h-3" />}
+                      className="text-[11px] py-0.5 px-2 h-6"
+                    >
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setIsEditing(false)}
+                      leftIcon={<X className="w-3 h-3" />}
+                      className="text-[11px] py-0.5 px-2 h-6"
+                    >
+                      Cancel
+                    </Button>
                   </div>
                 )}
               </div>
-            )}
+
+              {openSections.electrical && (
+                <div className="p-3">
+                  {/* EDIT MODE: Interactive Form Inputs */}
+                  {isEditing ? (
+                    <div className="space-y-2.5 animate-in fade-in duration-150">
+                      <div>
+                        <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                          Component Name
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.name || ''}
+                          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                          className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Load Edit Fields */}
+                      {liveComponent.type === 'load' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Active Load (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.powerKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, powerKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Power Factor
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0.5"
+                                max="1.0"
+                                value={editForm.powerFactor ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, powerFactor: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-[#788477] italic">
+                            * Updating this load will instantly recalculate branch demand on connected Bus.
+                          </p>
+                        </>
+                      )}
+
+                      {/* Solar Unit Edit Fields */}
+                      {liveComponent.type === 'solar' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Current Output (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.generationKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, generationKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Installed Capacity (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="1"
+                                value={editForm.capacityKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, capacityKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-[#788477] italic">
+                            * Updating solar generation updates solar infeed on the connected bus and system HUD.
+                          </p>
+                        </>
+                      )}
+
+                      {/* Battery Edit Fields */}
+                      {liveComponent.type === 'battery' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                State of Charge (%)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                max="100"
+                                value={editForm.socPercent ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, socPercent: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Active Dispatch (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                value={editForm.powerKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, powerKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Capacity (kWh)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="1"
+                                value={editForm.capacityKwh ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, capacityKwh: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Max Discharge (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.maxDischargeKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, maxDischargeKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Bus Edit Fields */}
+                      {liveComponent.type === 'bus' && (
+                        <>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Voltage (pu)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.001"
+                                min="0.8"
+                                max="1.2"
+                                value={editForm.voltage ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, voltage: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Min Limit (pu)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editForm.voltageLimitMin ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, voltageLimitMin: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Max Limit (pu)
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editForm.voltageLimitMax ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, voltageLimitMax: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Direct Demand (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.loadKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, loadKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Direct Solar (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.solarKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, solarKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Feeder Edit Fields */}
+                      {liveComponent.type === 'feeder' && (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Capacity (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="10"
+                                min="10"
+                                value={editForm.capacityKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, capacityKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                                Power Flow (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="10"
+                                min="0"
+                                value={editForm.activePowerKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, activePowerKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="checkbox"
+                              id="isSwitchClosed"
+                              checked={Boolean(editForm.isSwitchClosed)}
+                              onChange={(e) =>
+                                setEditForm({ ...editForm, isSwitchClosed: e.target.checked })
+                              }
+                              className="rounded text-[#A0C878] focus:ring-[#A0C878]"
+                            />
+                            <label
+                              htmlFor="isSwitchClosed"
+                              className="text-xs text-[#26352A] dark:text-[#F2F5ED] cursor-pointer"
+                            >
+                              Line Switch Closed (In-Service)
+                            </label>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Transformer / Substation Edit */}
+                      {(liveComponent.type === 'transformer' ||
+                        (liveComponent.type as string) === 'substation') && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                              Rating (kVA)
+                            </label>
+                            <input
+                              type="number"
+                              step="50"
+                              min="100"
+                              value={editForm.ratingKva ?? ''}
+                              onChange={(e) =>
+                                setEditForm({ ...editForm, ratingKva: e.target.value })
+                              }
+                              className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-[#788477] block mb-0.5 font-medium">
+                              Loading (%)
+                            </label>
+                            <input
+                              type="number"
+                              step="1"
+                              min="0"
+                              max="150"
+                              value={editForm.loadingPercent ?? ''}
+                              onChange={(e) =>
+                                setEditForm({ ...editForm, loadingPercent: e.target.value })
+                              }
+                              className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono text-[#26352A] dark:text-[#F2F5ED] focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* READ-ONLY DISPLAY MODE: Accurate Live Telemetry */
+                    <div className="space-y-2">
+                      {/* Bus electrical data */}
+                      {busData && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Voltage</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {formatVoltage(busData.bus.voltage)}
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Limits: {busData.bus.voltageLimitMin?.toFixed(2) ?? '0.95'} -{' '}
+                              {busData.bus.voltageLimitMax?.toFixed(2) ?? '1.05'} pu
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Line Loading</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {formatPercent(busData.bus.lineLoadingPercent)}
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">Limit: 100%</span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Branch Demand</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {busData.demandKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              {busData.connectedLoads.length} Connected Loads
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Solar Infeed</span>
+                            <span className="font-bold font-mono text-amber-600 dark:text-amber-400 text-sm">
+                              {busData.solarKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              {busData.connectedSolar.length} Solar PV Arrays
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Feeder electrical data */}
+                      {liveComponent.type === 'feeder' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Branch Loading</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {Math.round((liveComponent.data as Feeder).loadingPercent || 0)}%
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Limit: {(liveComponent.data as Feeder).loadingLimitPercent ?? 100}%
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Active Power Flow</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {(liveComponent.data as Feeder).activePowerKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Capacity: {(liveComponent.data as Feeder).capacityKw} kW
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Solar electrical data */}
+                      {liveComponent.type === 'solar' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Output Generation</span>
+                            <span className="font-bold font-mono text-amber-600 dark:text-amber-400 text-sm">
+                              {(liveComponent.data as SolarUnit).generationKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Efficiency:{' '}
+                              {(liveComponent.data as SolarUnit).capacityKw > 0
+                                ? Math.round(
+                                    ((liveComponent.data as SolarUnit).generationKw /
+                                      (liveComponent.data as SolarUnit).capacityKw) *
+                                      100
+                                  )
+                                : 0}
+                              %
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Installed Capacity</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {(liveComponent.data as SolarUnit).capacityKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Irradiance: {(liveComponent.data as SolarUnit).irradianceWm2 ?? 800} W/m²
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Battery electrical data */}
+                      {liveComponent.type === 'battery' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">State of Charge</span>
+                            <span className="font-bold font-mono text-[#A0C878] text-sm">
+                              {(liveComponent.data as Battery).socPercent}% SoC
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Capacity: {(liveComponent.data as Battery).capacityKwh ?? 100} kWh
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Active Dispatch</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {(liveComponent.data as Battery).powerKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Max Discharge: {(liveComponent.data as Battery).maxDischargeKw ?? 50} kW
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Load electrical data */}
+                      {liveComponent.type === 'load' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Active Demand</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {(liveComponent.data as Load).powerKw} kW
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Category: {(liveComponent.data as any).category || 'Consumer Load'}
+                            </span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Power Factor</span>
+                            <span className="font-bold font-mono text-[#506052] dark:text-[#A0B0A2] text-sm">
+                              {(liveComponent.data as Load).powerFactor?.toFixed(2) ?? '0.92'}
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">
+                              Reactive: ~
+                              {Math.round(
+                                ((liveComponent.data as Load).powerKw || 0) * 0.35
+                              )}{' '}
+                              kvar
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Substation */}
+                      {(liveComponent.type === 'transformer' ||
+                        (liveComponent.type as string) === 'substation') && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Transformer Rating</span>
+                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                              {network.substation?.ratingKva ?? 2500} kVA
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">33/11 kV Step-Down</span>
+                          </div>
+                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                            <span className="text-[10px] text-[#788477] block">Loading</span>
+                            <span className="font-bold font-mono text-[#A0C878] text-sm">
+                              {network.substation?.loadingPercent ?? 68.4}%
+                            </span>
+                            <span className="text-[9px] text-[#788477] block mt-0.5">Limit: 100%</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Section 3: Connections */}
             <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
@@ -378,23 +1099,29 @@ export const ComponentDetailsPanel: React.FC = () => {
                 className="w-full flex items-center justify-between px-3 py-2 text-left font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#DDEB9D]/20 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-1.5">
-                  {openSections.connections ? <ChevronDown className="w-3.5 h-3.5 text-[#788477]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />}
+                  {openSections.connections ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-[#788477]" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />
+                  )}
                   <span>Connections</span>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-[#A0C878] font-medium">
-                  <CheckCircle2 className="w-3 h-3" /> Connected
+                  <CheckCircle2 className="w-3 h-3" /> In-Service
                 </div>
               </button>
 
               {openSections.connections && (
                 <div className="px-3 pb-3 pt-1 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60 space-y-2">
                   {/* Solar / Battery / Load bus connection */}
-                  {(selectedComponent.type === 'solar' || selectedComponent.type === 'battery' || selectedComponent.type === 'load') && (
+                  {(liveComponent.type === 'solar' ||
+                    liveComponent.type === 'battery' ||
+                    liveComponent.type === 'load') && (
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[#788477]">Connected Bus:</span>
                         <span className="font-semibold font-mono text-[#26352A] dark:text-[#F2F5ED]">
-                          {(selectedComponent.data as any)?.busId || 'Unassigned'}
+                          {(liveComponent.data as any)?.busId || 'Unassigned'}
                         </span>
                       </div>
                       {showConnectPicker ? (
@@ -402,9 +1129,10 @@ export const ComponentDetailsPanel: React.FC = () => {
                           <span className="text-[10px] text-[#788477]">Select Target Bus:</span>
                           <select
                             onChange={(e) => handleReassignBus(e.target.value)}
-                            value={(selectedComponent.data as any)?.busId || ''}
+                            value={(liveComponent.data as any)?.busId || ''}
                             className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2 py-1 text-xs text-[#26352A] dark:text-[#F2F5ED]"
                           >
+                            <option value="">-- Reassign Bus --</option>
                             {network.buses.map((b) => (
                               <option key={b.id} value={b.id}>
                                 Bus {b.id} ({b.name})
@@ -417,23 +1145,30 @@ export const ComponentDetailsPanel: React.FC = () => {
                   )}
 
                   {/* Feeder line connections */}
-                  {selectedComponent.type === 'feeder' && (
+                  {liveComponent.type === 'feeder' && (
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[#788477]">Branch Path:</span>
                         <span className="font-mono font-semibold text-[#26352A] dark:text-[#F2F5ED]">
-                          {(selectedComponent.data as Feeder).fromBus} → {(selectedComponent.data as Feeder).toBus}
+                          {(liveComponent.data as Feeder).fromBus} → {(liveComponent.data as Feeder).toBus}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-[#788477]">Line Switch:</span>
                         <span className="font-semibold text-[#26352A] dark:text-[#F2F5ED]">
-                          {(selectedComponent.data as Feeder).isSwitchClosed ? 'Closed (In-Service)' : 'Open (Isolated)'}
+                          {(liveComponent.data as Feeder).isSwitchClosed
+                            ? 'Closed (In-Service)'
+                            : 'Open (Isolated)'}
                         </span>
                       </div>
-                      {(selectedComponent.data as Feeder).isReconfigurableAlternate && (
+                      {(liveComponent.data as Feeder).isReconfigurableAlternate && (
                         <div className="pt-1">
-                          <Button size="sm" variant="outline" onClick={handleToggleSwitch} className="w-full text-[11px]">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleToggleSwitch}
+                            className="w-full text-[11px]"
+                          >
                             Toggle Tie-Line Switch
                           </Button>
                         </div>
@@ -442,237 +1177,29 @@ export const ComponentDetailsPanel: React.FC = () => {
                   )}
 
                   {/* Bus node connections */}
-                  {selectedComponent.type === 'bus' && (
+                  {busData && (
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[#788477]">Connected Lines:</span>
-                        <span className="font-mono font-semibold text-[#26352A] dark:text-[#F2F5ED]">
-                          {(selectedComponent.data as Bus).connectedFeeders?.join(', ') || 'Radial'}
+                        <span className="text-[#788477]">Connected Feeders:</span>
+                        <span className="font-mono font-semibold text-[#26352A] dark:text-[#F2F5ED] truncate max-w-[190px]">
+                          {busData.connectedFeeders.map((f) => f.id).join(', ') || 'Radial'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-[#788477]">Branch Feeders:</span>
-                        <span className="text-[#506052] dark:text-[#A0B0A2]">
-                          {network.feeders.filter((f) => f.fromBus === selectedComponent.id || f.toBus === selectedComponent.id).length} Active Branches
+                        <span className="text-[#506052] dark:text-[#A0B0A2] font-semibold">
+                          {busData.connectedFeeders.length} Active Lines
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#788477]">Connected Assets:</span>
+                        <span className="text-[#506052] dark:text-[#A0B0A2] font-medium text-[11px]">
+                          {busData.connectedLoads.length} Loads • {busData.connectedSolar.length} Solar •{' '}
+                          {busData.connectedBatteries.length} BESS
                         </span>
                       </div>
                     </div>
                   )}
-                </div>
-              )}
-            </div>
-
-            {/* Section 4: Electrical Data */}
-            <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleSection('electrical')}
-                className="w-full flex items-center justify-between px-3 py-2 text-left font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#DDEB9D]/20 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  {openSections.electrical ? <ChevronDown className="w-3.5 h-3.5 text-[#788477]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />}
-                  <span>Electrical Data</span>
-                </div>
-              </button>
-
-              {openSections.electrical && (
-                <div className="px-3 pb-3 pt-1 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60">
-                  {/* Bus electrical data */}
-                  {selectedComponent.type === 'bus' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Voltage</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {formatVoltage((selectedComponent.data as Bus).voltage)}
-                        </span>
-                        <span className="text-[9px] text-[#788477] block mt-0.5">Limit: {(selectedComponent.data as Bus).voltageLimitMax?.toFixed(2) ?? '1.05'} pu</span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Line Loading</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {formatPercent((selectedComponent.data as Bus).lineLoadingPercent)}
-                        </span>
-                        <span className="text-[9px] text-[#788477] block mt-0.5">Limit: 100%</span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Branch Demand</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED]">
-                          {(selectedComponent.data as Bus).loadKw} kW
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Solar Infeed</span>
-                        <span className="font-bold font-mono text-amber-600 dark:text-amber-400">
-                          {(selectedComponent.data as Bus).solarKw} kW
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Feeder electrical data */}
-                  {selectedComponent.type === 'feeder' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Branch Loading</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {Math.round((selectedComponent.data as Feeder).loadingPercent || 0)}%
-                        </span>
-                        <span className="text-[9px] text-[#788477] block mt-0.5">Limit: {(selectedComponent.data as Feeder).loadingLimitPercent}%</span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Active Power Flow</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {(selectedComponent.data as Feeder).activePowerKw} kW
-                        </span>
-                        <span className="text-[9px] text-[#788477] block mt-0.5">Capacity: {(selectedComponent.data as Feeder).capacityKw} kW</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Solar electrical data */}
-                  {selectedComponent.type === 'solar' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Output Generation</span>
-                        <span className="font-bold font-mono text-amber-600 dark:text-amber-400 text-sm">
-                          {(selectedComponent.data as SolarUnit).generationKw} kW
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Installed Capacity</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {(selectedComponent.data as SolarUnit).capacityKw} kW
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Battery electrical data */}
-                  {selectedComponent.type === 'battery' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">State of Charge</span>
-                        <span className="font-bold font-mono text-[#A0C878] text-sm">
-                          {(selectedComponent.data as Battery).socPercent}% SoC
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Active Dispatch</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {(selectedComponent.data as Battery).powerKw} kW
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Load electrical data */}
-                  {selectedComponent.type === 'load' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Active Demand</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                          {(selectedComponent.data as Load).powerKw} kW
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Power Factor</span>
-                        <span className="font-bold font-mono text-[#506052] dark:text-[#A0B0A2] text-sm">
-                          {(selectedComponent.data as Load).powerFactor.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Substation */}
-                  {selectedComponent.type === 'transformer' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Rating</span>
-                        <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED]">2500 kVA</span>
-                      </div>
-                      <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                        <span className="text-[10px] text-[#788477] block">Loading</span>
-                        <span className="font-bold font-mono text-[#A0C878]">68.4%</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Section 5: Actions ([ Move ] [ Connect ] [ Delete ]) */}
-            <div className="border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg bg-[#FFFDF6] dark:bg-[#151F17] overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggleSection('actions')}
-                className="w-full flex items-center justify-between px-3 py-2 text-left font-semibold text-xs text-[#26352A] dark:text-[#F2F5ED] hover:bg-[#DDEB9D]/20 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5">
-                  {openSections.actions ? <ChevronDown className="w-3.5 h-3.5 text-[#788477]" /> : <ChevronRight className="w-3.5 h-3.5 text-[#788477]" />}
-                  <span>Actions</span>
-                </div>
-              </button>
-
-              {openSections.actions && (
-                <div className="px-3 pb-3 pt-1 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={handleMoveAction}
-                      leftIcon={<Move className="w-3.5 h-3.5" />}
-                      className="flex-1 text-xs"
-                      title="Adjust position in digital twin coordinate space"
-                    >
-                      Move
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => setShowConnectPicker(!showConnectPicker)}
-                      leftIcon={<Link2 className="w-3.5 h-3.5" />}
-                      className="flex-1 text-xs"
-                      title="Reassign or verify bus connection"
-                    >
-                      Connect
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => setDeleteConfirm(true)}
-                      leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-                      className="text-xs"
-                      title="Remove component from network model"
-                    >
-                      Delete
-                    </Button>
-                  </div>
-
-                  {deleteConfirm && (
-                    <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-900/80 text-xs mt-2">
-                      <div className="font-semibold text-red-900 dark:text-red-200">
-                        Remove {selectedComponent.id}?
-                      </div>
-                      <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="danger" onClick={handleDeleteComponent} className="flex-1 py-1">
-                          Confirm
-                        </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setDeleteConfirm(false)} className="flex-1 py-1">
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedComponent(null)}
-                      className="w-full text-center text-[11px] text-[#788477] hover:text-[#26352A] dark:hover:text-[#F2F5ED] underline cursor-pointer"
-                    >
-                      Deselect
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

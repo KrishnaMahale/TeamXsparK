@@ -14,7 +14,6 @@ import {
   TrendingUp,
   AlertTriangle,
   Wrench,
-  Layers,
   FileText,
 } from 'lucide-react'
 import { useTimeSimulation } from '../../hooks/useTimeSimulation'
@@ -60,9 +59,6 @@ export const Header: React.FC = () => {
     }
     if (path.startsWith('/actions')) {
       return { title: 'Corrective Actions', icon: Wrench }
-    }
-    if (path.startsWith('/scenarios')) {
-      return { title: 'Operating Scenarios', icon: Layers }
     }
     if (path.startsWith('/reports')) {
       return { title: 'Digital Twin Simulation Reports', icon: FileText }

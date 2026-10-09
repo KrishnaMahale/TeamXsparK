@@ -7,7 +7,6 @@ import {
   TrendingUp,
   AlertTriangle,
   Wrench,
-  Layers,
   FileText,
   Zap,
 } from 'lucide-react'
@@ -68,7 +67,6 @@ export const Sidebar: React.FC = () => {
           : 'bg-[#FEF3C7] text-[#92400E] dark:bg-amber-950/70 dark:text-amber-300 border border-[#FDE68A] dark:border-amber-800',
     },
     { name: 'Actions', path: '/actions', icon: Wrench },
-    { name: 'Scenarios', path: '/scenarios', icon: Layers },
     { name: 'Reports', path: '/reports', icon: FileText },
   ]
 

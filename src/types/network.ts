@@ -75,6 +75,7 @@ export interface Load {
   busId: string
   powerKw: number
   powerFactor: number
+  category?: string
   status: ComponentStatus
   position?: Position3D
 }
