@@ -1,5 +1,5 @@
 import { GridNetwork, Bus, Feeder } from '../../types/network'
-import { mockNetwork } from '../../mocks/networkMock'
+import { mockNetwork, mockMediumGrid, mockLargeGrid } from '../../mocks/networkMock'
 import { apiClient, IS_MOCK_API, simulateLatency } from './apiClient'
 
 const STORAGE_KEY_GRIDS = 'grid_twin_saved_grids'
@@ -15,7 +15,11 @@ const getLocalGrids = (): GridNetwork[] => {
   } catch (e) {
     console.warn('Failed to parse local grids', e)
   }
-  const defaultList = [JSON.parse(JSON.stringify(mockNetwork))]
+  const defaultList = [
+    JSON.parse(JSON.stringify(mockNetwork)),
+    JSON.parse(JSON.stringify(mockMediumGrid)),
+    JSON.parse(JSON.stringify(mockLargeGrid)),
+  ]
   saveLocalGrids(defaultList)
   return defaultList
 }
