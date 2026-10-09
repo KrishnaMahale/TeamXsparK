@@ -34,9 +34,9 @@ export const RouteError: React.FC = () => {
             variant="primary"
             size="sm"
             leftIcon={<Home className="w-4 h-4" />}
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/home')}
           >
-            Go to Overview
+            Go to Home
           </Button>
         </div>
       </div>
