@@ -54,6 +54,8 @@ interface SimulationState {
   sequentialPlanError: string | null
   planGridId: string | null
   planDate: string | null
+  planHorizonMode: 'forecast_series' | 'constant_snapshot' | 'grid_forecast' | null
+  planHorizonLabel: string | null
 
   // Input mutation actions
   setInput: (input: SimulationInput) => void
@@ -79,7 +81,12 @@ interface SimulationState {
   resetSimulation: () => void
 
   // Sequential MPC Planning actions
-  fetchSequentialPlan: (gridId?: string, startTimestep?: string, horizonSteps?: number) => Promise<SequentialControlResponse | null>
+  fetchSequentialPlan: (
+    gridId?: string,
+    startTimestep?: string,
+    horizonSteps?: number,
+    horizonMode?: 'auto' | 'constant_snapshot' | 'grid_forecast' | 'forecast_series'
+  ) => Promise<SequentialControlResponse | null>
   clearSequentialPlan: () => void
 }
 
@@ -111,6 +118,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   sequentialPlanError: null,
   planGridId: null,
   planDate: null,
+  planHorizonMode: null,
+  planHorizonLabel: null,
 
   availableActions: mockCorrectiveActions,
   selectedAction: mockCorrectiveActions[1], // Feeder Reconfiguration default
@@ -125,6 +134,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       sequentialPlanError: null,
       planGridId: null,
       planDate: null,
+      planHorizonMode: null,
+      planHorizonLabel: null,
     }),
 
   updateInput: (updates) => {
@@ -133,7 +144,11 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         updates.gridId !== undefined ||
         updates.simulationDate !== undefined ||
         updates.solarTimeSeries !== undefined ||
-        updates.loadTimeSeries !== undefined
+        updates.loadTimeSeries !== undefined ||
+        updates.currentSolarKw !== undefined ||
+        updates.currentLoadKw !== undefined ||
+        updates.batteryConfig !== undefined ||
+        updates.networkConfig !== undefined
       return {
         input: { ...state.input, ...updates },
         ...(shouldInvalidatePlan
@@ -142,6 +157,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
               sequentialPlanError: null,
               planGridId: null,
               planDate: null,
+              planHorizonMode: null,
+              planHorizonLabel: null,
             }
           : {}),
       }
@@ -161,6 +178,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       sequentialPlanError: null,
       planGridId: null,
       planDate: null,
+      planHorizonMode: null,
+      planHorizonLabel: null,
     })
     const gridStore = useGridStore.getState()
     const targetTime = presetKey === 'NORMAL_DAY' ? '10:00' : (presetKey === 'EVENING_PEAK' ? '19:30' : (presetKey === 'HIGH_SOLAR_LOW_LOAD' ? '12:30' : (presetKey === 'EXTREME_INFEASIBLE' ? '14:00' : '13:15')))
@@ -503,42 +522,50 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     get().fetchActions()
   },
 
-  fetchSequentialPlan: async (gridId?: string, startTimestep?: string, horizonSteps?: number) => {
+  fetchSequentialPlan: async (
+    gridId?: string,
+    startTimestep?: string,
+    horizonSteps?: number,
+    horizonMode: 'auto' | 'constant_snapshot' | 'grid_forecast' | 'forecast_series' = 'auto'
+  ) => {
     const activeGridId = gridId || get().input.gridId || useGridStore.getState().network.id || 'default-grid'
     const simDate = get().input.simulationDate || new Date().toISOString().split('T')[0]
+    const resolvedStartTime = startTimestep || useGridStore.getState().currentTime || '12:00'
+    const resolvedHorizonSteps = Math.max(8, horizonSteps || 8)
+
     set({ isPlanningSequential: true, sequentialPlanError: null })
 
     try {
-      const { solarTimeSeries, loadTimeSeries } = get().input
-      let forecastPoints: SequentialForecastPoint[] | undefined = undefined
-
-      if (solarTimeSeries && solarTimeSeries.length >= 8 && loadTimeSeries && loadTimeSeries.length >= 8) {
-        const loadMap = new Map(loadTimeSeries.map((lp) => [lp.time, lp.loadKw]))
-        forecastPoints = solarTimeSeries
-          .filter((sp) => loadMap.has(sp.time))
-          .map((sp) => ({
-            time: sp.time,
-            solarKw: sp.solarKw,
-            loadKw: loadMap.get(sp.time) || 0,
-          }))
-      }
-
-      // Read current battery SOC from network state if available
+      const input = get().input
       const network = useGridStore.getState().network
+
+      // 1. Initial Battery State: propagate user-configured initialSocPercent from normal simulation input
+      const configuredSoc =
+        input.batteryConfig?.initialSocPercent !== undefined
+          ? Math.min(100, Math.max(0, input.batteryConfig.initialSocPercent))
+          : 62
+
       const batteryMap: Record<string, number> = {}
-      if (network && network.batteries) {
+      if (network && network.batteries && network.batteries.length > 0) {
         network.batteries.forEach((b) => {
-          if (b.socPercent !== undefined) {
-            batteryMap[b.id] = b.socPercent
-          }
+          batteryMap[b.id] = configuredSoc
         })
       }
 
+      // 2. Initial Topology: propagate user-selected feeder topology if supported by target grid
+      const supportsAlt = network?.feeders?.some((f) => f.isReconfigurableAlternate) ?? false
+      const requestedTopology =
+        input.networkConfig?.feederTopology === 'alternative' ? 'alternative' : 'standard'
+      const initialTopology =
+        requestedTopology === 'alternative' && supportsAlt ? 'alternative' : 'standard'
+
       const req: SequentialControlRequest = {
         gridId: activeGridId,
-        startTimestep: startTimestep || '12:00',
-        horizonSteps: horizonSteps || 8,
+        startTimestep: resolvedStartTime,
+        horizonSteps: resolvedHorizonSteps,
         stepDurationHours: 0.25,
+        initialSocPercent: configuredSoc,
+        initialTopology,
         recedingHorizonMode: true,
       }
 
@@ -546,8 +573,91 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         req.batterySocs = batteryMap
       }
 
-      if (forecastPoints && forecastPoints.length >= (horizonSteps || 8)) {
-        req.forecastData = forecastPoints
+      // 3. Form Horizon Data: check staged forecast series vs normal-simulation baseline
+      const add15Minutes = (timeStr: string, stepsCount: number): string => {
+        const parts = timeStr.split(':')
+        const h = parseInt(parts[0], 10) || 0
+        const m = parseInt(parts[1], 10) || 0
+        const totalMins = ((h * 60 + m + stepsCount * 15) % 1440 + 1440) % 1440
+        const nextH = Math.floor(totalMins / 60)
+        const nextM = totalMins % 60
+        return `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`
+      }
+
+      const checkConsecutive15MinSpacing = (pts: Array<{ time: string }>): boolean => {
+        for (let i = 1; i < pts.length; i++) {
+          const [hPrev, mPrev] = pts[i - 1].time.split(':').map(Number)
+          const [hCurr, mCurr] = pts[i].time.split(':').map(Number)
+          const delta = (((hCurr * 60 + mCurr) - (hPrev * 60 + mPrev)) % 1440 + 1440) % 1440
+          if (delta !== 15) return false
+        }
+        return true
+      }
+
+      let effectiveHorizonMode: 'forecast_series' | 'constant_snapshot' | 'grid_forecast' = 'constant_snapshot'
+      let effectiveHorizonLabel = ''
+
+      // Check for valid 15-minute series in input (e.g. from /forecasts)
+      const { solarTimeSeries, loadTimeSeries } = input
+      let valid15MinSeries: SequentialForecastPoint[] | null = null
+
+      if (solarTimeSeries && loadTimeSeries && solarTimeSeries.length >= 8 && loadTimeSeries.length >= 8) {
+        const loadMap = new Map(loadTimeSeries.map((lp) => [lp.time, lp.loadKw]))
+        const paired = solarTimeSeries
+          .filter((sp) => loadMap.has(sp.time))
+          .map((sp) => ({
+            time: sp.time,
+            solarKw: sp.solarKw,
+            loadKw: loadMap.get(sp.time) || 0,
+          }))
+
+        const startIdx = paired.findIndex((p) => p.time === resolvedStartTime)
+        if (startIdx >= 0 && startIdx + resolvedHorizonSteps <= paired.length) {
+          const window = paired.slice(startIdx, startIdx + resolvedHorizonSteps)
+          if (checkConsecutive15MinSpacing(window)) {
+            valid15MinSeries = window
+          }
+        }
+      }
+
+      const isForecastDriven = input.simulationSource === 'forecast'
+
+      if (horizonMode === 'forecast_series' || (horizonMode === 'auto' && isForecastDriven && valid15MinSeries)) {
+        if (!valid15MinSeries) {
+          throw new Error(
+            `Forecast series at ${resolvedStartTime} does not have at least ${resolvedHorizonSteps} consecutive 15-minute intervals. Please select an earlier start time (e.g. 12:00) or generate a full day-ahead forecast.`
+          )
+        }
+        req.forecastData = valid15MinSeries
+        effectiveHorizonMode = 'forecast_series'
+        effectiveHorizonLabel = `ML Day-Ahead Forecast (${resolvedHorizonSteps} steps)`
+      } else if (horizonMode === 'grid_forecast') {
+        // Reuse grid's day-ahead forecast baseline from backend ForecastService without fabricating data
+        req.forecastData = undefined
+        effectiveHorizonMode = 'grid_forecast'
+        effectiveHorizonLabel = `Grid Day-Ahead Forecast Baseline (${network.name || activeGridId})`
+      } else {
+        // Mode: constant_snapshot (default for normal simulation workflow)
+        // Form an explicit constant-input baseline scenario from configured operating snapshot
+        const snapSolar = Math.max(0, input.currentSolarKw ?? 0)
+        const snapLoad = Math.max(0, input.currentLoadKw ?? 0)
+
+        if (isNaN(snapSolar) || isNaN(snapLoad)) {
+          throw new Error('Operating conditions contain invalid or non-numeric solar / load values.')
+        }
+
+        const constantPoints: SequentialForecastPoint[] = []
+        for (let i = 0; i < resolvedHorizonSteps; i++) {
+          constantPoints.push({
+            time: add15Minutes(resolvedStartTime, i),
+            solarKw: snapSolar,
+            loadKw: snapLoad,
+          })
+        }
+
+        req.forecastData = constantPoints
+        effectiveHorizonMode = 'constant_snapshot'
+        effectiveHorizonLabel = `Constant-Input Baseline Scenario (${snapSolar} kW PV / ${snapLoad} kW Demand)`
       }
 
       const plan = await controlService.planSequentialControl(req)
@@ -555,6 +665,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         sequentialPlan: plan,
         planGridId: activeGridId,
         planDate: simDate,
+        planHorizonMode: effectiveHorizonMode,
+        planHorizonLabel: effectiveHorizonLabel,
         isPlanningSequential: false,
         sequentialPlanError: null,
       })
@@ -580,6 +692,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       sequentialPlanError: null,
       planGridId: null,
       planDate: null,
+      planHorizonMode: null,
+      planHorizonLabel: null,
     })
   },
 }))

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
@@ -22,7 +23,12 @@ import {
 } from 'lucide-react'
 
 export const ActionsPage: React.FC = () => {
-  const [viewMode, setViewMode] = React.useState<'snapshot' | 'sequential'>('snapshot')
+  const location = useLocation()
+  const initialViewMode =
+    (location.state as any)?.viewMode === 'sequential' || location.search.includes('mode=sequential')
+      ? 'sequential'
+      : 'snapshot'
+  const [viewMode, setViewMode] = React.useState<'snapshot' | 'sequential'>(initialViewMode)
 
   const {
     actions,

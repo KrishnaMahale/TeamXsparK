@@ -17,6 +17,7 @@ import {
   Play,
   CheckCircle2,
   AlertTriangle,
+  Layers,
 } from 'lucide-react'
 
 export const SimulationSetupPage: React.FC = () => {
@@ -27,6 +28,7 @@ export const SimulationSetupPage: React.FC = () => {
     input,
     activePresetKey,
     isRunning,
+    isPlanningSequential,
     isProgressModalOpen,
     progressSteps,
     currentProgressIndex,
@@ -43,6 +45,7 @@ export const SimulationSetupPage: React.FC = () => {
     generateSampleLoad,
     importCsvData,
     runFullSimulation,
+    fetchSequentialPlan,
     closeProgressModal,
     resetSimulation,
   } = useSimulationStore()
@@ -143,6 +146,17 @@ export const SimulationSetupPage: React.FC = () => {
     await runFullSimulation()
   }
 
+  const handleRunSequentialMPC = async () => {
+    const startTime = useGridStore.getState().currentTime || '12:00'
+    const plan = await fetchSequentialPlan(
+      network.id,
+      startTime,
+      8,
+      isForecastContext ? 'forecast_series' : 'constant_snapshot'
+    )
+    navigate('/actions', { state: { viewMode: 'sequential' } })
+  }
+
   const handleViewResults = () => {
     closeProgressModal()
     navigate('/actions')
@@ -235,15 +249,26 @@ export const SimulationSetupPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-end sm:self-center">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={handleRunSequentialMPC}
+                  disabled={isRunning || isPlanningSequential || validationErrors.length > 0}
+                  isLoading={isPlanningSequential}
+                  leftIcon={!isPlanningSequential ? <Layers className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" /> : undefined}
+                  className="font-bold px-4 border-[#86EFAC]/70 dark:border-[#86EFAC]/30 shadow-xs"
+                >
+                  {isPlanningSequential ? 'Evaluating Physics...' : 'Run Sequential MPC (8+ Steps)'}
+                </Button>
                 <Button
                   variant="primary"
                   size="md"
                   onClick={handleRun}
-                  disabled={isRunning || validationErrors.length > 0}
+                  disabled={isRunning || isPlanningSequential || validationErrors.length > 0}
                   isLoading={isRunning}
                   leftIcon={!isRunning ? <Play className="w-4 h-4 fill-current" /> : undefined}
-                  className="font-bold px-6 shadow-md"
+                  className="font-bold px-5 shadow-md"
                 >
                   {isRunning ? 'Running Digital Twin...' : 'Run Digital Twin Simulation'}
                 </Button>

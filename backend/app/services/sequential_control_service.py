@@ -140,10 +140,10 @@ class SequentialControlService:
                 effective_forecast = [
                     SequentialForecastPoint(
                         time=pt.time,
-                        solarKw=float(pt.solar),
-                        loadKw=float(pt.load),
+                        solarKw=float(getattr(pt, "solarGenerationKw", getattr(pt, "predictedSolarKw", 0.0))),
+                        loadKw=float(getattr(pt, "loadDemandKw", getattr(pt, "predictedLoadKw", 0.0))),
                     )
-                    for pt in fc_res.points
+                    for pt in fc_res.dataPoints
                 ]
             except Exception as e:
                 raise ValidationException(

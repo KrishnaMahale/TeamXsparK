@@ -56,21 +56,28 @@ export const SequentialTrajectoryView = React.memo<SequentialTrajectoryViewProps
     sequentialPlanError,
     planGridId,
     planDate,
+    planHorizonLabel,
+    input,
     fetchSequentialPlan,
   } = useSimulationStore()
+
+  const isForecastDriven = input?.simulationSource === 'forecast'
 
   // Horizon and start time controls
   const [selectedStartTimestep, setSelectedStartTimestep] = useState<string>(
     currentTime || '12:00'
   )
   const [selectedHorizonSteps, setSelectedHorizonSteps] = useState<number>(8)
+  const [selectedHorizonMode, setSelectedHorizonMode] = useState<
+    'auto' | 'constant_snapshot' | 'grid_forecast' | 'forecast_series'
+  >('auto')
 
   const isStale =
     sequentialPlan !== null &&
     (planGridId !== gridId || (simulationDate && planDate !== simulationDate))
 
   const handleComputePlan = async () => {
-    await fetchSequentialPlan(gridId, selectedStartTimestep, selectedHorizonSteps)
+    await fetchSequentialPlan(gridId, selectedStartTimestep, selectedHorizonSteps, selectedHorizonMode)
   }
 
   // Visual design tokens
@@ -131,7 +138,7 @@ export const SequentialTrajectoryView = React.memo<SequentialTrajectoryViewProps
       {/* 1. Header Control Bar */}
       <div className="p-4 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-[0_8px_30px_rgba(16,80,55,0.06)] flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Layers className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />
             <h2 className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] tracking-tight">
               Receding-Horizon Sequential Controller (MPC)
@@ -144,6 +151,11 @@ export const SequentialTrajectoryView = React.memo<SequentialTrajectoryViewProps
                 {simulationDate}
               </Badge>
             )}
+            {planHorizonLabel && (
+              <Badge variant="success" size="sm" className="text-[10px] font-medium">
+                {planHorizonLabel}
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-[#52665A] dark:text-[#A7F3D0] mt-0.5">
             Evaluates multi-step lookahead trajectories across consecutive 15-minute intervals with stateful battery SOC tracking and authoritative physical verification.
@@ -152,6 +164,25 @@ export const SequentialTrajectoryView = React.memo<SequentialTrajectoryViewProps
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Baseline Scenario / Horizon Select */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[#52665A] dark:text-[#A7F3D0] font-medium">Baseline:</span>
+            <select
+              value={selectedHorizonMode}
+              onChange={(e) => setSelectedHorizonMode(e.target.value as any)}
+              className="px-2.5 py-1.5 rounded-xl border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 bg-[#F7FCF9] dark:bg-[#064E3B]/40 text-[#10251A] dark:text-[#ECFDF3] text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-[#047857]"
+            >
+              <option value="auto">
+                {isForecastDriven ? 'Auto: ML Day-Ahead Forecast' : 'Auto: Operating Condition Baseline'}
+              </option>
+              <option value="constant_snapshot">
+                Constant Snapshot ({input?.currentSolarKw ?? 0} kW PV / {input?.currentLoadKw ?? 0} kW Load)
+              </option>
+              <option value="grid_forecast">Grid ML Day-Ahead Forecast</option>
+              {isForecastDriven && <option value="forecast_series">ML Forecast Series (Staged)</option>}
+            </select>
+          </div>
+
           {/* Start Time Select */}
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-[#52665A] dark:text-[#A7F3D0] font-medium flex items-center gap-1">
