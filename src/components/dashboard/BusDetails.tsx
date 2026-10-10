@@ -6,6 +6,7 @@ import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useGridStore } from '../../store/gridStore'
 import { useSimulationStore } from '../../store/simulationStore'
 import { Bus, Feeder, SolarUnit, Battery, Load, GridNetwork } from '../../types/network'
+import { SolarRooftopVillaSvg } from '../network/assets/SolarRooftopIcon'
 import {
   Cpu,
   ChevronDown,
@@ -93,7 +94,9 @@ export const ComponentDetailsPanel: React.FC = () => {
       setEditForm({
         name: s.name || '',
         generationKw: s.generationKw ?? 50,
+        loadKw: s.loadKw ?? 0,
         capacityKw: s.capacityKw ?? 100,
+        isSolarRooftop: s.isSolarRooftop ?? false,
       })
     } else if (type === 'battery') {
       const b = data as Battery
@@ -205,8 +208,11 @@ export const ComponentDetailsPanel: React.FC = () => {
             item.generationKw,
             Number(editForm.capacityKw) || item.generationKw
           )
+          if (editForm.loadKw !== undefined) {
+            item.loadKw = Math.max(0, Number(editForm.loadKw) || 0)
+          }
 
-          // Propagate to connected bus solarKw
+          // Propagate to connected bus solarKw and loadKw
           if (item.busId) {
             const bus = updatedNetwork.buses.find((b) => b.id === item.busId)
             if (bus) {
@@ -215,6 +221,13 @@ export const ComponentDetailsPanel: React.FC = () => {
                 (sum, s) => sum + (s.id === item.id ? item.generationKw : (s.generationKw || 0)),
                 0
               )
+              const busLoads = updatedNetwork.loads.filter((l) => l.busId === bus.id)
+              const baseLoad = busLoads.reduce((sum, l) => sum + (l.powerKw || 0), 0)
+              const solarRooftopLoads = busSolars.reduce(
+                (sum, s) => sum + (s.id === item.id ? (item.loadKw || 0) : (s.loadKw || 0)),
+                0
+              )
+              bus.loadKw = baseLoad + solarRooftopLoads
             }
           }
         }
@@ -332,9 +345,10 @@ export const ComponentDetailsPanel: React.FC = () => {
     const connectedSolar = network.solarUnits.filter((s) => s.busId === b.id)
     const connectedBatteries = network.batteries.filter((bat) => bat.busId === b.id)
 
+    const connectedSolarRooftopLoad = connectedSolar.reduce((sum, s) => sum + (s.loadKw || 0), 0)
     const demandKw =
-      connectedLoads.length > 0
-        ? connectedLoads.reduce((sum, l) => sum + (l.powerKw || 0), 0)
+      connectedLoads.length > 0 || connectedSolarRooftopLoad > 0
+        ? connectedLoads.reduce((sum, l) => sum + (l.powerKw || 0), 0) + connectedSolarRooftopLoad
         : b.loadKw || 0
 
     const solarKw =
@@ -507,8 +521,17 @@ export const ComponentDetailsPanel: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#788477]">Type:</span>
-                    <span className="font-mono uppercase font-semibold text-[#506052] dark:text-[#A0B0A2]">
-                      {liveComponent.type}
+                    <span className="font-mono uppercase font-semibold text-[#506052] dark:text-[#A0B0A2] flex items-center gap-1.5">
+                      {liveComponent.type === 'solar' && Boolean(
+                        (liveComponent.data as SolarUnit).isSolarRooftop ||
+                        (liveComponent.data as SolarUnit).name.toLowerCase().includes('rooftop') ||
+                        (liveComponent.data as SolarUnit).name.toLowerCase().includes('solarrooftop')
+                      ) && <SolarRooftopVillaSvg className="w-4 h-4 shrink-0" />}
+                      {liveComponent.type === 'solar' && Boolean(
+                        (liveComponent.data as SolarUnit).isSolarRooftop ||
+                        (liveComponent.data as SolarUnit).name.toLowerCase().includes('rooftop') ||
+                        (liveComponent.data as SolarUnit).name.toLowerCase().includes('solarrooftop')
+                      ) ? 'SOLARROOFTOP' : liveComponent.type}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -647,7 +670,7 @@ export const ComponentDetailsPanel: React.FC = () => {
                                 onChange={(e) =>
                                   setEditForm({ ...editForm, generationKw: e.target.value })
                                 }
-                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-amber-600 dark:text-amber-400 focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 focus:ring-1 focus:ring-[#A0C878] focus:outline-none"
                               />
                             </div>
                             <div>
@@ -666,8 +689,30 @@ export const ComponentDetailsPanel: React.FC = () => {
                               />
                             </div>
                           </div>
-                          <p className="text-[10px] text-[#788477] italic">
-                            * Updating solar generation updates solar infeed on the connected bus and system HUD.
+                          {Boolean(
+                            editForm.isSolarRooftop ||
+                            (liveComponent.data as SolarUnit).isSolarRooftop ||
+                            (liveComponent.data as SolarUnit).name.toLowerCase().includes('rooftop') ||
+                            (liveComponent.data as SolarUnit).name.toLowerCase().includes('solarrooftop')
+                          ) && (
+                            <div className="mt-2">
+                              <label className="text-[10px] text-[#0284C7] dark:text-[#38BDF8] block mb-0.5 font-semibold">
+                                Household Load Demand (kW)
+                              </label>
+                              <input
+                                type="number"
+                                step="1"
+                                min="0"
+                                value={editForm.loadKw ?? ''}
+                                onChange={(e) =>
+                                  setEditForm({ ...editForm, loadKw: e.target.value })
+                                }
+                                className="w-full bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#38BDF8] rounded-md px-2.5 py-1 text-xs font-mono font-bold text-[#0284C7] dark:text-[#38BDF8] focus:ring-1 focus:ring-[#0284C7] focus:outline-none"
+                              />
+                            </div>
+                          )}
+                          <p className="text-[10px] text-[#788477] italic mt-1.5">
+                            * Solarrooftop acts as dual asset: generation pushes solar power into grid while household load consumes power from bus.
                           </p>
                         </>
                       )}
@@ -986,36 +1031,53 @@ export const ComponentDetailsPanel: React.FC = () => {
                       )}
 
                       {/* Solar electrical data */}
-                      {liveComponent.type === 'solar' && (
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                            <span className="text-[10px] text-[#788477] block">Output Generation</span>
-                            <span className="font-bold font-mono text-amber-600 dark:text-amber-400 text-sm">
-                              {(liveComponent.data as SolarUnit).generationKw} kW
-                            </span>
-                            <span className="text-[9px] text-[#788477] block mt-0.5">
-                              Efficiency:{' '}
-                              {(liveComponent.data as SolarUnit).capacityKw > 0
-                                ? Math.round(
-                                    ((liveComponent.data as SolarUnit).generationKw /
-                                      (liveComponent.data as SolarUnit).capacityKw) *
-                                      100
-                                  )
-                                : 0}
-                              %
-                            </span>
+                      {liveComponent.type === 'solar' && (() => {
+                        const s = liveComponent.data as SolarUnit
+                        const isRooftop = Boolean(
+                          s.isSolarRooftop ||
+                          s.name.toLowerCase().includes('rooftop') ||
+                          s.name.toLowerCase().includes('solarrooftop') ||
+                          s.name.includes('[Rooftop]') ||
+                          s.name.toLowerCase().includes('solar roof')
+                        )
+                        const netKw = (s.generationKw || 0) - (s.loadKw || 0)
+
+                        return (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                              <span className="text-[10px] text-[#788477] block">Solar Generation</span>
+                              <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
+                                +{s.generationKw} kW
+                              </span>
+                              <span className="text-[9px] text-[#788477] block mt-0.5">
+                                Capacity: {s.capacityKw} kW
+                              </span>
+                            </div>
+
+                            {isRooftop ? (
+                              <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                                <span className="text-[10px] text-[#0284C7] dark:text-[#38BDF8] block font-semibold">Household Demand</span>
+                                <span className="font-bold font-mono text-blue-600 dark:text-blue-400 text-sm">
+                                  -{s.loadKw ?? 0} kW
+                                </span>
+                                <span className="text-[9px] text-[#788477] block mt-0.5 font-mono">
+                                  Net: {netKw >= 0 ? `+${netKw}` : netKw} kW {netKw >= 0 ? '(Export)' : '(Import)'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+                                <span className="text-[10px] text-[#788477] block">Installed Capacity</span>
+                                <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
+                                  {s.capacityKw} kW
+                                </span>
+                                <span className="text-[9px] text-[#788477] block mt-0.5">
+                                  Irradiance: {s.irradianceWm2 ?? 800} W/m²
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          <div className="p-2 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                            <span className="text-[10px] text-[#788477] block">Installed Capacity</span>
-                            <span className="font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] text-sm">
-                              {(liveComponent.data as SolarUnit).capacityKw} kW
-                            </span>
-                            <span className="text-[9px] text-[#788477] block mt-0.5">
-                              Irradiance: {(liveComponent.data as SolarUnit).irradianceWm2 ?? 800} W/m²
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                        )
+                      })()}
 
                       {/* Battery electrical data */}
                       {liveComponent.type === 'battery' && (

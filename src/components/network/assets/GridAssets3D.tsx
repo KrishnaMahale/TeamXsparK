@@ -297,45 +297,296 @@ export const SolarUtilityAsset: React.FC = () => {
 }
 
 // =======================================================================
-// 4. SOLAR ROOFTOP ASSET (Distributed Rooftop PV Array)
 // =======================================================================
-export const SolarRooftopAsset: React.FC = () => {
+// 4. SOLARROOFTOP ASSET (Residential Home with Integrated Rooftop Solar PV System)
+// =======================================================================
+export const SolarrooftopAsset: React.FC = () => {
   return (
     <group>
-      {/* Roof Deck Base */}
-      <mesh position={[0, 0.1, 0]}>
-        <boxGeometry args={[1.5, 0.15, 1.25]} />
-        <meshStandardMaterial color="#334155" roughness={0.8} />
+      {/* 1. Manicured Green Lawn Garden Plot (Isometric Landscaping from reference image) */}
+      <mesh position={[0, 0.04, 0]}>
+        <boxGeometry args={[2.7, 0.08, 2.7]} />
+        <meshStandardMaterial color="#84cc16" roughness={0.85} />
+      </mesh>
+      {/* Dark Earth Edge Base */}
+      <mesh position={[0, -0.01, 0]}>
+        <boxGeometry args={[2.72, 0.03, 2.72]} />
+        <meshStandardMaterial color="#65a30d" roughness={0.95} />
       </mesh>
 
-      {/* Unistrut Aluminum Rails */}
-      {[-0.42, 0.42].map((z, i) => (
-        <mesh key={`rail-${i}`} position={[0, 0.2, z]}>
-          <boxGeometry args={[1.4, 0.04, 0.04]} />
-          <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.2} />
-        </mesh>
+      {/* 2. Light Stone Paved Terrace Patio (Front & Right) */}
+      <mesh position={[0.42, 0.082, 0.42]}>
+        <boxGeometry args={[1.65, 0.015, 1.65]} />
+        <meshStandardMaterial color="#f1f5f9" roughness={0.5} />
+      </mesh>
+      {/* Patio Grout Line Details */}
+      {[-0.35, 0, 0.35].map((offset, i) => (
+        <group key={`patio-lines-${i}`}>
+          <mesh position={[0.42, 0.09, 0.42 + offset]}>
+            <boxGeometry args={[1.63, 0.005, 0.02]} />
+            <meshStandardMaterial color="#cbd5e1" />
+          </mesh>
+          <mesh position={[0.42 + offset, 0.09, 0.42]}>
+            <boxGeometry args={[0.02, 0.005, 1.63]} />
+            <meshStandardMaterial color="#cbd5e1" />
+          </mesh>
+        </group>
       ))}
 
-      {/* Tilted Solar PV Modules */}
-      <group position={[0, 0.36, 0]} rotation={[-Math.PI / 7.5, 0, 0]}>
-        <mesh>
-          <boxGeometry args={[1.3, 0.04, 0.95]} />
-          <meshStandardMaterial color="#0f2b5c" roughness={0.12} metalness={0.75} />
+      {/* Modern Sun Lounge / Recliner Chair on Patio (from reference) */}
+      <group position={[1.0, 0.14, 0.75]} rotation={[0, -Math.PI / 4, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.22, 0.04, 0.55]} />
+          <meshStandardMaterial color="#e2e8f0" roughness={0.4} />
         </mesh>
-        <mesh position={[0, 0.025, 0]}>
-          <boxGeometry args={[1.32, 0.01, 0.97]} />
-          <meshStandardMaterial color="#f8fafc" metalness={0.95} roughness={0.15} />
+        <mesh position={[0, 0.06, -0.18]} rotation={[0.4, 0, 0]}>
+          <boxGeometry args={[0.22, 0.04, 0.25]} />
+          <meshStandardMaterial color="#cbd5e1" roughness={0.4} />
         </mesh>
       </group>
 
-      {/* Micro-Inverter Enclosure */}
-      <mesh position={[0.5, 0.18, 0.48]}>
-        <boxGeometry args={[0.2, 0.14, 0.08]} />
-        <meshStandardMaterial color="#f1f5f9" roughness={0.35} />
+      {/* Potted Spherical Topiary Plants in White Planters (Flanking Patio) */}
+      {[
+        [0.15, 0.12, 1.05],
+        [0.85, 0.12, 0.05],
+      ].map(([px, py, pz], idx) => (
+        <group key={`topiary-${idx}`} position={[px, py, pz]}>
+          {/* White Square Planter */}
+          <mesh position={[0, 0.06, 0]}>
+            <boxGeometry args={[0.16, 0.14, 0.16]} />
+            <meshStandardMaterial color="#ffffff" roughness={0.3} />
+          </mesh>
+          {/* Trunk */}
+          <mesh position={[0, 0.18, 0]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.12, 8]} />
+            <meshStandardMaterial color="#78350f" />
+          </mesh>
+          {/* Spherical Trimmed Bush */}
+          <mesh position={[0, 0.28, 0]}>
+            <sphereGeometry args={[0.13, 12, 12]} />
+            <meshStandardMaterial color="#84cc16" roughness={0.7} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Conical Cypress / Pine Trees (from reference) */}
+      {/* Left Tree */}
+      <group position={[-1.0, 0.08, -0.6]}>
+        <mesh position={[0, 0.25, 0]}>
+          <cylinderGeometry args={[0.04, 0.06, 0.5, 8]} />
+          <meshStandardMaterial color="#78350f" />
+        </mesh>
+        <mesh position={[0, 0.55, 0]}>
+          <coneGeometry args={[0.28, 0.65, 8]} />
+          <meshStandardMaterial color="#22c55e" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.85, 0]}>
+          <coneGeometry args={[0.22, 0.55, 8]} />
+          <meshStandardMaterial color="#4ade80" roughness={0.8} />
+        </mesh>
+      </group>
+      {/* Right Rear Tree */}
+      <group position={[0.95, 0.08, -0.95]}>
+        <mesh position={[0, 0.25, 0]}>
+          <cylinderGeometry args={[0.04, 0.06, 0.5, 8]} />
+          <meshStandardMaterial color="#78350f" />
+        </mesh>
+        <mesh position={[0, 0.55, 0]}>
+          <coneGeometry args={[0.26, 0.65, 8]} />
+          <meshStandardMaterial color="#16a34a" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.85, 0]}>
+          <coneGeometry args={[0.20, 0.55, 8]} />
+          <meshStandardMaterial color="#22c55e" roughness={0.8} />
+        </mesh>
+      </group>
+      {/* Round Bush on Lawn */}
+      <mesh position={[-1.0, 0.16, 0.8]}>
+        <sphereGeometry args={[0.18, 10, 10]} />
+        <meshStandardMaterial color="#65a30d" roughness={0.85} />
       </mesh>
+
+      {/* 3. GROUND FLOOR VILLA MAIN BODY (Crisp Contemporary White Concrete) */}
+      <mesh position={[-0.12, 0.54, -0.12]}>
+        <boxGeometry args={[1.68, 0.92, 1.68]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.3} metalness={0.05} />
+      </mesh>
+
+      {/* Floor-to-Ceiling Panoramic Glass Windows & Patio Sliding Doors */}
+      {/* Left Front Panoramic Window 1 */}
+      <mesh position={[-0.6, 0.52, 0.73]}>
+        <boxGeometry args={[0.38, 0.72, 0.02]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      {/* Left Front Panoramic Window 2 */}
+      <mesh position={[-0.15, 0.52, 0.73]}>
+        <boxGeometry args={[0.38, 0.72, 0.02]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      {/* Right Front Sliding Glass Doors Opening onto Patio */}
+      <mesh position={[0.35, 0.52, 0.73]}>
+        <boxGeometry args={[0.42, 0.76, 0.02]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      {/* Side Glass Panels */}
+      <mesh position={[0.73, 0.52, 0.32]}>
+        <boxGeometry args={[0.02, 0.76, 0.45]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      <mesh position={[0.73, 0.52, -0.25]}>
+        <boxGeometry args={[0.02, 0.72, 0.42]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+
+      {/* White Window Frames & Mullions */}
+      <mesh position={[-0.6, 0.52, 0.74]}>
+        <boxGeometry args={[0.015, 0.72, 0.01]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[-0.15, 0.52, 0.74]}>
+        <boxGeometry args={[0.015, 0.72, 0.01]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[0.35, 0.52, 0.74]}>
+        <boxGeometry args={[0.015, 0.76, 0.01]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+
+      {/* 4. LOWER TERRACE CANOPY OVERHANG & 3 TILTED SOLAR PANELS */}
+      {/* White Cantilevered Slab Overhang */}
+      <mesh position={[-0.12, 1.02, -0.12]}>
+        <boxGeometry args={[1.92, 0.07, 1.92]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.25} metalness={0.1} />
+      </mesh>
+
+      {/* Row of 3 Tilted Solar Panels on Lower Roof Overhang (from reference) */}
+      <group position={[-0.55, 1.15, 0.62]} rotation={[-0.38, 0, 0]}>
+        {/* Support Racks */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.95, 0.02, 0.38]} />
+          <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.2} />
+        </mesh>
+        {/* 3 Individual Solar Modules */}
+        {[-0.32, 0, 0.32].map((x, idx) => (
+          <group key={`lower-pv-${idx}`} position={[x, 0.02, 0]}>
+            <mesh>
+              <boxGeometry args={[0.29, 0.02, 0.36]} />
+              <meshStandardMaterial color="#0f2b5c" roughness={0.12} metalness={0.85} />
+            </mesh>
+            <mesh position={[0, 0.012, 0]}>
+              <boxGeometry args={[0.30, 0.005, 0.37]} />
+              <meshStandardMaterial color="#f8fafc" metalness={0.95} roughness={0.1} />
+            </mesh>
+            <mesh position={[0, 0.014, 0]}>
+              <boxGeometry args={[0.28, 0.002, 0.015]} />
+              <meshStandardMaterial color="#93c5fd" emissive="#38bdf8" emissiveIntensity={0.3} />
+            </mesh>
+          </group>
+        ))}
+      </group>
+
+      {/* 5. SECOND STORY CONTEMPORARY CUBE VILLA (Setback Upper Floor) */}
+      <mesh position={[-0.2, 1.48, -0.2]}>
+        <boxGeometry args={[1.28, 0.85, 1.28]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.3} metalness={0.05} />
+      </mesh>
+
+      {/* Upper Floor Large Panoramic Windows */}
+      <mesh position={[-0.38, 1.48, 0.45]}>
+        <boxGeometry args={[0.42, 0.65, 0.02]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      <mesh position={[0.12, 1.48, 0.45]}>
+        <boxGeometry args={[0.38, 0.65, 0.02]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+      <mesh position={[0.45, 1.48, -0.05]}>
+        <boxGeometry args={[0.02, 0.65, 0.55]} />
+        <meshStandardMaterial color="#38bdf8" roughness={0.08} metalness={0.85} />
+      </mesh>
+
+      {/* Outdoor Air Conditioning Compressor Unit on Upper Terrace (from reference) */}
+      <group position={[0.38, 1.15, 0.45]}>
+        <mesh position={[0, 0.08, 0]}>
+          <boxGeometry args={[0.18, 0.16, 0.12]} />
+          <meshStandardMaterial color="#f1f5f9" roughness={0.35} metalness={0.4} />
+        </mesh>
+        <mesh position={[0, 0.08, 0.062]}>
+          <boxGeometry args={[0.12, 0.10, 0.005]} />
+          <meshStandardMaterial color="#64748b" roughness={0.8} />
+        </mesh>
+      </group>
+
+      {/* 6. TOP SLANTED MONOPITCH ROOF WITH 6 LARGE PHOTOVOLTAIC PANELS (2x3 ARRAY) */}
+      <group position={[-0.2, 2.02, -0.16]} rotation={[-Math.PI / 8.5, 0, 0]}>
+        {/* Crisp White Overhanging Monopitch Roof Fascia */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1.58, 0.08, 1.48]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.25} metalness={0.1} />
+        </mesh>
+
+        {/* Heavy Aluminum Mounting Rails */}
+        {[-0.55, 0, 0.55].map((x, i) => (
+          <mesh key={`top-rail-${i}`} position={[x, 0.045, 0]}>
+            <boxGeometry args={[0.03, 0.02, 1.35]} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.15} />
+          </mesh>
+        ))}
+
+        {/* 6 Large Photovoltaic Modules (2 rows of 3 panels exactly as in reference image) */}
+        {[-0.45, 0, 0.45].map((x, xi) =>
+          [-0.32, 0.32].map((z, zi) => (
+            <group key={`top-pv-${xi}-${zi}`} position={[x, 0.065, z]}>
+              {/* PV Silicon Cell Panel */}
+              <mesh>
+                <boxGeometry args={[0.42, 0.02, 0.58]} />
+                <meshStandardMaterial
+                  color="#0f2b5c"
+                  roughness={0.12}
+                  metalness={0.85}
+                />
+              </mesh>
+              {/* Aluminum Frame */}
+              <mesh position={[0, 0.006, 0]}>
+                <boxGeometry args={[0.43, 0.012, 0.59]} />
+                <meshStandardMaterial color="#f8fafc" metalness={0.95} roughness={0.15} />
+              </mesh>
+              {/* Silver Silicon Wafer Micro-Busbar Grid Lines */}
+              <mesh position={[0, 0.012, 0]}>
+                <boxGeometry args={[0.40, 0.002, 0.018]} />
+                <meshStandardMaterial color="#93c5fd" emissive="#38bdf8" emissiveIntensity={0.35} />
+              </mesh>
+              <mesh position={[0, 0.012, -0.14]}>
+                <boxGeometry args={[0.40, 0.002, 0.018]} />
+                <meshStandardMaterial color="#93c5fd" emissive="#38bdf8" emissiveIntensity={0.35} />
+              </mesh>
+              <mesh position={[0, 0.012, 0.14]}>
+                <boxGeometry args={[0.40, 0.002, 0.018]} />
+                <meshStandardMaterial color="#93c5fd" emissive="#38bdf8" emissiveIntensity={0.35} />
+              </mesh>
+            </group>
+          ))
+        )}
+      </group>
+
+      {/* 7. External Bi-directional Smart Energy Meter on Villa Side Wall */}
+      <group position={[0.73, 0.38, -0.1]}>
+        <mesh>
+          <boxGeometry args={[0.04, 0.16, 0.12]} />
+          <meshStandardMaterial color="#334155" roughness={0.5} />
+        </mesh>
+        {/* Digital LCD Display Screen */}
+        <mesh position={[0.022, 0.02, 0]}>
+          <boxGeometry args={[0.005, 0.06, 0.08]} />
+          <meshStandardMaterial color="#0284c7" emissive="#38bdf8" emissiveIntensity={0.5} />
+        </mesh>
+      </group>
     </group>
   )
 }
+
+// Retain alias for backward compatibility
+export const SolarRooftopAsset: React.FC = SolarrooftopAsset
 
 // =======================================================================
 // 5. FACTORY ASSET (Heavy Manufacturing / Industrial Load)

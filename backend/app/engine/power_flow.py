@@ -151,11 +151,16 @@ class PowerFlowEngine:
         for s in grid.solarUnits:
             solar_alloc[s.busId] = solar_alloc.get(s.busId, 0.0) + max(0.0, solar_kw - solar_curtailment_kw) * (s.capacityKw / total_solar_cap)
 
-        # 2. Distribute aggregate load_kw across all Loads proportionally by nominal power
-        total_load_nom = sum(l.powerKw for l in grid.loads) or 1.0
+        # 2. Distribute aggregate load_kw across all Loads and Solarrooftops proportionally by nominal power
+        rooftop_load_nom = sum(getattr(s, "loadKw", 0.0) for s in grid.solarUnits if (getattr(s, "isSolarRooftop", False) or getattr(s, "loadKw", 0.0) > 0))
+        total_load_nom = sum(l.powerKw for l in grid.loads) + rooftop_load_nom or 1.0
         load_alloc = {}
         for l in grid.loads:
             load_alloc[l.busId] = load_alloc.get(l.busId, 0.0) + load_kw * (l.powerKw / total_load_nom)
+        for s in grid.solarUnits:
+            s_load = getattr(s, "loadKw", 0.0)
+            if (getattr(s, "isSolarRooftop", False) or s_load > 0) and s_load > 0:
+                load_alloc[s.busId] = load_alloc.get(s.busId, 0.0) + load_kw * (s_load / total_load_nom)
             
         # 3. Add battery power
         bat_alloc = {}

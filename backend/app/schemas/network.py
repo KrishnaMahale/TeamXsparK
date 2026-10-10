@@ -57,6 +57,8 @@ class SolarUnit(BaseModel):
     curtailedKw: float = 0.0
     status: ComponentStatus = ComponentStatus.NORMAL
     position: Optional[Position3D] = None
+    loadKw: float = 0.0
+    isSolarRooftop: bool = False
 
 
 class Battery(BaseModel):

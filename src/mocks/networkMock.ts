@@ -166,7 +166,7 @@ export const mockSolarUnits: SolarUnit[] = [
   },
   {
     id: 'SOLAR-02',
-    name: 'Rooftop Solar B3',
+    name: 'Solarrooftop B3',
     busId: 'B3',
     generationKw: 80,
     capacityKw: 100,
@@ -174,6 +174,8 @@ export const mockSolarUnits: SolarUnit[] = [
     curtailedKw: 0,
     status: 'warning',
     position: { x: -7, y: 0, z: 3 },
+    loadKw: 60,
+    isSolarRooftop: true,
   },
 ]
 

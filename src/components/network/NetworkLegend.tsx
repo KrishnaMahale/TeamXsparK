@@ -1,4 +1,5 @@
 import React from 'react'
+import { SolarRooftopVillaSvg } from './assets/SolarRooftopIcon'
 
 export interface NetworkLegendProps {
   showViolations?: boolean
@@ -19,6 +20,14 @@ export const NetworkLegend: React.FC<NetworkLegendProps> = ({ showViolations = f
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-red-600" />
           <span>Violation (&gt; 1.05 pu)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-emerald-500 font-bold">➔</span>
+          <span>Solar Gen Flow</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sky-500 font-bold">➔</span>
+          <span>Load Demand Flow</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-0.5 bg-[#047857] dark:bg-[#86EFAC]" />
@@ -52,12 +61,16 @@ export const NetworkLegend: React.FC<NetworkLegendProps> = ({ showViolations = f
         <span className="font-medium">Tie-Line Switch</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-amber-500" />
-        <span className="font-medium">Solar PV / BESS</span>
+        <span className="text-emerald-500 font-bold">➔</span>
+        <span className="font-medium">Solar Gen</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-sky-500" />
-        <span className="font-medium">Demand Load</span>
+        <span className="text-sky-500 font-bold">➔</span>
+        <span className="font-medium">Load Demand</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <SolarRooftopVillaSvg className="w-3.5 h-3.5" />
+        <span className="font-medium">Solarrooftop</span>
       </div>
     </div>
   )

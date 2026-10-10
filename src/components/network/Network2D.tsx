@@ -20,6 +20,7 @@ import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
 import { Bus, Feeder, SolarUnit, Battery, Load } from '../../types/network'
+import { SolarRooftopVillaSvg } from './assets/SolarRooftopIcon'
 
 export interface Network2DProps {
   readOnly?: boolean
@@ -269,6 +270,69 @@ export const Network2D: React.FC<Network2DProps> = ({
     return Home
   }
 
+  const ContinuousFlowArrows2D: React.FC<{
+    id: string
+    from: { x: number; y: number }
+    to: { x: number; y: number }
+    color: string
+    duration?: number
+  }> = ({
+    id,
+    from,
+    to,
+    color,
+    duration = 2.3,
+  }) => {
+    const dx = to.x - from.x
+    const dy = to.y - from.y
+    const len = Math.sqrt(dx * dx + dy * dy)
+    if (len < 10) return null
+
+    const pathId = `flowpath-${id}`
+    const tandemSpacing = 20 // Distance between the 2 coupled arrows in the entity (with clear visible gap)
+
+    return (
+      <g key={id}>
+        <path
+          id={pathId}
+          d={`M ${from.x.toFixed(1)} ${from.y.toFixed(1)} L ${to.x.toFixed(1)} ${to.y.toFixed(1)}`}
+          fill="none"
+          stroke="none"
+        />
+        {/* Single entity containing 2 arrows moving one behind the other simultaneously */}
+        <g>
+          <animateMotion
+            dur={`${duration}s`}
+            repeatCount="indefinite"
+            rotate="auto"
+          >
+            <mpath href={`#${pathId}`} />
+          </animateMotion>
+
+          {/* Lead Arrow (Arrow 1 in front) */}
+          <polygon
+            points="-8,-3.8 9,0 -8,3.8 -4.5,0"
+            fill={color}
+            stroke={color}
+            strokeWidth="0.5"
+            strokeLinejoin="miter"
+          />
+
+          {/* Follower Arrow (Arrow 2 directly behind Arrow 1, treated as one entity) */}
+          <g transform={`translate(-${tandemSpacing}, 0)`}>
+            <polygon
+              points="-8,-3.8 9,0 -8,3.8 -4.5,0"
+              fill={color}
+              stroke={color}
+              strokeWidth="0.5"
+              strokeLinejoin="miter"
+            />
+          </g>
+        </g>
+      </g>
+    )
+  }
+
   return (
     <div
       ref={containerRef}
@@ -487,18 +551,25 @@ export const Network2D: React.FC<Network2DProps> = ({
                       markerEnd={isCritical ? 'url(#arrow-critical)' : 'url(#arrow-normal)'}
                     />
 
-                    {/* Animated Power Flow Conductor */}
+                    {/* Continuous Moving Power Flow Arrows */}
                     {f.isSwitchClosed && (
-                      <line
-                        x1={from.x}
-                        y1={from.y}
-                        x2={to.x}
-                        y2={to.y}
-                        stroke={isCritical ? dangerColor : flowColorNormal}
-                        strokeWidth={isCritical ? '2.5' : '1.8'}
-                        className={isCritical ? 'flow-line-fast' : 'flow-line-normal'}
-                        opacity="0.85"
-                      />
+                      f.activePowerKw < 0 ? (
+                        <ContinuousFlowArrows2D
+                          id={`feeder-flow-${f.id}`}
+                          from={to}
+                          to={from}
+                          color="#10B981"
+                          duration={isCritical ? 1.5 : 2.3}
+                        />
+                      ) : (
+                        <ContinuousFlowArrows2D
+                          id={`feeder-flow-${f.id}`}
+                          from={from}
+                          to={to}
+                          color={isCritical ? dangerColor : primaryColor}
+                          duration={isCritical ? 1.5 : 2.3}
+                        />
+                      )
                     )}
                   </>
                 )}
@@ -535,12 +606,66 @@ export const Network2D: React.FC<Network2DProps> = ({
           {/* ===================================================
               2. ASSET LINES (Solar, Battery, Load -> Bus Connections)
               =================================================== */}
-          {/* Solar Lines */}
+          {/* Solar & Solarrooftop Lines */}
           {network.solarUnits.map((s) => {
             if (!s.busId) return null
             const busCoord = getSvgCoords(s.busId)
             const solarCoord = getSvgCoords(s.id)
             if (!busCoord || !solarCoord) return null
+
+            const isRooftop = Boolean(
+              s.isSolarRooftop ||
+              s.name.toLowerCase().includes('rooftop') ||
+              s.name.toLowerCase().includes('solarrooftop') ||
+              s.name.includes('[Rooftop]') ||
+              s.name.toLowerCase().includes('solar roof')
+            )
+
+            if (isRooftop) {
+              const dx = solarCoord.x - busCoord.x
+              const dy = solarCoord.y - busCoord.y
+              const len = Math.sqrt(dx * dx + dy * dy) || 1
+              const nx = -dy / len
+              const ny = dx / len
+              const offset = 6
+
+              // Left side of feeder (looking from Bus to House): Load arrows (Blue) flowing towards House
+              const loadFrom = { x: busCoord.x + offset * nx, y: busCoord.y + offset * ny }
+              const loadTo = { x: solarCoord.x + offset * nx, y: solarCoord.y + offset * ny }
+
+              // Right side of feeder (looking from Bus to House): Generated electricity arrows (Green) flowing towards Bus
+              const genFrom = { x: solarCoord.x - offset * nx, y: solarCoord.y - offset * ny }
+              const genTo = { x: busCoord.x - offset * nx, y: busCoord.y - offset * ny }
+
+              return (
+                <g key={`solar-line-${s.id}`}>
+                  {/* Central overhead feeder wire */}
+                  <line
+                    x1={busCoord.x}
+                    y1={busCoord.y}
+                    x2={solarCoord.x}
+                    y2={solarCoord.y}
+                    stroke="#64748B"
+                    strokeWidth="2"
+                    opacity="0.65"
+                  />
+                  {/* Separate Load arrows on LEFT of feeder (Blue) */}
+                  <ContinuousFlowArrows2D
+                    id={`solarrooftop-load-${s.id}`}
+                    from={loadFrom}
+                    to={loadTo}
+                    color="#0284C7"
+                  />
+                  {/* Separate Generated solar arrows on RIGHT of feeder (Green) */}
+                  <ContinuousFlowArrows2D
+                    id={`solarrooftop-gen-${s.id}`}
+                    from={genFrom}
+                    to={genTo}
+                    color="#10B981"
+                  />
+                </g>
+              )
+            }
 
             return (
               <g key={`solar-line-${s.id}`}>
@@ -551,18 +676,14 @@ export const Network2D: React.FC<Network2DProps> = ({
                   y2={busCoord.y}
                   stroke="#10B981"
                   strokeWidth="2"
-                  opacity="0.85"
+                  opacity="0.75"
                 />
                 {s.generationKw > 0 && (
-                  <line
-                    x1={solarCoord.x}
-                    y1={solarCoord.y}
-                    x2={busCoord.x}
-                    y2={busCoord.y}
-                    stroke="#F59E0B"
-                    strokeWidth="1.8"
-                    className="flow-line-solar"
-                    markerEnd="url(#arrow-solar)"
+                  <ContinuousFlowArrows2D
+                    id={`solar-flow-${s.id}`}
+                    from={solarCoord}
+                    to={busCoord}
+                    color="#10B981"
                   />
                 )}
               </g>
@@ -583,19 +704,27 @@ export const Network2D: React.FC<Network2DProps> = ({
                   y1={batCoord.y}
                   x2={busCoord.x}
                   y2={busCoord.y}
-                  stroke="#10B981"
+                  stroke={b.powerKw < 0 ? '#0284C7' : '#10B981'}
                   strokeWidth="2"
-                  opacity="0.85"
+                  opacity="0.75"
                 />
-                <line
-                  x1={batCoord.x}
-                  y1={batCoord.y}
-                  x2={busCoord.x}
-                  y2={busCoord.y}
-                  stroke="#34D399"
-                  strokeWidth="1.8"
-                  className={b.powerKw >= 0 ? 'flow-line-solar' : 'flow-line-normal'}
-                />
+                {b.powerKw !== 0 && (
+                  b.powerKw < 0 ? (
+                    <ContinuousFlowArrows2D
+                      id={`bat-flow-${b.id}`}
+                      from={busCoord}
+                      to={batCoord}
+                      color="#0284C7"
+                    />
+                  ) : (
+                    <ContinuousFlowArrows2D
+                      id={`bat-flow-${b.id}`}
+                      from={batCoord}
+                      to={busCoord}
+                      color="#10B981"
+                    />
+                  )
+                )}
               </g>
             )
           })}
@@ -619,15 +748,11 @@ export const Network2D: React.FC<Network2DProps> = ({
                   opacity="0.75"
                 />
                 {l.powerKw > 0 && (
-                  <line
-                    x1={busCoord.x}
-                    y1={busCoord.y}
-                    x2={loadCoord.x}
-                    y2={loadCoord.y}
-                    stroke={primaryColor}
-                    strokeWidth="1.8"
-                    className="flow-line-normal"
-                    markerEnd="url(#arrow-normal)"
+                  <ContinuousFlowArrows2D
+                    id={`load-flow-${l.id}`}
+                    from={busCoord}
+                    to={loadCoord}
+                    color="#0284C7"
                   />
                 )}
               </g>
@@ -823,12 +948,80 @@ export const Network2D: React.FC<Network2DProps> = ({
           })}
 
           {/* ===================================================
-              5. SOLAR PV NODES
+              5. SOLAR PV & SOLARROOFTOP NODES
               =================================================== */}
           {network.solarUnits.map((s) => {
             const coord = getSvgCoords(s.id)
             if (!coord) return null
             const isSel = isSelected('solar', s.id)
+            const isRooftop = Boolean(
+              s.isSolarRooftop ||
+              s.name.toLowerCase().includes('rooftop') ||
+              s.name.toLowerCase().includes('solarrooftop') ||
+              s.name.includes('[Rooftop]') ||
+              s.name.toLowerCase().includes('solar roof')
+            )
+
+            if (isRooftop) {
+              return (
+                <g
+                  key={`solar-node-${s.id}`}
+                  transform={`translate(${coord.x}, ${coord.y})`}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedComponent({ type: 'solar', id: s.id, data: s })
+                  }}
+                >
+                  {/* Outer Card with emerald highlight */}
+                  <rect
+                    x="-48"
+                    y="-22"
+                    width="96"
+                    height="44"
+                    rx="8"
+                    fill={cardBg}
+                    stroke={isSel ? primaryColor : '#10B981'}
+                    strokeWidth={isSel ? '2.5' : '1.8'}
+                    className="shadow-sm"
+                  />
+                  {/* Modern Villa Solar Rooftop Icon matching reference image */}
+                  <SolarRooftopVillaSvg x="-45" y="-18" size={32} />
+
+                  {/* Title */}
+                  <text
+                    x="-10"
+                    y="-8"
+                    fill={textMain}
+                    fontSize="8.5"
+                    fontFamily="sans-serif"
+                    fontWeight="bold"
+                  >
+                    {s.name.replace(/\[.*?\]\s*/, '').substring(0, 11)}
+                  </text>
+                  {/* Dual Metrics */}
+                  <text
+                    x="-10"
+                    y="3"
+                    fill="#10B981"
+                    fontSize="8"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                  >
+                    ☀️ +{s.generationKw} kW
+                  </text>
+                  <text
+                    x="-10"
+                    y="13"
+                    fill="#0284C7"
+                    fontSize="8"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                  >
+                    🏠 -{s.loadKw ?? 60} kW
+                  </text>
+                </g>
+              )
+            }
 
             return (
               <g

@@ -93,7 +93,7 @@ def initialize_default_grid() -> GridNetwork:
 
     solar_units = [
         SolarUnit(id="SOLAR-01", name="Solar Farm Alpha", busId="B2", generationKw=150.0, capacityKw=250.0, irradianceWm2=895.0, status="normal", position=Position3D(x=-7, y=0, z=0)),
-        SolarUnit(id="SOLAR-02", name="Rooftop Solar B3", busId="B3", generationKw=80.0, capacityKw=100.0, irradianceWm2=890.0, status="warning", position=Position3D(x=0, y=0, z=0)),
+        SolarUnit(id="SOLAR-02", name="Solarrooftop B3", busId="B3", generationKw=80.0, capacityKw=100.0, irradianceWm2=890.0, status="warning", position=Position3D(x=-7, y=0, z=3), loadKw=60.0, isSolarRooftop=True),
     ]
 
     batteries = [

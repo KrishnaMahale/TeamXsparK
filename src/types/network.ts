@@ -53,6 +53,8 @@ export interface SolarUnit {
   curtailedKw: number
   status: ComponentStatus
   position?: Position3D
+  loadKw?: number
+  isSolarRooftop?: boolean
 }
 
 export interface Battery {

@@ -33,10 +33,12 @@ import {
   ResidentialAsset,
   CommercialAsset,
   SolarUtilityAsset,
+  SolarrooftopAsset,
   SolarRooftopAsset,
   SubstationTransformerAsset,
   BatteryStorageAsset,
 } from './assets/GridAssets3D'
+import { SolarRooftopVillaSvg } from './assets/SolarRooftopIcon'
 
 // --- Reusable 3D Nodes ---
 
@@ -190,11 +192,13 @@ const Component3DNode: React.FC<{
   name: string
   type: 'solar' | 'battery' | 'load' | 'transformer'
   kw?: number
+  loadKw?: number
+  isSolarRooftop?: boolean
   onClick: () => void
   isConnectionSource?: boolean
   isDragging?: boolean
   onPointerDown: (e: ThreeEvent<PointerEvent>) => void
-}> = ({ position, name, type, kw, onClick, isConnectionSource, isDragging, onPointerDown }) => {
+}> = ({ position, name, type, kw, loadKw, isSolarRooftop, onClick, isConnectionSource, isDragging, onPointerDown }) => {
   const meshRef = useRef<THREE.Group>(null)
   const groupRef = useRef<THREE.Group>(null)
 
@@ -205,11 +209,19 @@ const Component3DNode: React.FC<{
     }
   })
 
+  const isRooftop = Boolean(
+    isSolarRooftop ||
+    name.toLowerCase().includes('rooftop') ||
+    name.toLowerCase().includes('solarrooftop') ||
+    name.includes('[Rooftop]') ||
+    name.toLowerCase().includes('solar roof')
+  )
+
   const renderAsset = () => {
     if (type === 'transformer') return <SubstationTransformerAsset />
     if (type === 'battery') return <BatteryStorageAsset />
     if (type === 'solar') {
-      if (name.includes('[Rooftop]')) return <SolarRooftopAsset />
+      if (isRooftop) return <SolarrooftopAsset />
       return <SolarUtilityAsset />
     }
     if (type === 'load') {
@@ -268,11 +280,20 @@ const Component3DNode: React.FC<{
               ? 'bg-[#0f172a]/95 text-yellow-300 border border-yellow-400 ring-2 ring-yellow-400'
               : isDragging
               ? 'bg-sky-600 text-white border border-sky-300 ring-2 ring-sky-300 scale-105 shadow-xl'
+              : isRooftop
+              ? 'bg-[#0f172a]/90 text-[#e2e8f0] border border-emerald-400/80 ring-1 ring-emerald-500/30'
               : 'bg-[#0f172a]/90 text-[#e2e8f0] border border-[#06b6d4]'
           }`}
         >
-          {name.replace(/\[.*?\]\s*/, '')}
-          {kw !== undefined && <div className="text-[8px] text-[#94a3b8]">{kw} kW</div>}
+          <div className="font-semibold">{name.replace(/\[.*?\]\s*/, '')}</div>
+          {isRooftop ? (
+            <div className="flex items-center gap-1.5 text-[8px] font-bold">
+              <span className="text-emerald-400">+{kw ?? 50}kW PV</span>
+              <span className="text-sky-300">-{loadKw ?? 60}kW Load</span>
+            </div>
+          ) : (
+            kw !== undefined && <div className="text-[8px] text-[#94a3b8]">{kw} kW</div>
+          )}
           {isDragging && <div className="text-[8px] text-sky-200">({position[0].toFixed(1)}, {position[2].toFixed(1)})</div>}
         </div>
       </Html>
@@ -289,6 +310,29 @@ const _upZ = new THREE.Vector3(0, 0, 1)
 const _mid = new THREE.Vector3()
 const _orientation = new THREE.Matrix4()
 
+const Arrow3D: React.FC<{
+  color: string
+  direction: 'forward' | 'reverse'
+}> = ({ color, direction }) => (
+  <group rotation={[direction === 'forward' ? -Math.PI / 2 : Math.PI / 2, 0, 0]}>
+    {/* Needle-sharp acute arrowhead tip */}
+    <mesh position={[0, 0.14, 0]}>
+      <coneGeometry args={[0.062, 0.28, 16]} />
+      <meshBasicMaterial color={color} toneMapped={false} />
+    </mesh>
+    {/* Sleek aerodynamic shaft */}
+    <mesh position={[0, -0.04, 0]}>
+      <cylinderGeometry args={[0.016, 0.016, 0.16, 12]} />
+      <meshBasicMaterial color={color} toneMapped={false} />
+    </mesh>
+    {/* Flight stabilizer barb / rear notch */}
+    <mesh position={[0, -0.11, 0]}>
+      <coneGeometry args={[0.035, 0.06, 8]} />
+      <meshBasicMaterial color={color} toneMapped={false} />
+    </mesh>
+  </group>
+)
+
 const DynamicFeederLine: React.FC<{
   startPos: [number, number, number]
   endPos: [number, number, number]
@@ -296,15 +340,29 @@ const DynamicFeederLine: React.FC<{
   isCritical?: boolean
   flowDirection?: 'forward' | 'reverse' | 'none'
   flowMagnitude?: number
+  isSolarRooftop?: boolean
   onClick?: () => void
-}> = ({ startPos, endPos, color = '#0284c7', isCritical = false, flowDirection = 'forward', flowMagnitude = 500, onClick }) => {
+}> = ({
+  startPos,
+  endPos,
+  color = '#0284c7',
+  isCritical = false,
+  flowDirection = 'forward',
+  flowMagnitude = 500,
+  isSolarRooftop = false,
+  onClick,
+}) => {
   const groupRef = useRef<THREE.Group>(null)
   const wireOffsets = [-0.15, 0, 0.15]
 
   const cylinderRefs = useRef<(THREE.Mesh | null)[]>([])
   const hitMeshRefs = useRef<(THREE.Mesh | null)[]>([])
-  const particle1Ref = useRef<THREE.Mesh>(null)
-  const particle2Ref = useRef<THREE.Mesh>(null)
+
+  // Single coupled entity refs containing 2 arrows moving one behind the other simultaneously
+  const arrowEntityRef = useRef<THREE.Group>(null)
+  const loadEntityRef = useRef<THREE.Group>(null)
+  const solarEntityRef = useRef<THREE.Group>(null)
+
   const distRef = useRef<number>(1)
   const prevCoordsRef = useRef({ x1: NaN, y1: NaN, z1: NaN, x2: NaN, y2: NaN, z2: NaN })
 
@@ -360,18 +418,29 @@ const DynamicFeederLine: React.FC<{
   useFrame((state) => {
     updateGeometry()
 
-    if (flowDirection !== 'none') {
-      const distance = distRef.current
-      const speed = (isCritical ? 1.5 : 0.7) + Math.min(Math.abs(flowMagnitude) / 1000, 2.0)
-      const t1 = (state.clock.elapsedTime * speed) % 1
-      const t2 = (t1 + 0.5) % 1
-      const factor1 = flowDirection === 'reverse' ? 1 - t1 : t1
-      const factor2 = flowDirection === 'reverse' ? 1 - t2 : t2
+    const distance = distRef.current
+    const speed = ((isCritical ? 0.45 : 0.28) + Math.min(Math.abs(flowMagnitude) / 1000, 0.2)) * 1.5
+    const baseT = (state.clock.elapsedTime * speed) % 1
 
-      const z1 = (distance / 2) - (factor1 * distance)
-      const z2 = (distance / 2) - (factor2 * distance)
-      if (particle1Ref.current) particle1Ref.current.position.z = z1
-      if (particle2Ref.current) particle2Ref.current.position.z = z2
+    if (isSolarRooftop) {
+      // 1. Household Load continuous blue arrows on left wire (offsetX = -0.15), 2 arrows moving as ONE entity towards house (-Z)
+      if (loadEntityRef.current) {
+        const z = distance / 2 - baseT * distance
+        loadEntityRef.current.position.set(-0.15, 0, z)
+      }
+
+      // 2. Solar generation continuous green arrows on right wire (offsetX = +0.15), 2 arrows moving as ONE entity towards bus (+Z)
+      if (solarEntityRef.current) {
+        const z = -(distance / 2) + baseT * distance
+        solarEntityRef.current.position.set(0.15, 0, z)
+      }
+    } else if (flowDirection !== 'none') {
+      // Single continuous powerflow stream along central conductor (offsetX = 0): 2 arrows moving as ONE entity
+      if (arrowEntityRef.current) {
+        const isRev = flowDirection === 'reverse'
+        const z = isRev ? -(distance / 2) + baseT * distance : distance / 2 - baseT * distance
+        arrowEntityRef.current.position.set(0, 0, z)
+      }
     }
   })
 
@@ -408,19 +477,45 @@ const DynamicFeederLine: React.FC<{
         </group>
       ))}
 
-      {/* High-Performance Power Flow Energy Pulses on Central Conductor */}
-      {flowDirection !== 'none' && (
+      {/* Colorful Continuous Power Flow Arrows (2 arrows moving one behind the other as ONE entity with clear visible gap) */}
+      {isSolarRooftop ? (
         <>
-          <mesh ref={particle1Ref} position={[0, 0, 0]}>
-            <sphereGeometry args={[0.08, 8, 8]} />
-            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-          </mesh>
-          <mesh ref={particle2Ref} position={[0, 0, 0]}>
-            <sphereGeometry args={[0.08, 8, 8]} />
-            <meshBasicMaterial color={isCritical ? '#ef4444' : color} />
-          </mesh>
+          {/* Load on LEFT wire (-0.15): One entity with 2 blue arrows pointing towards house */}
+          <group ref={loadEntityRef}>
+            {/* Lead arrow in front */}
+            <group position={[0, 0, -0.26]}>
+              <Arrow3D color="#0284c7" direction="forward" />
+            </group>
+            {/* Follower arrow directly behind it (with visible differentiation gap) */}
+            <group position={[0, 0, 0.26]}>
+              <Arrow3D color="#0284c7" direction="forward" />
+            </group>
+          </group>
+
+          {/* Solar generation on RIGHT wire (+0.15): One entity with 2 green arrows pointing towards bus */}
+          <group ref={solarEntityRef}>
+            {/* Lead arrow in front */}
+            <group position={[0, 0, 0.26]}>
+              <Arrow3D color="#10b981" direction="reverse" />
+            </group>
+            {/* Follower arrow directly behind it (with visible differentiation gap) */}
+            <group position={[0, 0, -0.26]}>
+              <Arrow3D color="#10b981" direction="reverse" />
+            </group>
+          </group>
         </>
-      )}
+      ) : flowDirection !== 'none' ? (
+        <group ref={arrowEntityRef}>
+          {/* Lead arrow in front */}
+          <group position={[0, 0, flowDirection === 'reverse' ? 0.26 : -0.26]}>
+            <Arrow3D color={isCritical ? '#ef4444' : color} direction={flowDirection} />
+          </group>
+          {/* Follower arrow directly behind it (with visible differentiation gap) */}
+          <group position={[0, 0, flowDirection === 'reverse' ? -0.26 : 0.26]}>
+            <Arrow3D color={isCritical ? '#ef4444' : color} direction={flowDirection} />
+          </group>
+        </group>
+      ) : null}
     </group>
   )
 }
@@ -829,11 +924,33 @@ export const Network3D: React.FC<Network3DProps> = ({
         connectedAssets: {},
         position: p
       })
-    } else if (tool.startsWith('solar')) {
-      const isUtility = tool.includes('utility')
+    } else if (tool === 'solar-rooftop') {
       updatedGrid.solarUnits.push({
-        id, name: isUtility ? `[Utility] Solar Array` : `[Rooftop] Solar Panel`, busId: '', generationKw: isUtility ? 500 : 50, capacityKw: isUtility ? 500 : 50,
-        irradianceWm2: 800, curtailedKw: 0, status: 'normal', position: p
+        id,
+        name: `Solarrooftop ${updatedGrid.solarUnits.length + 1}`,
+        busId: '',
+        generationKw: 50,
+        loadKw: 35,
+        capacityKw: 50,
+        isSolarRooftop: true,
+        irradianceWm2: 800,
+        curtailedKw: 0,
+        status: 'normal',
+        position: p
+      })
+    } else if (tool.startsWith('solar')) {
+      updatedGrid.solarUnits.push({
+        id,
+        name: `[Utility] Solar Array`,
+        busId: '',
+        generationKw: 500,
+        loadKw: 0,
+        capacityKw: 500,
+        isSolarRooftop: false,
+        irradianceWm2: 800,
+        curtailedKw: 0,
+        status: 'normal',
+        position: p
       })
     } else if (tool.startsWith('load')) {
       let cap = 50, n = '[Residential] House'
@@ -932,7 +1049,7 @@ export const Network3D: React.FC<Network3DProps> = ({
     { id: 'load-commercial', icon: '🏢', label: 'Commercial' },
     { id: 'load-factory', icon: '🏭', label: 'Factory' },
     { id: 'solar-utility', icon: '☀️', label: 'Solar Utility' },
-    { id: 'solar-rooftop', icon: '🏡', label: 'Solar Roof' },
+    { id: 'solar-rooftop', icon: <SolarRooftopVillaSvg className="w-7 h-7 drop-shadow-xs" />, label: 'Solarrooftop' },
     { id: 'battery', icon: '🔋', label: 'Battery' },
     { id: 'delete', icon: '🗑️', label: 'Delete' },
   ]
@@ -1081,6 +1198,14 @@ export const Network3D: React.FC<Network3DProps> = ({
             name={s.name}
             type="solar"
             kw={s.capacityKw}
+            loadKw={s.loadKw}
+            isSolarRooftop={Boolean(
+              s.isSolarRooftop ||
+              s.name.toLowerCase().includes('rooftop') ||
+              s.name.toLowerCase().includes('solarrooftop') ||
+              s.name.toLowerCase().includes('solar roof') ||
+              s.name.includes('[Rooftop]')
+            )}
             onClick={() => handleNodeClick('solar', s.id, s)}
             onPointerDown={(e) => handleStartNodeDrag(s.id, e)}
             isDragging={draggingId === s.id}
@@ -1132,9 +1257,9 @@ export const Network3D: React.FC<Network3DProps> = ({
               key={f.id}
               startPos={startPos}
               endPos={endPos}
-              color={readOnly && f.status === 'critical' ? '#dc2626' : '#047857'}
+              color={readOnly && f.status === 'critical' ? '#dc2626' : (f.activePowerKw < 0 ? '#10b981' : '#0284c7')}
               isCritical={readOnly && f.status === 'critical'}
-              flowDirection={f.isSwitchClosed ? (f.activePowerKw > 0 ? "forward" : "none") : "none"}
+              flowDirection={f.isSwitchClosed ? (f.activePowerKw < 0 ? "reverse" : f.activePowerKw > 0 ? "forward" : "none") : "none"}
               flowMagnitude={Math.abs(f.activePowerKw || 0)}
               onClick={() => handleNodeClick('feeder', f.id, f)}
             />
@@ -1148,6 +1273,14 @@ export const Network3D: React.FC<Network3DProps> = ({
           const endPos = positions[s.id]
           if (!startPos || !endPos) return null
 
+          const isRooftop = Boolean(
+            s.isSolarRooftop ||
+            s.name.toLowerCase().includes('rooftop') ||
+            s.name.toLowerCase().includes('solarrooftop') ||
+            s.name.includes('[Rooftop]') ||
+            s.name.toLowerCase().includes('solar roof')
+          )
+
           return (
             <DynamicFeederLine
               key={`conn-${s.id}`}
@@ -1156,6 +1289,7 @@ export const Network3D: React.FC<Network3DProps> = ({
               color="#10b981"
               flowDirection={s.generationKw > 0 ? "reverse" : "none"}
               flowMagnitude={s.generationKw}
+              isSolarRooftop={isRooftop}
               onClick={() => handleNodeClick('connection', s.id, { assetType: 'solar' })}
             />
           )
