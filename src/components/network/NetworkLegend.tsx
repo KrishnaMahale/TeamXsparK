@@ -2,7 +2,7 @@ import React from 'react'
 
 export const NetworkLegend: React.FC = () => {
   return (
-    <div className="flex flex-wrap items-center gap-3.5 text-[11px] text-[#506052] dark:text-[#A0B0A2] bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2A3A2C] px-3 py-1.5 rounded-lg shadow-xs">
+    <div className="flex flex-wrap items-center gap-3.5 text-[11px] text-[#52665A] dark:text-[#A7F3D0] bg-white/95 dark:bg-[#122C1F]/95 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/20 px-3.5 py-1.5 rounded-full shadow-xs">
       <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-[#A0C878]" />
         <span>Normal (&lt; 1.05 pu)</span>

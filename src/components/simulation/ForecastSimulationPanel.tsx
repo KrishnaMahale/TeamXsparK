@@ -136,43 +136,43 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
         {/* Established Grid & Date Row (Read-Only) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Grid Configuration */}
-          <div className="p-3.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-            <div className="text-[10px] text-[#788477] uppercase font-bold tracking-wider flex items-center gap-1.5">
-              <Building className="w-3 h-3 text-[#A0C878]" />
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
+              <Building className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Grid Configuration
             </div>
-            <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] mt-1 truncate">
+            <div className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] mt-1 truncate">
               {currentGrid.name}
             </div>
-            <div className="text-[11px] text-[#506052] dark:text-[#A4B3A2] mt-0.5">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-0.5">
               {currentGrid.buses.length} Buses • {currentGrid.feeders.length} Feeders • {currentGrid.gridConnectionStatus === 'islanded' ? 'Islanded' : 'Grid-Connected'}
             </div>
           </div>
 
           {/* Simulation Date */}
-          <div className="p-3.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-            <div className="text-[10px] text-[#788477] uppercase font-bold tracking-wider flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-[#A0C878]" />
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
+              <Calendar className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Simulation Date
             </div>
-            <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] mt-1 font-mono">
+            <div className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] mt-1 font-mono">
               {input.simulationDate || 'Selected Day'}
             </div>
-            <div className="text-[11px] text-[#506052] dark:text-[#A4B3A2] mt-0.5">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-0.5">
               Day-Ahead Operating Timeline
             </div>
           </div>
 
           {/* Forecast Status & Horizon */}
-          <div className="p-3.5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-            <div className="text-[10px] text-[#788477] uppercase font-bold tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-[#A0C878]" />
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Forecast Horizon
             </div>
-            <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] mt-1">
+            <div className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] mt-1">
               24 Hours
             </div>
-            <div className="text-[11px] text-[#506052] dark:text-[#A4B3A2] mt-0.5 font-mono">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-0.5 font-mono">
               {input.solarTimeSeries.length} Synchronized Hourly Intervals
             </div>
           </div>
@@ -180,58 +180,58 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
 
         {/* Forecast Summary Metrics */}
         <div className="space-y-2.5">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#788477] dark:text-[#859483]">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#52665A] dark:text-[#A7F3D0]">
             Forecast Summary
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-            <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
               <span className="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold tracking-wider block flex items-center gap-1">
                 <Sun className="w-3 h-3" /> Peak Solar
               </span>
-              <span className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] block mt-1">
+              <span className="text-base font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] block mt-1">
                 {peakSolarKw} kW
               </span>
-              <span className="text-[10px] text-[#788477] dark:text-[#859483]">Midday generation</span>
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Midday generation</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E]">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
               <span className="text-[10px] text-sky-700 dark:text-sky-400 uppercase font-bold tracking-wider block flex items-center gap-1">
                 <Zap className="w-3 h-3" /> Peak Load
               </span>
-              <span className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] block mt-1">
+              <span className="text-base font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] block mt-1">
                 {peakLoadKw} kW
               </span>
-              <span className="text-[10px] text-[#788477] dark:text-[#859483]">Peak consumer demand</span>
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Peak consumer demand</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-              <span className="text-[10px] text-[#788477] uppercase font-bold tracking-wider block">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block">
                 Total Solar
               </span>
-              <span className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] block mt-1">
+              <span className="text-base font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] block mt-1">
                 {totalSolarKwh} kWh
               </span>
-              <span className="text-[10px] text-[#788477] dark:text-[#859483]">Daily expected energy</span>
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Daily expected energy</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-              <span className="text-[10px] text-[#788477] uppercase font-bold tracking-wider block">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block">
                 Total Load
               </span>
-              <span className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] block mt-1">
+              <span className="text-base font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] block mt-1">
                 {totalLoadKwh} kWh
               </span>
-              <span className="text-[10px] text-[#788477] dark:text-[#859483]">Daily energy demand</span>
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Daily energy demand</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] col-span-2 sm:col-span-1">
-              <span className="text-[10px] text-[#788477] uppercase font-bold tracking-wider block flex items-center gap-1">
-                <TrendingDown className="w-3 h-3 text-[#A0C878]" /> Net Demand
+            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs col-span-2 sm:col-span-1">
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block flex items-center gap-1">
+                <TrendingDown className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" /> Net Demand
               </span>
-              <span className="text-base font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] block mt-1">
+              <span className="text-base font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] block mt-1">
                 {peakNetDemandKw} kW
               </span>
-              <span className="text-[10px] text-[#788477] dark:text-[#859483]">
+              <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">
                 Min: {minNetDemandKw} kW
               </span>
             </div>

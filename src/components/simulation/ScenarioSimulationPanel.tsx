@@ -171,18 +171,18 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
             </div>
 
             {/* Compact Grid Telemetry Row */}
-            <div className="p-3 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
               <div className="flex items-center gap-2">
-                <Building className="w-3.5 h-3.5 text-[#A0C878] shrink-0" />
-                <span className="font-bold text-[#26352A] dark:text-[#F2F5ED] truncate">
+                <Building className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC] shrink-0" />
+                <span className="font-bold text-[#10251A] dark:text-[#ECFDF3] truncate">
                   {currentGrid.name}
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#ECFDF3] dark:bg-[#064E3B]/60 border border-[#BBF7D0] dark:border-[#86EFAC]/30 text-[#047857] dark:text-[#86EFAC]">
                   {currentGrid.gridConnectionStatus === 'islanded' ? 'Islanded' : 'Connected (33/11 kV)'}
                 </span>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px] font-mono text-[#506052] dark:text-[#C2CCC0] flex-wrap">
+              <div className="flex items-center gap-3 text-[11px] font-mono text-[#52665A] dark:text-[#A7F3D0] flex-wrap">
                 <span>{currentGrid.buses.length} Buses</span>
                 <span>•</span>
                 <span>{currentGrid.feeders.length} Feeders</span>
@@ -197,15 +197,15 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
           </div>
 
           {/* 2. SIMULATION SCENARIO SELECTOR */}
-          <div className="space-y-2 pt-2 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60">
+          <div className="space-y-2 pt-2 border-t border-[#BBF7D0]/40 dark:border-[#86EFAC]/20">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="scenario-dropdown-select"
-                className="block text-xs font-bold uppercase tracking-wider text-[#26352A] dark:text-[#F2F5ED]"
+                className="block text-xs font-bold uppercase tracking-wider text-[#10251A] dark:text-[#ECFDF3]"
               >
                 Simulation Scenario
               </label>
-              <span className="text-[11px] text-[#788477] dark:text-[#859483]">
+              <span className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]">
                 Select a predefined operating condition for the selected grid
               </span>
             </div>
@@ -215,7 +215,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                 id="scenario-dropdown-select"
                 value={activePresetKey}
                 onChange={(e) => onSelectPreset(e.target.value)}
-                className="w-full h-11 px-3.5 pr-10 text-xs sm:text-sm font-semibold rounded-lg border border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FFFDF6] dark:bg-[#151F17] text-[#26352A] dark:text-[#F2F5ED] focus:outline-none focus:ring-2 focus:ring-[#A0C878]/50 cursor-pointer transition-colors"
+                className="w-full h-11 px-3.5 pr-10 text-xs sm:text-sm font-semibold rounded-xl border border-[#BBF7D0]/70 dark:border-[#86EFAC]/20 bg-white dark:bg-[#122C1F] text-[#10251A] dark:text-[#ECFDF3] focus:outline-none focus:ring-2 focus:ring-[#10B981]/40 cursor-pointer transition-colors shadow-2xs"
               >
                 {scenarios.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -223,7 +223,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#788477] dark:text-[#859483]">
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#52665A] dark:text-[#A7F3D0]">
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
@@ -231,13 +231,13 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
 
           {/* 3. SCENARIO SUMMARY */}
           {selectedScenario && (
-            <div className="p-4 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] space-y-3">
+            <div className="p-4 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 space-y-3 shadow-2xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#788477] dark:text-[#859483]">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#52665A] dark:text-[#A7F3D0]">
                     Scenario Summary
                   </div>
-                  <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] flex items-center gap-2 mt-0.5">
+                  <div className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] flex items-center gap-2 mt-0.5">
                     <span>{selectedScenario.name}</span>
                     <Badge variant={getStatusBadgeVariant(selectedScenario.status)} size="sm">
                       {getStatusLabel(selectedScenario)}
@@ -245,19 +245,19 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-mono text-[#506052] dark:text-[#C2CCC0] self-start sm:self-center">
-                  <span className="px-2 py-0.5 rounded bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-[#A0C878]" />
+                <div className="flex items-center gap-2 text-xs font-mono text-[#52665A] dark:text-[#A7F3D0] self-start sm:self-center">
+                  <span className="px-2.5 py-1 rounded-full bg-white dark:bg-[#122C1F] border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 flex items-center gap-1 shadow-2xs">
+                    <Clock className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
                     Simulated Time: {selectedScenario.simulatedTime || '12:00'}
                   </span>
                 </div>
               </div>
 
               <div>
-                <div className="text-[10px] font-bold text-[#788477] dark:text-[#859483] uppercase tracking-wider">
+                <div className="text-[10px] font-bold text-[#52665A] dark:text-[#A7F3D0] uppercase tracking-wider">
                   Expected Condition
                 </div>
-                <p className="text-xs text-[#506052] dark:text-[#C2CCC0] mt-0.5 leading-relaxed">
+                <p className="text-xs text-[#52665A] dark:text-[#A7F3D0] mt-0.5 leading-relaxed">
                   {selectedScenario.expectedCondition || selectedScenario.description}
                 </p>
               </div>

@@ -17,31 +17,31 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variantStyles = {
     primary:
-      'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#DDEB9D] border-[#C9C7B5] dark:border-[#3B4E3E]',
+      'bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border-[#86EFAC]/60 dark:border-[#86EFAC]/30 shadow-2xs',
     success:
-      'bg-[#DDEB9D]/60 dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#DDEB9D] border-[#C9C7B5] dark:border-[#3B4E3E]',
+      'bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border-[#86EFAC]/60 dark:border-[#86EFAC]/30 shadow-2xs',
     warning:
-      'bg-amber-100/80 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800',
+      'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800 shadow-2xs',
     danger:
-      'bg-red-100/80 dark:bg-red-950/60 text-red-900 dark:text-red-200 border-red-300 dark:border-red-800',
+      'bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300/80 dark:border-red-800 shadow-2xs',
     neutral:
-      'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E]',
+      'bg-[#F4FAF5] dark:bg-[#0E2419] text-[#425B4C] dark:text-[#A7F3D0] border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs',
     purple:
-      'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#26352A] dark:text-[#DDEB9D] border-[#DDD9C9] dark:border-[#2C3C2E]',
+      'bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border-[#86EFAC]/60 shadow-2xs',
   }
 
   const dotColors = {
-    primary: 'bg-[#A0C878]',
-    success: 'bg-[#A0C878]',
+    primary: 'bg-[#16A34A]',
+    success: 'bg-[#16A34A]',
     warning: 'bg-amber-500',
     danger: 'bg-red-600',
-    neutral: 'bg-[#788477]',
-    purple: 'bg-[#A0C878]',
+    neutral: 'bg-[#6B8274]',
+    purple: 'bg-[#16A34A]',
   }
 
   const sizeStyles = {
-    sm: 'text-[11px] px-2 py-0.5 rounded-md font-semibold',
-    md: 'text-xs px-2.5 py-1 rounded-md font-semibold',
+    sm: 'text-[11px] px-2 py-0.5 rounded-full font-bold',
+    md: 'text-xs px-2.5 py-1 rounded-full font-bold',
   }
 
   return (

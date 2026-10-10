@@ -56,10 +56,10 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
           <button
             type="button"
             onClick={toggle3D}
-            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold border transition-colors shadow-xs ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors shadow-xs cursor-pointer ${
               is3DEnabled
-                ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border-[#A0C878] hover:bg-[#cde088]'
-                : 'bg-[#FAF6E9] dark:bg-[#1E2B20] text-[#506052] dark:text-[#C2CCC0] border-[#DDD9C9] dark:border-[#2C3C2E] hover:bg-[#DDEB9D]/30'
+                ? 'bg-[#ECFDF3] dark:bg-[#064E3B]/60 text-[#047857] dark:text-[#86EFAC] border-[#047857] dark:border-[#86EFAC] hover:bg-[#D1FAE5]'
+                : 'bg-white/95 dark:bg-[#122C1F]/90 text-[#52665A] dark:text-[#A7F3D0] border-[#BBF7D0]/70 dark:border-[#86EFAC]/20 hover:bg-[#ECFDF3]/50'
             }`}
             title={is3DEnabled ? 'Switch to 2D Schematic' : 'Switch to 3D Isometric View'}
           >

@@ -22,9 +22,9 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
   return (
     <div className={`flex flex-col items-center justify-center p-8 text-center ${className}`}>
-      <Loader2 className={`${sizeMap[size]} text-[#A0C878] animate-spin mb-3`} />
-      <p className="text-sm font-semibold text-[#26352A] dark:text-[#F2F5ED]">{message}</p>
-      {subMessage && <p className="text-xs text-[#788477] dark:text-[#859483] mt-1 max-w-sm">{subMessage}</p>}
+      <Loader2 className={`${sizeMap[size]} text-[#047857] dark:text-[#86EFAC] animate-spin mb-3`} />
+      <p className="text-sm font-bold text-[#10251A] dark:text-white">{message}</p>
+      {subMessage && <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-1 max-w-sm font-medium">{subMessage}</p>}
     </div>
   )
 }

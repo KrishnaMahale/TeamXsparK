@@ -13,6 +13,9 @@ import {
   Volume2,
   VolumeX,
   Activity,
+  Leaf,
+  ShieldCheck,
+  BarChart3,
 } from 'lucide-react'
 import {
   AreaChart,
@@ -54,10 +57,10 @@ interface SectionTransitionProps {
 }
 
 const colorData: Record<string, { hex: string; rgb: string }> = {
-  forest: { hex: '#10251A', rgb: '16, 37, 26' },
-  cream: { hex: '#F7F4EA', rgb: '247, 244, 234' },
+  forest: { hex: '#04382A', rgb: '4, 56, 42' },
+  cream: { hex: '#F4FAF5', rgb: '244, 250, 245' },
   white: { hex: '#FFFFFF', rgb: '255, 255, 255' },
-  'light-green': { hex: '#E8F3D8', rgb: '232, 243, 216' },
+  'light-green': { hex: '#ECFDF3', rgb: '236, 253, 243' },
 }
 
 const SectionTransition: React.FC<SectionTransitionProps> = ({ from, to }) => {
@@ -387,7 +390,7 @@ export const HomePage: React.FC = () => {
   return (
     <div
       ref={pageContainerRef}
-      className="w-full flex flex-col bg-[#F7F4EA] text-[#10231B] selection:bg-[#8BCB5A] selection:text-[#10251A] relative overflow-x-clip"
+      className="w-full flex flex-col bg-white dark:bg-[#0B1E15] text-[#10251A] dark:text-[#F0FDF4] selection:bg-[#86EFAC] selection:text-[#064E3B] relative overflow-x-clip"
     >
       {/* ========================================================================= */}
       {/* CINEMATIC SCROLL PROGRESS BAR */}
@@ -705,18 +708,21 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. HERO — CINEMATIC FULL-WIDTH RENEWABLE GRID VISUAL (Dark Forest Green) */}
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
+      {/* 1. HERO — RENEWABLE DISTRIBUTION GRID DIGITAL TWIN (Matching Reference) */}
+      {/* ========================================================================= */}
       <section
         data-section-id="section-hero"
-        className="relative w-full min-h-[85vh] lg:min-h-[89vh] py-16 lg:py-20 flex items-center bg-[#10251A] text-white"
+        className="relative w-full min-h-[85vh] lg:min-h-[88vh] pt-10 sm:pt-14 pb-8 flex flex-col justify-between bg-gradient-to-b from-white via-[#F4FAF5] to-[#ECFDF3]/60 dark:from-[#0B1E15] dark:via-[#0E2419] dark:to-[#132F21]/60 text-[#10251A] dark:text-white overflow-hidden transition-colors"
       >
-        {/* Background Visual Layer */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
+        <div className="absolute inset-y-0 right-0 w-full lg:w-3/4 z-0 pointer-events-none overflow-hidden">
           <img
             src="/images/hero_grid.jpg"
             alt="TeamXsparK Renewable Distribution Grid Digital Twin"
-            className="w-full h-full object-cover object-center transition-transform duration-75 ease-out"
+            className="w-full h-full object-cover object-right lg:object-center transition-transform duration-75 ease-out opacity-90 dark:opacity-40"
             style={{
-              transform: `translateY(${Math.min(70, scrollY * 0.08)}px) scale(${1 + Math.min(0.03, scrollY * 0.00006)})`,
+              transform: `translateY(${Math.min(50, scrollY * 0.05)}px) scale(${1 + Math.min(0.02, scrollY * 0.00004)})`,
             }}
             loading="eager"
             onError={(e) => {
@@ -724,24 +730,19 @@ export const HomePage: React.FC = () => {
             }}
           />
 
-          {/* Film Gradient for Clean White Typography Contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10251A]/95 via-[#10251A]/80 to-[#10251A]/35 backdrop-blur-[0.5px]" />
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-[#10251A] via-transparent to-[#10251A]/40 transition-colors duration-100"
-            style={{
-              backgroundColor: `rgba(16, 37, 26, ${Math.min(0.35, scrollY * 0.0005)})`,
-            }}
-          />
+          {/* Seamless Soft Gradient Masks for Crisp Typography and Glass Cards */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent dark:from-[#0B1E15] dark:via-[#0B1E15]/85 dark:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white/40 dark:from-[#0B1E15] dark:via-transparent dark:to-[#0B1E15]/40" />
 
-          {/* Ambient SVG Energy-Flow Overlay Lines */}
+          {/* Ambient Glowing Green Power Grid Overlay Lines */}
           <svg
-            className="absolute inset-0 w-full h-full opacity-55 pointer-events-none"
+            className="absolute inset-0 w-full h-full opacity-65 pointer-events-none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
               d="M 120 480 Q 420 380, 720 420 T 1300 500"
               fill="none"
-              stroke="#8BCB5A"
+              stroke="#10B981"
               strokeWidth="2.5"
               strokeDasharray="8 8"
               className="animate-energy-flow"
@@ -749,7 +750,7 @@ export const HomePage: React.FC = () => {
             <path
               d="M 280 320 Q 580 440, 920 380 T 1500 460"
               fill="none"
-              stroke="#29A9E8"
+              stroke="#059669"
               strokeWidth="1.5"
               strokeDasharray="6 6"
               className="animate-energy-flow"
@@ -758,7 +759,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* Hero Content Container */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
           
           {/* Left Column: Bold Editorial Typography & Actions */}
           <div
@@ -769,32 +770,33 @@ export const HomePage: React.FC = () => {
             }}
           >
             
-            {/* HackMatrix Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#10251A]/85 backdrop-blur-md text-[#DDF3C5] border border-[#8BCB5A]/40 shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-[#8BCB5A] animate-ping" />
+            {/* HackMatrix Badge (Matching Reference) */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-white/90 dark:bg-[#132F21]/90 backdrop-blur-md text-[#064E3B] dark:text-[#86EFAC] border border-[#86EFAC]/80 shadow-xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
               PCCOE • HACKMATRIX 5.0
             </div>
 
-            {/* Main Headline */}
+            {/* Main Headline (Matching Reference Image) */}
             <div className="space-y-3">
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.02]">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#10251A] dark:text-white leading-[1.02]">
                 RENEWABLE<br />
                 DISTRIBUTION<br />
-                <span className="text-[#8BCB5A] drop-shadow-[0_2px_14px_rgba(139,203,90,0.4)]">
-                  GRID DIGITAL TWIN
+                <span className="text-[#059669] dark:text-[#10B981] drop-shadow-[0_2px_14px_rgba(5,150,105,0.3)]">
+                  GRID DIGITAL<br />
+                  TWIN
                 </span>
               </h1>
-              <p className="text-base sm:text-xl font-normal text-[#F7F4EA]/90 leading-relaxed max-w-md">
+              <p className="text-base sm:text-lg font-medium text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed max-w-md">
                 Physics + AI for smarter renewable grids.
               </p>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* CTA Buttons (Matching Reference) */}
+            <div className="flex flex-wrap items-center gap-4 pt-1">
               <button
                 type="button"
                 onClick={() => navigate('/simulation')}
-                className="px-6 py-3.5 rounded-xl text-sm font-bold bg-[#8BCB5A] hover:bg-[#78b34c] text-[#10251A] transition-all duration-300 shadow-xl hover:shadow-[0_8px_24px_rgba(139,203,90,0.35)] flex items-center gap-2 group cursor-pointer font-sans"
+                className="btn-green-gradient px-6 py-3.5 rounded-xl text-sm font-bold flex items-center gap-2 group cursor-pointer shadow-md"
               >
                 <span>Launch Simulation</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -803,26 +805,15 @@ export const HomePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/network')}
-                className="px-6 py-3.5 rounded-xl text-sm font-bold bg-[#10251A]/70 backdrop-blur-md text-white border border-[#8BCB5A]/40 hover:bg-[#10251A]/90 hover:border-[#8BCB5A] transition-all flex items-center gap-2 cursor-pointer font-sans"
+                className="btn-white-glass px-6 py-3.5 rounded-xl text-sm font-bold flex items-center gap-2 cursor-pointer shadow-xs"
               >
-                <Share2 className="w-4 h-4 text-[#8BCB5A]" />
+                <Share2 className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />
                 <span>Explore Grid</span>
               </button>
             </div>
-
-            {/* Pillar Strip */}
-            <div className="pt-4 flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-mono tracking-wider text-[#F7F4EA]/70">
-              <span className="text-[#DDF3C5] font-semibold">Predict</span>
-              <span className="text-white/30">•</span>
-              <span className="text-[#DDF3C5] font-semibold">Detect</span>
-              <span className="text-white/30">•</span>
-              <span className="text-[#DDF3C5] font-semibold">Simulate</span>
-              <span className="text-white/30">•</span>
-              <span className="text-[#DDF3C5] font-semibold">Resolve</span>
-            </div>
           </div>
 
-          {/* Right Column: Digital-Twin Floating HUD Annotations */}
+          {/* Right Column: Digital-Twin Floating HUD Annotations (Matching Reference) */}
           <div
             className="relative w-full max-w-md lg:max-w-lg space-y-3.5 transition-transform duration-75 ease-out"
             style={{
@@ -831,74 +822,121 @@ export const HomePage: React.FC = () => {
           >
             
             {/* HUD 1: 11 kV Substation */}
-            <div className="p-3.5 rounded-2xl bg-[#10251A]/85 backdrop-blur-md border border-[#8BCB5A]/40 shadow-xl flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-1">
+            <div className="p-3.5 rounded-2xl bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md border border-[#86EFAC]/50 dark:border-[#86EFAC]/30 shadow-md flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-1">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#8BCB5A]/20 border border-[#8BCB5A]/50 flex items-center justify-center text-[#8BCB5A]">
-                  <Zap className="w-4 h-4 fill-current" />
+                <div className="w-9 h-9 rounded-xl bg-[#047857] flex items-center justify-center text-white shadow-xs">
+                  <Zap className="w-4 h-4 fill-current text-[#86EFAC]" />
                 </div>
                 <div>
-                  <div className="text-xs font-mono font-bold text-white tracking-wider">11 kV SUBSTATION</div>
-                  <div className="text-[11px] text-[#F7F4EA]/70">TX-MAIN Slack Bus (1.020 pu)</div>
+                  <div className="text-xs font-mono font-bold text-[#10251A] dark:text-white tracking-wider">11 kV SUBSTATION</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]">TX-MAIN Slack Bus (1.020 pu)</div>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-[#8BCB5A]">B1 Slack</span>
+              <span className="text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC] flex items-center gap-1.5">
+                B1 Slack <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+              </span>
             </div>
 
             {/* HUD 2: Solar Farm & BESS */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-2xl bg-[#10251A]/85 backdrop-blur-md border border-amber-500/40 shadow-xl animate-float-2">
-                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-mono font-bold mb-1">
+              <div className="p-3 rounded-2xl bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md border border-amber-300/60 dark:border-amber-500/30 shadow-md animate-float-2">
+                <div className="flex items-center gap-1.5 text-amber-500 text-xs font-mono font-bold mb-1">
                   <Sun className="w-3.5 h-3.5" />
                   <span>250 kW SOLAR</span>
                 </div>
-                <div className="text-xs font-bold text-white">Solar Farm Alpha</div>
-                <div className="text-[10px] text-[#F7F4EA]/60 font-mono">Bus 2 Injection</div>
+                <div className="text-xs font-bold text-[#10251A] dark:text-white">Solar Farm Alpha</div>
+                <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] font-mono">Bus 2 Injection</div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-[#10251A]/85 backdrop-blur-md border border-emerald-500/40 shadow-xl animate-float-1">
-                <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono font-bold mb-1">
+              <div className="p-3 rounded-2xl bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md border border-[#86EFAC]/60 dark:border-emerald-500/30 shadow-md animate-float-1">
+                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold mb-1">
                   <BatteryMedium className="w-3.5 h-3.5" />
                   <span>100 kWh BESS</span>
                 </div>
-                <div className="text-xs font-bold text-white">50 kW Inverter</div>
-                <div className="text-[10px] text-[#F7F4EA]/60 font-mono">20% SOC Reserve</div>
+                <div className="text-xs font-bold text-[#10251A] dark:text-white">50 kW Inverter</div>
+                <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] font-mono">20% SOC Reserve</div>
               </div>
             </div>
 
             {/* HUD 3: 100 kVA Transformer & 230V Residential */}
-            <div className="p-3.5 rounded-2xl bg-[#10251A]/85 backdrop-blur-md border border-sky-500/40 shadow-xl flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-2">
+            <div className="p-3.5 rounded-2xl bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md border border-[#86EFAC]/50 dark:border-[#86EFAC]/30 shadow-md flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-2">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-400/50 flex items-center justify-center text-sky-400">
+                <div className="w-9 h-9 rounded-xl bg-[#ECFDF3] dark:bg-[#1A3D29] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC]">
                   <HomeIcon className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-mono font-bold text-white tracking-wider">230 V RESIDENTIAL GRID</div>
-                  <div className="text-[11px] text-[#F7F4EA]/70">8 Houses • 3-Phase L1/L2/L3 (Sunburst Way)</div>
+                  <div className="text-xs font-mono font-bold text-[#10251A] dark:text-white tracking-wider">230 V RESIDENTIAL GRID</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]">8 Houses • 3-Phase L1/L2/L3 (Sunburst Way)</div>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-sky-400">100 kVA</span>
+              <span className="text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">100 kVA</span>
             </div>
 
             {/* HUD 4: V1G EV Charging */}
-            <div className="p-3.5 rounded-2xl bg-[#10251A]/85 backdrop-blur-md border border-[#8BCB5A]/40 shadow-xl flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-1">
+            <div className="p-3.5 rounded-2xl bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md border border-[#86EFAC]/50 dark:border-[#86EFAC]/30 shadow-md flex items-center justify-between transition-transform duration-300 hover:scale-[1.02] animate-float-1">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#8BCB5A]/20 border border-[#8BCB5A]/50 flex items-center justify-center text-[#8BCB5A]">
+                <div className="w-9 h-9 rounded-xl bg-[#ECFDF3] dark:bg-[#1A3D29] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC]">
                   <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-mono font-bold text-white tracking-wider">V1G EV CHARGING</div>
-                  <div className="text-[11px] text-[#F7F4EA]/70">ISO 15118 Solar Matching</div>
+                  <div className="text-xs font-mono font-bold text-[#10251A] dark:text-white tracking-wider">V1G EV CHARGING</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]">ISO 15118 Solar Matching</div>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-400">+12.6 kW Buffer</span>
+              <span className="text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">+12.6 kW Buffer</span>
             </div>
 
           </div>
 
         </div>
 
-        {/* Transition: Dark Forest -> Warm Cream (Soft Layered Atmospheric Dissolve) */}
-        <SectionTransition from="forest" to="cream" styleType="glow" />
+        {/* Floating White Glass Metrics Strip (Matching Reference Image) */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-8 lg:mt-12">
+          <div className="bg-white/90 dark:bg-[#0E2419]/90 backdrop-blur-md border border-[#BBF7D0]/80 dark:border-[#86EFAC]/25 rounded-2xl p-4 sm:p-5 shadow-[0_10px_30px_rgba(16,80,55,0.08)] grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y lg:divide-y-0 lg:divide-x divide-[#BBF7D0]/60 dark:divide-[#86EFAC]/15">
+            <div className="flex items-center gap-3.5 pt-2 lg:pt-0 lg:px-3">
+              <div className="w-11 h-11 rounded-full bg-[#ECFDF3] dark:bg-[#132F21] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC] shrink-0">
+                <Leaf className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">100%</div>
+                <div className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-semibold mt-1">Renewable Integration</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5 pt-2 lg:pt-0 lg:px-3">
+              <div className="w-11 h-11 rounded-full bg-[#ECFDF3] dark:bg-[#132F21] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC] shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">0</div>
+                <div className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-semibold mt-1">Active Violations</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5 pt-2 lg:pt-0 lg:px-3">
+              <div className="w-11 h-11 rounded-full bg-[#ECFDF3] dark:bg-[#132F21] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC] shrink-0">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">92%</div>
+                <div className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-semibold mt-1">Feeder Loading</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5 pt-2 lg:pt-0 lg:px-3">
+              <div className="w-11 h-11 rounded-full bg-[#ECFDF3] dark:bg-[#132F21] border border-[#86EFAC]/50 flex items-center justify-center text-[#047857] dark:text-[#86EFAC] shrink-0">
+                <Leaf className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">86.4%</div>
+                <div className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-semibold mt-1">Self Consumption</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transition into Next Section */}
+        <SectionTransition from="white" to="light-green" styleType="glow" />
       </section>
 
 
@@ -907,7 +945,7 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       <section
         data-section-id="section-architecture"
-        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-[#F7F4EA] text-[#10231B] transition-all duration-700 ${
+        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-[#ECFDF3]/40 via-white to-[#F4FAF5] dark:from-[#132F21]/40 dark:via-[#0E2419] dark:to-[#0B1E15] text-[#10251A] dark:text-[#F0FDF4] transition-all duration-700 ${
           getSceneClass('section-architecture')
         }`}
       >
@@ -915,16 +953,16 @@ export const HomePage: React.FC = () => {
           
           {/* Left Column (45%): Large Editorial Intro */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#EBF5E0] text-[#2E7D32] border border-[#8BCB5A]/40 shadow-xs">
+            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border border-[#86EFAC]/50 shadow-xs">
               PHYSICS-GROUNDED COUPLING
             </div>
 
-            <h2 className="stagger-heading text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#10231B] leading-[1.08]">
+            <h2 className="stagger-heading text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#10251A] dark:text-white leading-[1.08]">
               ONE DIGITAL TWIN.<br />
-              <span className="text-[#2E7D32]">TWO GRID LEVELS.</span>
+              <span className="text-[#047857] dark:text-[#10B981]">TWO GRID LEVELS.</span>
             </h2>
 
-            <p className="stagger-desc text-sm sm:text-base text-[#506052] leading-relaxed">
+            <p className="stagger-desc text-sm sm:text-base text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed">
               Traditional distribution was built around simple top-down assumptions. When rooftop PV backfeeds power at noon, voltage gradient reversals ripple from secondary cul-de-sacs right up to primary substations. TeamXsparK calculates bidirectional AC DistFlow physics across both tiers in synchronized real-time.
             </p>
 
@@ -935,8 +973,8 @@ export const HomePage: React.FC = () => {
                 onClick={() => setActiveArchNode('substation')}
                 className={`px-3 py-1.5 rounded-lg border font-bold transition-all cursor-pointer ${
                   activeArchNode === 'substation'
-                    ? 'bg-[#10251A] text-white border-[#10251A] shadow-sm'
-                    : 'bg-[#FFFDF6] text-[#506052] border-[#DDD9C9] hover:bg-[#EBF5E0]'
+                    ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                    : 'bg-white dark:bg-[#132F21] text-[#425B4C] dark:text-[#A7F3D0] border-[#BBF7D0]/60 dark:border-[#86EFAC]/30 hover:bg-[#ECFDF3]'
                 }`}
               >
                 11 kV Industrial
@@ -946,8 +984,8 @@ export const HomePage: React.FC = () => {
                 onClick={() => setActiveArchNode('transformer')}
                 className={`px-3 py-1.5 rounded-lg border font-bold transition-all cursor-pointer ${
                   activeArchNode === 'transformer'
-                    ? 'bg-[#10251A] text-white border-[#10251A] shadow-sm'
-                    : 'bg-[#FFFDF6] text-[#506052] border-[#DDD9C9] hover:bg-[#EBF5E0]'
+                    ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                    : 'bg-white dark:bg-[#132F21] text-[#425B4C] dark:text-[#A7F3D0] border-[#BBF7D0]/60 dark:border-[#86EFAC]/30 hover:bg-[#ECFDF3]'
                 }`}
               >
                 100 kVA Transformer
@@ -957,8 +995,8 @@ export const HomePage: React.FC = () => {
                 onClick={() => setActiveArchNode('residential')}
                 className={`px-3 py-1.5 rounded-lg border font-bold transition-all cursor-pointer ${
                   activeArchNode === 'residential'
-                    ? 'bg-[#10251A] text-white border-[#10251A] shadow-sm'
-                    : 'bg-[#FFFDF6] text-[#506052] border-[#DDD9C9] hover:bg-[#EBF5E0]'
+                    ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                    : 'bg-white dark:bg-[#132F21] text-[#425B4C] dark:text-[#A7F3D0] border-[#BBF7D0]/60 dark:border-[#86EFAC]/30 hover:bg-[#ECFDF3]'
                 }`}
               >
                 230 V Residential
@@ -970,11 +1008,11 @@ export const HomePage: React.FC = () => {
           <div className="stagger-visual lg:col-span-7 w-full flex flex-col items-center">
             
             {/* Digital Grid Console Container */}
-            <div className="grid-powerup-1 w-full rounded-3xl bg-[#FAF6E9] border border-[#DDD9C9] p-5 sm:p-6 relative overflow-hidden shadow-sm">
+            <div className="grid-powerup-1 w-full rounded-3xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 p-5 sm:p-6 relative overflow-hidden shadow-sm">
               
               {/* Subtle Engineering Grid Pattern Overlay */}
               <div 
-                className="absolute inset-0 pointer-events-none opacity-[0.06]"
+                className="absolute inset-0 pointer-events-none opacity-[0.04]"
                 style={{
                   backgroundImage: 'radial-gradient(#10251A 1px, transparent 1px)',
                   backgroundSize: '16px 16px',
@@ -1264,20 +1302,20 @@ export const HomePage: React.FC = () => {
             {/* 1. Solar Generation */}
             <div
               onClick={() => navigate('/simulation')}
-              className="p-6 rounded-2xl bg-[#F7F4EA] border border-[#DDD9C9] hover:border-[#8BCB5A] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-1"
+              className="p-6 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 hover:border-[#86EFAC] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-1"
             >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
                   ☀
                 </div>
-                <h3 className="text-base font-black text-[#10231B] group-hover:text-[#2E7D32] transition-colors">
+                <h3 className="text-base font-black text-[#10251A] dark:text-white group-hover:text-[#047857] dark:group-hover:text-[#86EFAC] transition-colors">
                   SOLAR GENERATION
                 </h3>
-                <p className="text-xs text-[#506052] leading-relaxed">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed">
                   250 kW utility PV farm combined with domestic rooftop systems up to 9.6 kW on Sunburst Way.
                 </p>
               </div>
-              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#2E7D32]">
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">
                 <span>Explore Solar</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -1286,20 +1324,20 @@ export const HomePage: React.FC = () => {
             {/* 2. Battery Storage */}
             <div
               onClick={() => navigate('/simulation')}
-              className="p-6 rounded-2xl bg-[#F7F4EA] border border-[#DDD9C9] hover:border-[#8BCB5A] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-2"
+              className="p-6 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 hover:border-[#86EFAC] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-2"
             >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
                   🔋
                 </div>
-                <h3 className="text-base font-black text-[#10231B] group-hover:text-[#2E7D32] transition-colors">
+                <h3 className="text-base font-black text-[#10251A] dark:text-white group-hover:text-[#047857] dark:group-hover:text-[#86EFAC] transition-colors">
                   BATTERY STORAGE
                 </h3>
-                <p className="text-xs text-[#506052] leading-relaxed">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed">
                   100 kWh utility BESS with 50 kW bi-directional inverter and strict 20% safe SOC floor protection.
                 </p>
               </div>
-              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#2E7D32]">
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">
                 <span>Explore Storage</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -1308,20 +1346,20 @@ export const HomePage: React.FC = () => {
             {/* 3. Smart Grid */}
             <div
               onClick={() => navigate('/actions')}
-              className="p-6 rounded-2xl bg-[#F7F4EA] border border-[#DDD9C9] hover:border-[#8BCB5A] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-3"
+              className="p-6 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 hover:border-[#86EFAC] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-3"
             >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-[#DDF3C5] text-[#2E7D32] flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
+                <div className="w-12 h-12 rounded-xl bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border border-[#86EFAC]/50 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
                   ⚡
                 </div>
-                <h3 className="text-base font-black text-[#10231B] group-hover:text-[#2E7D32] transition-colors">
+                <h3 className="text-base font-black text-[#10251A] dark:text-white group-hover:text-[#047857] dark:group-hover:text-[#86EFAC] transition-colors">
                   SMART GRID
                 </h3>
-                <p className="text-xs text-[#506052] leading-relaxed">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed">
                   Autonomous Volt-VAR droop (IEEE 1547) and dynamic phase rebalancing to eliminate neutral heating.
                 </p>
               </div>
-              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#2E7D32]">
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">
                 <span>Explore Grid Controls</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -1330,20 +1368,20 @@ export const HomePage: React.FC = () => {
             {/* 4. EV + V1G */}
             <div
               onClick={() => navigate('/network')}
-              className="p-6 rounded-2xl bg-[#F7F4EA] border border-[#DDD9C9] hover:border-[#8BCB5A] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-4"
+              className="p-6 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/30 hover:border-[#86EFAC] transition-all duration-300 cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-lg hover:-translate-y-1 reveal-item reveal-delay-4"
             >
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
+                <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-2xl font-bold transition-transform group-hover:scale-110">
                   🚗
                 </div>
-                <h3 className="text-base font-black text-[#10231B] group-hover:text-[#2E7D32] transition-colors">
+                <h3 className="text-base font-black text-[#10251A] dark:text-white group-hover:text-[#047857] dark:group-hover:text-[#86EFAC] transition-colors">
                   V1G EV MOBILITY
                 </h3>
-                <p className="text-xs text-[#506052] leading-relaxed">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed">
                   Smart solar-matched EV charging absorbs 12.6 kW surplus to boost self-consumption to 86.4%.
                 </p>
               </div>
-              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#2E7D32]">
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-mono font-bold text-[#047857] dark:text-[#86EFAC]">
                 <span>Explore V1G Fleet</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -1362,7 +1400,7 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       <section
         data-section-id="section-forecast"
-        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-[#F7F4EA] text-[#10231B] transition-all duration-700 ${
+        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-[#F4FAF5] via-white to-[#ECFDF3]/40 dark:from-[#0B1E15] dark:via-[#0E2419] dark:to-[#132F21]/40 text-[#10251A] dark:text-[#F0FDF4] transition-all duration-700 ${
           getSceneClass('section-forecast')
         }`}
       >
@@ -1421,10 +1459,11 @@ export const HomePage: React.FC = () => {
                   <YAxis stroke="#788477" fontSize={11} tickLine={false} axisLine={{ stroke: '#DDD9C9' }} unit=" kW" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#FAF6E9',
-                      borderColor: '#DDD9C9',
-                      borderRadius: '8px',
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#BBF7D0',
+                      borderRadius: '12px',
                       fontSize: '12px',
+                      boxShadow: '0 8px 24px rgba(16, 80, 55, 0.08)',
                     }}
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '6px' }} />
@@ -1457,7 +1496,7 @@ export const HomePage: React.FC = () => {
 
         </div>
 
-        {/* Transition: Warm Cream -> Crisp White (Atmospheric Fade Band) */}
+        {/* Transition: Pale Mint -> Crisp White (Atmospheric Fade Band) */}
         <SectionTransition from="cream" to="white" styleType="fade" />
       </section>
 
@@ -1475,7 +1514,7 @@ export const HomePage: React.FC = () => {
           
           {/* Left Column (45%): Editorial Text */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#EBF5E0] text-[#2E7D32] border border-[#8BCB5A]/40 shadow-xs">
+            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#ECFDF3] text-[#047857] border border-[#BBF7D0] shadow-xs">
               PHYSICAL BOTTLENECKS
             </div>
 
@@ -1483,7 +1522,7 @@ export const HomePage: React.FC = () => {
               <h2 className="stagger-heading text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#10231B] leading-tight">
                 ENGINEERING THE RENEWABLE GRID
               </h2>
-              <p className="stagger-desc text-sm sm:text-base text-[#506052] leading-relaxed">
+              <p className="stagger-desc text-sm sm:text-base text-[#52665A] leading-relaxed">
                 High rooftop solar penetration changes the way distribution networks behave. Reverse active power flows push voltages up against radial line impedance and overheat neighborhood feeders.
               </p>
             </div>
@@ -1496,14 +1535,14 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-3.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-between ${
                   activeChallenge === 'voltage'
                     ? 'bg-[#FFFFFF] border-red-500 shadow-md ring-2 ring-red-500/20 translate-x-1'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] hover:bg-[#FFFFFF]'
+                    : 'bg-[#F7FCF9] border-[#BBF7D0]/60 hover:bg-[#FFFFFF]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">⚡</span>
                   <div>
                     <h3 className="text-sm font-bold text-[#10231B]">VOLTAGE SWELL</h3>
-                    <p className="text-xs text-[#506052]">Reverse power flow raises voltage above 253.0 V.</p>
+                    <p className="text-xs text-[#52665A]">Reverse power flow raises voltage above 253.0 V.</p>
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-red-600">255.4 V</span>
@@ -1515,14 +1554,14 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-3.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-between ${
                   activeChallenge === 'congestion'
                     ? 'bg-[#FFFFFF] border-amber-500 shadow-md ring-2 ring-amber-500/20 translate-x-1'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] hover:bg-[#FFFFFF]'
+                    : 'bg-[#F7FCF9] border-[#BBF7D0]/60 hover:bg-[#FFFFFF]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">🔥</span>
                   <div>
                     <h3 className="text-sm font-bold text-[#10231B]">FEEDER CONGESTION</h3>
-                    <p className="text-xs text-[#506052]">Midday renewable export pushes cables past 100% ampacity.</p>
+                    <p className="text-xs text-[#52665A]">Midday renewable export pushes cables past 100% ampacity.</p>
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-amber-600">108%</span>
@@ -1534,14 +1573,14 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-3.5 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-between ${
                   activeChallenge === 'unbalance'
                     ? 'bg-[#FFFFFF] border-sky-500 shadow-md ring-2 ring-sky-500/20 translate-x-1'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] hover:bg-[#FFFFFF]'
+                    : 'bg-[#F7FCF9] border-[#BBF7D0]/60 hover:bg-[#FFFFFF]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">↔</span>
                   <div>
                     <h3 className="text-sm font-bold text-[#10231B]">VOLTAGE UNBALANCE</h3>
-                    <p className="text-xs text-[#506052]">Uneven single-phase rooftop solar pushes VUF above 2.0%.</p>
+                    <p className="text-xs text-[#52665A]">Uneven single-phase rooftop solar pushes VUF above 2.0%.</p>
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-sky-600">3.1% VUF</span>
@@ -1881,20 +1920,20 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       <section
         data-section-id="section-pipeline"
-        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-[#F7F4EA] text-[#10231B] transition-all duration-700 ${
+        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-[#F4FAF5] via-white to-[#ECFDF3]/40 dark:from-[#0B1E15] dark:via-[#0E2419] dark:to-[#132F21]/40 text-[#10251A] dark:text-[#F0FDF4] transition-all duration-700 ${
           getSceneClass('section-pipeline')
         }`}
       >
         <div className="scene-pop-container section-pop-container relative z-10 max-w-5xl mx-auto space-y-10 text-center">
           
           <div className="space-y-2">
-            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#EBF5E0] text-[#2E7D32] border border-[#8BCB5A]/40 shadow-xs">
+            <div className="stagger-eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#ECFDF3] dark:bg-[#132F21] text-[#047857] dark:text-[#86EFAC] border border-[#86EFAC]/40 shadow-xs">
               ANTI-HALLUCINATION DECISION PIPELINE
             </div>
-            <h2 className="stagger-heading text-3xl sm:text-4xl font-black tracking-tight text-[#10231B]">
+            <h2 className="stagger-heading text-3xl sm:text-4xl font-black tracking-tight text-[#10251A] dark:text-white">
               AI PREDICTION. PHYSICS VALIDATION.
             </h2>
-            <p className="stagger-desc text-sm text-[#506052] max-w-lg mx-auto">
+            <p className="stagger-desc text-sm text-[#425B4C] dark:text-[#A7F3D0] max-w-lg mx-auto">
               Hover along the pipeline to inspect physical constraint verification.
             </p>
           </div>
@@ -1903,7 +1942,7 @@ export const HomePage: React.FC = () => {
           <div
             onMouseEnter={() => setIsPipelineHovered(true)}
             onMouseLeave={() => setIsPipelineHovered(false)}
-            className="stagger-visual p-6 sm:p-8 rounded-3xl bg-[#FFFFFF] border border-[#DDD9C9] shadow-sm"
+            className="stagger-visual p-6 sm:p-8 rounded-3xl bg-white/90 dark:bg-[#0E2419]/90 backdrop-blur-md border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 shadow-sm"
           >
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center font-mono text-xs">
               
@@ -1913,8 +1952,8 @@ export const HomePage: React.FC = () => {
                 style={{ transitionDelay: '150ms' }}
                 className={`stagger-interactive p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                   pipelineStep === 0
-                    ? 'bg-[#10251A] text-white border-[#10251A] shadow-md scale-105'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] text-[#10231B]'
+                    ? 'bg-[#047857] text-white border-[#047857] shadow-md scale-105'
+                    : 'bg-white dark:bg-[#122C1F] border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 text-[#10251A] dark:text-white'
                 }`}
               >
                 <div className="text-xl mb-1">📈</div>
@@ -1929,7 +1968,7 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                   pipelineStep === 1
                     ? 'bg-red-600 text-white border-red-600 shadow-md scale-105'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] text-[#10231B]'
+                    : 'bg-white dark:bg-[#122C1F] border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 text-[#10251A] dark:text-white'
                 }`}
               >
                 <div className="text-xl mb-1">⚠</div>
@@ -1944,7 +1983,7 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                   pipelineStep === 2
                     ? 'bg-amber-600 text-white border-amber-600 shadow-md scale-105'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] text-[#10231B]'
+                    : 'bg-white dark:bg-[#122C1F] border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 text-[#10251A] dark:text-white'
                 }`}
               >
                 <div className="text-xl mb-1">⚖</div>
@@ -1959,7 +1998,7 @@ export const HomePage: React.FC = () => {
                 className={`stagger-interactive p-4 rounded-xl border transition-all duration-300 cursor-pointer ${
                   pipelineStep === 3
                     ? 'bg-sky-600 text-white border-sky-600 shadow-md scale-105'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] text-[#10231B]'
+                    : 'bg-white dark:bg-[#122C1F] border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 text-[#10251A] dark:text-white'
                 }`}
               >
                 <div className="text-xl mb-1">🔧</div>
@@ -1973,8 +2012,8 @@ export const HomePage: React.FC = () => {
                 style={{ transitionDelay: '630ms' }}
                 className={`stagger-interactive p-4 rounded-xl border transition-all duration-300 cursor-pointer col-span-2 sm:col-span-1 ${
                   pipelineStep === 4
-                    ? 'bg-[#2E7D32] text-white border-[#2E7D32] shadow-md scale-105'
-                    : 'bg-[#FAF6E9] border-[#DDD9C9] text-[#10231B]'
+                    ? 'bg-[#047857] text-white border-[#047857] shadow-md scale-105'
+                    : 'bg-white dark:bg-[#122C1F] border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 text-[#10251A] dark:text-white'
                 }`}
               >
                 <div className="text-xl mb-1">✓</div>
@@ -2181,7 +2220,7 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       <section
         data-section-id="section-resources"
-        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-[#F7F4EA] text-[#10231B] transition-all duration-700 ${
+        className={`relative w-full py-20 lg:py-24 px-6 sm:px-8 lg:px-12 bg-gradient-to-b from-[#F4FAF5] via-white to-[#ECFDF3]/40 dark:from-[#0B1E15] dark:via-[#0E2419] dark:to-[#132F21]/40 text-[#10251A] dark:text-[#F0FDF4] transition-all duration-700 ${
           getSceneClass('section-resources')
         }`}
       >
@@ -2313,7 +2352,7 @@ export const HomePage: React.FC = () => {
       {/* ========================================================================= */}
       <section
         data-section-id="section-cta"
-        className={`relative w-full py-24 lg:py-28 px-6 sm:px-8 lg:px-12 text-center bg-[#10251A] text-white overflow-hidden transition-all duration-700 ${
+        className={`relative w-full py-24 lg:py-28 px-6 sm:px-8 lg:px-12 text-center bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#022C1E] text-white overflow-hidden transition-all duration-700 ${
           getSceneClass('section-cta')
         }`}
       >

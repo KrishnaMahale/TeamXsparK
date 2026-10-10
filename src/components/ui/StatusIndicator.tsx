@@ -14,17 +14,17 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   pulse = false,
 }) => {
   const statusColors = {
-    online: 'bg-[#A0C878]',
+    online: 'bg-[#16A34A]',
     warning: 'bg-amber-500',
     critical: 'bg-red-600',
-    offline: 'bg-[#788477]',
+    offline: 'bg-[#6B8274]',
   }
 
   const textColors = {
-    online: 'text-[#26352A] dark:text-[#A0C878] font-semibold',
+    online: 'text-[#047857] dark:text-[#86EFAC] font-bold',
     warning: 'text-amber-700 dark:text-amber-400 font-semibold',
     critical: 'text-red-700 dark:text-red-400 font-bold',
-    offline: 'text-[#788477] dark:text-[#859483]',
+    offline: 'text-[#6B8274] dark:text-[#859483]',
   }
 
   return (
@@ -37,7 +37,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
                 ? 'bg-red-500'
                 : status === 'warning'
                 ? 'bg-amber-400'
-                : 'bg-[#A0C878]'
+                : 'bg-[#10B981]'
             }`}
           />
         )}

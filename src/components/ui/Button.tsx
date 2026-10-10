@@ -21,27 +21,27 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A0C878] disabled:opacity-50 disabled:cursor-not-allowed select-none'
+    'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#047857] disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer'
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 gap-1.5',
-    md: 'text-sm px-4 py-2 gap-2',
-    lg: 'text-base px-5 py-2.5 gap-2.5',
+    sm: 'text-xs px-3 py-1.5 gap-1.5 rounded-lg',
+    md: 'text-sm px-4 py-2 gap-2 rounded-xl',
+    lg: 'text-base px-5 py-2.5 gap-2.5 rounded-xl',
   }
 
   const variantStyles = {
     primary:
-      'bg-[#A0C878] hover:bg-[#8EB864] active:bg-[#7FA557] text-[#26352A] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
+      'bg-gradient-to-r from-[#047857] to-[#10B981] hover:from-[#065F46] hover:to-[#059669] text-white shadow-[0_4px_16px_rgba(4,120,87,0.30)] border border-[#86EFAC]/40 hover:-translate-y-0.5 active:translate-y-0',
     secondary:
-      'bg-[#FAF6E9] dark:bg-[#1E2B20] hover:bg-[#DDEB9D] dark:hover:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
+      'bg-white/90 dark:bg-[#122C1F]/90 hover:bg-white dark:hover:bg-[#183B28] text-[#064E3B] dark:text-[#A7F3D0] border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:translate-y-0',
     success:
-      'bg-[#A0C878] hover:bg-[#8EB864] active:bg-[#7FA557] text-[#26352A] shadow-xs focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
+      'bg-gradient-to-r from-[#059669] to-[#10B981] hover:from-[#047857] hover:to-[#059669] text-white shadow-sm border border-[#86EFAC]/40 hover:-translate-y-0.5 active:translate-y-0',
     danger:
-      'bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] text-white shadow-xs focus:ring-red-500 focus:ring-offset-[#FFFDF6] dark:focus:ring-offset-[#151F17]',
+      'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white shadow-xs focus:ring-red-500 hover:-translate-y-0.5 active:translate-y-0',
     ghost:
-      'bg-transparent hover:bg-[#DDEB9D]/50 dark:hover:bg-[#2D3E2F] text-[#26352A] dark:text-[#F2F5ED]',
+      'bg-transparent hover:bg-[#ECFDF3] dark:hover:bg-[#132F21] text-[#10251A] dark:text-white',
     outline:
-      'bg-transparent border border-[#A0C878] text-[#26352A] dark:text-[#A0C878] hover:bg-[#DDEB9D]/30 dark:hover:bg-[#2D3E2F]/40',
+      'bg-transparent border border-[#047857] dark:border-[#86EFAC] text-[#047857] dark:text-[#86EFAC] hover:bg-[#ECFDF3] dark:hover:bg-[#132F21]/60',
   }
 
   return (

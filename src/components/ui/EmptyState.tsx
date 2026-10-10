@@ -22,30 +22,26 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed transition-colors ${
+      className={`flex flex-col items-center justify-center p-8 text-center rounded-2xl border border-dashed transition-colors backdrop-blur-md ${
         isSuccess
-          ? 'border-[#A0C878] bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40'
-          : 'border-[#DDD9C9] dark:border-[#2C3C2E] bg-[#FAF6E9] dark:bg-[#1E2B20]'
+          ? 'border-[#86EFAC] bg-[#ECFDF3]/80 dark:bg-[#132F21]/80'
+          : 'border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/80 dark:bg-[#122C1F]/80'
       } ${className}`}
     >
       <div
-        className={`p-3 rounded-lg mb-3 ${
+        className={`p-3 rounded-xl mb-3 ${
           isSuccess
-            ? 'bg-[#DDEB9D] dark:bg-[#2D3E2F] text-[#26352A] dark:text-[#A0C878]'
-            : 'bg-[#F3EEDC] dark:bg-[#263629] text-[#506052] dark:text-[#C2CCC0]'
+            ? 'bg-[#86EFAC]/30 dark:bg-[#163826] text-[#047857] dark:text-[#86EFAC]'
+            : 'bg-[#F4FAF5] dark:bg-[#0E2419] text-[#425B4C] dark:text-[#A7F3D0]'
         }`}
       >
         {icon || (isSuccess ? <ShieldCheck className="w-7 h-7" /> : <Info className="w-7 h-7" />)}
       </div>
-      <h4
-        className={`text-sm font-bold tracking-wide ${
-          isSuccess ? 'text-[#26352A] dark:text-[#F2F5ED]' : 'text-[#26352A] dark:text-[#F2F5ED]'
-        }`}
-      >
+      <h4 className="text-sm font-bold tracking-wide text-[#10251A] dark:text-white">
         {title}
       </h4>
       {description && (
-        <p className="text-xs text-[#788477] dark:text-[#859483] mt-1 max-w-sm">{description}</p>
+        <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-1 max-w-sm font-medium">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

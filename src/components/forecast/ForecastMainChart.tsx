@@ -23,26 +23,26 @@ export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints
   const isDark = theme === 'dark'
 
   // Visual design tokens
-  const gridStroke = isDark ? '#2C3C2E' : '#DDD9C9'
-  const axisStroke = isDark ? '#859483' : '#788477'
-  const tooltipBg = isDark ? '#1E2B20' : '#FAF6E9'
-  const tooltipBorder = isDark ? '#2C3C2E' : '#DDD9C9'
-  const tooltipText = isDark ? '#F2F5ED' : '#26352A'
+  const gridStroke = isDark ? '#163826' : '#BBF7D0'
+  const axisStroke = isDark ? '#86EFAC' : '#52665A'
+  const tooltipBg = isDark ? '#122C1F' : '#FFFFFF'
+  const tooltipBorder = isDark ? '#163826' : '#BBF7D0'
+  const tooltipText = isDark ? '#ECFDF3' : '#10251A'
 
   // Solar and load color tokens
-  const solarStroke = isDark ? '#D4B838' : '#B09B29'
-  const loadStroke = isDark ? '#A0C878' : '#506052'
+  const solarStroke = isDark ? '#F59E0B' : '#D97706'
+  const loadStroke = isDark ? '#86EFAC' : '#047857'
 
   return (
-    <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+    <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
       <CardHeader
         title="24-Hour Solar Generation & Load Demand Lookahead"
         subtitle="Diurnal renewable PV production vs. aggregate consumer power demand across 24 hours"
-        icon={<TrendingUp className="w-4 h-4 text-[#A0C878]" />}
+        icon={<TrendingUp className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
           <div className="flex flex-wrap items-center gap-4 text-xs font-medium">
-            <span className="flex items-center gap-1.5 text-[#B09B29] dark:text-[#D4B838]">
-              <span className="w-3 h-1 rounded-full bg-[#B09B29] dark:bg-[#D4B838] inline-block" />
+            <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+              <span className="w-3 h-1 rounded-full bg-amber-500 inline-block" />
               <span>Solar Generation (kW)</span>
             </span>
             <span className="flex items-center gap-1.5 text-[#506052] dark:text-[#A0C878]">

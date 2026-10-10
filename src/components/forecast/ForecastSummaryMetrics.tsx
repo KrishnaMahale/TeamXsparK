@@ -61,11 +61,11 @@ export const ForecastSummaryMetrics: React.FC<ForecastSummaryMetricsProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#26352A] dark:text-[#F2F5ED]">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#A0C878]" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold bg-[#ECFDF3] dark:bg-[#064E3B]/60 border border-[#BBF7D0] dark:border-[#86EFAC]/30 text-[#047857] dark:text-[#86EFAC]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
             <span>Forecast status: {summary.forecastStatus}</span>
           </div>
-          <span className="hidden sm:inline-block text-[11px] font-mono text-[#788477] dark:text-[#859483]">
+          <span className="hidden sm:inline-block text-[11px] font-mono text-[#52665A] dark:text-[#A7F3D0]">
             Horizon: 24h
           </span>
         </div>
@@ -74,84 +74,84 @@ export const ForecastSummaryMetrics: React.FC<ForecastSummaryMetricsProps> = ({
       {/* 4 Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* 1. Peak Solar Generation */}
-        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+        <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#788477] dark:text-[#859483] font-medium">
+              <span className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-medium">
                 Peak Solar Generation
               </span>
-              <div className="p-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                <Sun className="w-3.5 h-3.5 text-[#B09B29] dark:text-[#D4B838]" />
+              <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60">
+                <Sun className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1.5">
+            <div className="text-xl sm:text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1.5">
               {summary.peakSolarKw.toFixed(1)}{' '}
-              <span className="text-xs font-normal text-[#788477] dark:text-[#859483]">kW</span>
+              <span className="text-xs font-normal text-[#52665A] dark:text-[#A7F3D0]">kW</span>
             </div>
-            <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-1 font-mono">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-1 font-mono">
               Projected at {summary.peakSolarTime}
             </div>
           </CardContent>
         </Card>
 
         {/* 2. Peak Load Demand */}
-        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+        <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#788477] dark:text-[#859483] font-medium">
+              <span className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-medium">
                 Peak Load Demand
               </span>
-              <div className="p-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                <TrendingUp className="w-3.5 h-3.5 text-[#A0C878]" />
+              <div className="p-1.5 rounded-xl bg-[#F0FDF4] dark:bg-[#064E3B]/50 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/30">
+                <TrendingUp className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC]" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1.5">
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] mt-1.5">
               {summary.peakLoadKw.toFixed(1)}{' '}
-              <span className="text-xs font-normal text-[#788477] dark:text-[#859483]">kW</span>
+              <span className="text-xs font-normal text-[#52665A] dark:text-[#A7F3D0]">kW</span>
             </div>
-            <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-1 font-mono">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-1 font-mono">
               Projected at {summary.peakLoadTime}
             </div>
           </CardContent>
         </Card>
 
         {/* 3. Total Solar Generation */}
-        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+        <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#788477] dark:text-[#859483] font-medium">
+              <span className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-medium">
                 Total Solar Generation
               </span>
-              <div className="p-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                <BatteryMedium className="w-3.5 h-3.5 text-[#B09B29] dark:text-[#D4B838]" />
+              <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60">
+                <BatteryMedium className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#B09B29] dark:text-[#D4B838] mt-1.5">
+            <div className="text-xl sm:text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1.5">
               {summary.totalSolarKwh.toLocaleString()}{' '}
-              <span className="text-xs font-normal text-[#788477] dark:text-[#859483]">kWh</span>
+              <span className="text-xs font-normal text-[#52665A] dark:text-[#A7F3D0]">kWh</span>
             </div>
-            <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-1">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-1">
               24-hour total energy yield
             </div>
           </CardContent>
         </Card>
 
         {/* 4. Total Load Demand */}
-        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+        <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#788477] dark:text-[#859483] font-medium">
+              <span className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-medium">
                 Total Load Demand
               </span>
-              <div className="p-1 rounded-md bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                <Activity className="w-3.5 h-3.5 text-[#A0C878]" />
+              <div className="p-1.5 rounded-xl bg-[#F0FDF4] dark:bg-[#064E3B]/50 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/30">
+                <Activity className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC]" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1.5">
+            <div className="text-xl sm:text-2xl font-bold font-mono text-[#10251A] dark:text-[#ECFDF3] mt-1.5">
               {summary.totalLoadKwh.toLocaleString()}{' '}
-              <span className="text-xs font-normal text-[#788477] dark:text-[#859483]">kWh</span>
+              <span className="text-xs font-normal text-[#52665A] dark:text-[#A7F3D0]">kWh</span>
             </div>
-            <div className="text-[11px] text-[#788477] dark:text-[#859483] mt-1">
+            <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] mt-1">
               24-hour energy consumption
             </div>
           </CardContent>

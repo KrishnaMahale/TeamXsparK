@@ -169,15 +169,15 @@ export const ForecastsPage: React.FC = () => {
       title="Renewable & Load Forecast"
       subtitle="Predict the operating conditions for a selected day and evaluate how the configured grid responds."
       actions={
-        <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#506052] dark:text-[#C2CCC0]">
-          <div className="flex items-center gap-1.5 font-medium">
-            <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
-            <span className="text-[#26352A] dark:text-[#F2F5ED] font-semibold">
+        <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-[#425B4C] dark:text-[#A7F3D0]">
+          <div className="flex items-center gap-1.5 font-bold">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+            <span className="text-[#10251A] dark:text-white font-bold">
               ML Forecast Engine
             </span>
           </div>
-          <span className="text-[#DDD9C9] dark:text-[#2C3C2E]">|</span>
-          <span className="text-[#788477] dark:text-[#859483] font-mono text-[11px]">
+          <span className="text-[#BBF7D0] dark:text-[#86EFAC]/30">|</span>
+          <span className="text-[#425B4C] dark:text-[#A7F3D0] font-mono text-[11px]">
             Ready
           </span>
         </div>

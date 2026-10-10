@@ -53,23 +53,23 @@ export const GridResponsePreview: React.FC<GridResponsePreviewProps> = ({
               return (
                 <div
                   key={step.id}
-                  className={`p-3 rounded-lg border text-xs transition-colors ${
+                  className={`p-3 rounded-xl border text-xs transition-colors ${
                     isCompleted
-                      ? 'bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40 border-[#A0C878] text-[#26352A] dark:text-[#F2F5ED]'
+                      ? 'bg-[#ECFDF3] dark:bg-[#064E3B]/40 border-[#047857] dark:border-[#86EFAC] text-[#10251A] dark:text-[#ECFDF3]'
                       : isActive
-                      ? 'bg-[#FAF6E9] dark:bg-[#1E2B20] border-[#A0C878] dark:border-[#A0C878]/70 text-[#26352A] dark:text-[#F2F5ED] ring-1 ring-[#A0C878]/40'
-                      : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2C3C2E] text-[#788477] dark:text-[#859483] opacity-75'
+                      ? 'bg-white dark:bg-[#122C1F] border-[#047857] dark:border-[#86EFAC] text-[#10251A] dark:text-[#ECFDF3] ring-2 ring-[#10B981]/30'
+                      : 'bg-[#F7FCF9] dark:bg-[#163826]/40 border-[#BBF7D0]/50 dark:border-[#86EFAC]/15 text-[#52665A] dark:text-[#A7F3D0] opacity-75'
                   }`}
                 >
                   <div className="flex items-center justify-between font-mono font-bold text-[11px]">
                     <span>{step.label}</span>
                     {isCompleted ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#A0C878]" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
                     ) : isActive ? (
-                      <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                     ) : null}
                   </div>
-                  <div className="text-[10px] text-[#788477] dark:text-[#859483] mt-1 font-medium truncate">
+                  <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] mt-1 font-medium truncate">
                     {step.desc}
                   </div>
                 </div>
@@ -79,16 +79,16 @@ export const GridResponsePreview: React.FC<GridResponsePreviewProps> = ({
         </div>
 
         {/* Action Callout Section */}
-        <div className="p-4 sm:p-5 rounded-xl bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#A0C878]" />
+            <h4 className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />
               <span>Grid Response Simulation</span>
             </h4>
-            <p className="text-xs text-[#506052] dark:text-[#C2CCC0] max-w-xl leading-relaxed">
+            <p className="text-xs text-[#52665A] dark:text-[#A7F3D0] max-w-xl leading-relaxed">
               Run the forecast through the Digital Twin to evaluate voltage, feeder loading, reverse flow, and other operating constraints on{' '}
-              <strong className="text-[#26352A] dark:text-[#F2F5ED] font-semibold">{gridName}</strong> for{' '}
-              <strong className="text-[#26352A] dark:text-[#F2F5ED] font-semibold">{simulationDate}</strong>.
+              <strong className="text-[#10251A] dark:text-[#ECFDF3] font-semibold">{gridName}</strong> for{' '}
+              <strong className="text-[#10251A] dark:text-[#ECFDF3] font-semibold">{simulationDate}</strong>.
             </p>
           </div>
 

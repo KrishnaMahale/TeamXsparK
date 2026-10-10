@@ -40,35 +40,35 @@ export const NetworkPage: React.FC = () => {
           <NetworkDigitalTwin />
 
           {/* Operating Constraints & Bounds Card */}
-          <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs">
+          <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 shadow-xs">
             <CardHeader
               title="Operating Constraints"
               subtitle="IEEE 1547 / IEC statutory bounds & real-time monitoring"
-              icon={<Activity className="w-4 h-4 text-[#A0C878]" />}
+              icon={<Activity className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
             />
             <CardContent className="pt-2">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                  <div className="text-[11px] text-[#788477] dark:text-[#859483] font-medium">
+                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
                     Voltage Bounds
                   </div>
-                  <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">
+                  <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
                     {input.networkConfig.voltageMinPu.toFixed(2)} -{' '}
                     {input.networkConfig.voltageMaxPu.toFixed(2)} pu
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                  <div className="text-[11px] text-[#788477] dark:text-[#859483] font-medium">
+                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
                     Feeder Loading Limit
                   </div>
-                  <div className="text-sm font-bold font-mono text-[#26352A] dark:text-[#F2F5ED] mt-1">
+                  <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
                     {input.networkConfig.feederLoadingLimitPercent}%
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                  <div className="text-[11px] text-[#788477] dark:text-[#859483] font-medium">
+                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
                     Active Topology
                   </div>
                   <div className="mt-1">
@@ -85,15 +85,15 @@ export const NetworkPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                  <div className="text-[11px] text-[#788477] dark:text-[#859483] font-medium">
+                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
                     Active Violations
                   </div>
                   <div
                     className={`text-sm font-bold font-mono mt-1 ${
                       violationSummary.critical > 0
-                        ? 'text-red-700 dark:text-red-400'
-                        : 'text-[#A0C878]'
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-[#16A34A] dark:text-[#86EFAC]'
                     }`}
                   >
                     {violationSummary.total} Issues

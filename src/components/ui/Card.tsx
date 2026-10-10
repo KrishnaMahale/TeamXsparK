@@ -17,11 +17,16 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    default: 'bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs',
-    highlight: 'bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/50 border border-[#A0C878] dark:border-[#A0C878]/50 shadow-xs',
-    danger: 'bg-red-50/70 dark:bg-red-950/30 border border-red-200 dark:border-red-900/60 shadow-xs',
-    warning: 'bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 shadow-xs',
-    success: 'bg-[#DDEB9D]/40 dark:bg-[#2D3E2F]/40 border border-[#A0C878] dark:border-[#A0C878]/60 shadow-xs',
+    default:
+      'bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 shadow-[0_6px_20px_rgba(16,80,55,0.06)] dark:shadow-[0_6px_20px_rgba(0,0,0,0.3)] hover:border-[#86EFAC]/80',
+    highlight:
+      'bg-[#ECFDF3]/85 dark:bg-[#163826]/85 backdrop-blur-md border border-[#86EFAC] dark:border-[#86EFAC]/60 shadow-[0_6px_20px_rgba(134,239,172,0.18)]',
+    danger:
+      'bg-red-50/80 dark:bg-red-950/35 backdrop-blur-md border border-red-200 dark:border-red-900/60 shadow-xs',
+    warning:
+      'bg-amber-50/80 dark:bg-amber-950/35 backdrop-blur-md border border-amber-200 dark:border-amber-900/60 shadow-xs',
+    success:
+      'bg-emerald-50/80 dark:bg-emerald-950/35 backdrop-blur-md border border-emerald-200 dark:border-emerald-800/60 shadow-xs',
   }
 
   // Support backward compatible glowColor mapping
@@ -33,7 +38,7 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`rounded-xl ${variantStyles[activeVariant]} transition-colors duration-150 ${className}`}
+      className={`rounded-2xl ${variantStyles[activeVariant]} transition-all duration-200 ${className}`}
       {...props}
     >
       {children}
@@ -48,14 +53,14 @@ export const CardHeader: React.FC<{
   className?: string
   icon?: React.ReactNode
 }> = ({ title, subtitle, action, className = '', icon }) => (
-  <div className={`p-4 sm:p-5 border-b border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between ${className}`}>
+  <div className={`p-4 sm:p-5 border-b border-[#BBF7D0]/60 dark:border-[#86EFAC]/18 flex items-center justify-between ${className}`}>
     <div className="flex items-center gap-2.5">
-      {icon && <span className="text-[#A0C878] shrink-0">{icon}</span>}
+      {icon && <span className="text-[#047857] dark:text-[#86EFAC] shrink-0">{icon}</span>}
       <div>
-        <h3 className="text-xs sm:text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] tracking-wide uppercase flex items-center gap-2">
+        <h3 className="text-xs sm:text-sm font-bold text-[#10251A] dark:text-white tracking-wide uppercase flex items-center gap-2">
           {title}
         </h3>
-        {subtitle && <p className="text-xs text-[#788477] dark:text-[#859483] mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-0.5">{subtitle}</p>}
       </div>
     </div>
     {action && <div className="flex items-center gap-2">{action}</div>}
@@ -73,7 +78,7 @@ export const CardFooter: React.FC<{
   children: React.ReactNode
   className?: string
 }> = ({ children, className = '' }) => (
-  <div className={`p-4 sm:p-5 border-t border-[#DDD9C9] dark:border-[#2C3C2E] flex items-center justify-between bg-[#F3EEDC] dark:bg-[#18231A] rounded-b-xl ${className}`}>
+  <div className={`p-4 sm:p-5 border-t border-[#BBF7D0]/60 dark:border-[#86EFAC]/18 flex items-center justify-between bg-[#F4FAF5]/80 dark:bg-[#0E2419]/80 rounded-b-2xl ${className}`}>
     {children}
   </div>
 )

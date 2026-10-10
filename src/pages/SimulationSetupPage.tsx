@@ -211,22 +211,22 @@ export const SimulationSetupPage: React.FC = () => {
         )}
 
         {/* READY TO SIMULATE & RUN ACTIONS */}
-        <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] overflow-hidden">
+        <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 overflow-hidden">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-1.5 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" />
-                  <h3 className="text-base font-bold text-[#26352A] dark:text-[#F2F5ED]">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
+                  <h3 className="text-base font-extrabold text-[#10251A] dark:text-white">
                     Ready to simulate
                   </h3>
                 </div>
-                <p className="text-xs text-[#506052] dark:text-[#C2CCC0] leading-relaxed">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] leading-relaxed font-medium">
                   The Digital Twin will evaluate the selected grid across the configured operating conditions and identify potential network constraints (voltage compliance, thermal overload, and reverse flow).
                 </p>
 
                 {validationErrors.length > 0 && (
-                  <div className="mt-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-900 text-xs text-red-800 dark:text-red-300 space-y-1">
+                  <div className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-900 text-xs text-red-800 dark:text-red-300 space-y-1">
                     <div className="font-bold flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
                       <span>Resolve configuration issues before running:</span>
@@ -247,8 +247,8 @@ export const SimulationSetupPage: React.FC = () => {
                   onClick={handleRun}
                   disabled={isRunning || validationErrors.length > 0}
                   isLoading={isRunning}
-                  leftIcon={!isRunning ? <Play className="w-4 h-4" /> : undefined}
-                  className="font-bold px-8 shadow-sm"
+                  leftIcon={!isRunning ? <Play className="w-4 h-4 fill-current" /> : undefined}
+                  className="font-bold px-8 shadow-md"
                 >
                   {isRunning ? 'Running Digital Twin...' : 'Run Digital Twin Simulation'}
                 </Button>
@@ -257,17 +257,17 @@ export const SimulationSetupPage: React.FC = () => {
 
             {/* In-page Result Preview Banner (When simulation has completed) */}
             {fullResult && !isRunning && (
-              <div className="mt-6 p-4 rounded-xl bg-[#DDEB9D]/30 dark:bg-[#2D3E2F]/40 border border-[#A0C878] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+              <div className="mt-6 p-4 rounded-2xl bg-[#ECFDF3]/80 dark:bg-[#132F21]/80 backdrop-blur-md border border-[#86EFAC] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-200">
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-[#2E7D32] dark:text-[#A0C878] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-[#047857] dark:text-[#86EFAC] shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-sm font-bold text-[#26352A] dark:text-[#F2F5ED] flex items-center gap-2">
+                    <div className="text-sm font-bold text-[#10251A] dark:text-white flex items-center gap-2">
                       <span>Power-Flow Simulation Complete</span>
                       <Badge variant="success" size="sm">
                         Converged
                       </Badge>
                     </div>
-                    <p className="text-xs text-[#506052] dark:text-[#C2CCC0] mt-0.5">
+                    <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-0.5 font-medium">
                       {fullResult.summary.initialViolations > 0
                         ? `${fullResult.summary.initialViolations} constraint violations detected across simulation horizon. Review corrective actions.`
                         : 'All nodal voltages and thermal ampacities are compliant within IEEE 1547 operational limits.'}

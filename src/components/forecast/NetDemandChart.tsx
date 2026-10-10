@@ -24,25 +24,25 @@ export const NetDemandChart: React.FC<NetDemandChartProps> = ({ dataPoints, summ
   const isDark = theme === 'dark'
 
   // Visual design tokens
-  const gridStroke = isDark ? '#2C3C2E' : '#DDD9C9'
-  const axisStroke = isDark ? '#859483' : '#788477'
-  const tooltipBg = isDark ? '#1E2B20' : '#FAF6E9'
-  const tooltipBorder = isDark ? '#2C3C2E' : '#DDD9C9'
-  const tooltipText = isDark ? '#F2F5ED' : '#26352A'
+  const gridStroke = isDark ? '#163826' : '#BBF7D0'
+  const axisStroke = isDark ? '#86EFAC' : '#52665A'
+  const tooltipBg = isDark ? '#122C1F' : '#FFFFFF'
+  const tooltipBorder = isDark ? '#163826' : '#BBF7D0'
+  const tooltipText = isDark ? '#ECFDF3' : '#10251A'
 
   // Determine if there is any reverse flow / surplus in this profile
   const hasSurplus = summary.maxSurplusKw > 0
 
   return (
-    <Card className="border-[#DDD9C9] dark:border-[#2C3C2E]">
+    <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
       <CardHeader
         title="Forecasted Net Demand"
         subtitle="Net Demand = Load Demand - Solar Generation (Identifies surplus renewable backfeed into the primary substation)"
-        icon={<Zap className="w-4 h-4 text-[#A0C878]" />}
+        icon={<Zap className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2C3C2E] text-[#506052] dark:text-[#C2CCC0]">
-              <ArrowUpCircle className="w-3.5 h-3.5 text-[#A0C878]" />
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-[#ECFDF3] dark:bg-[#064E3B]/60 border border-[#BBF7D0] dark:border-[#86EFAC]/30 text-[#047857] dark:text-[#86EFAC]">
+              <ArrowUpCircle className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC]" />
               <span>&gt; 0 kW: Grid Import</span>
             </span>
             {hasSurplus && (
@@ -158,11 +158,11 @@ export const NetDemandChart: React.FC<NetDemandChartProps> = ({ dataPoints, summ
         </div>
 
         {/* Operating Balance Explanation Footnote */}
-        <div className="p-3.5 rounded-lg bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] text-xs space-y-1.5">
-          <div className="flex items-start gap-2 text-[#506052] dark:text-[#C2CCC0] text-[11px] leading-relaxed">
-            <Info className="w-4 h-4 text-[#A0C878] shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 text-xs space-y-1.5 shadow-2xs">
+          <div className="flex items-start gap-2 text-[#52665A] dark:text-[#A7F3D0] text-[11px] leading-relaxed">
+            <Info className="w-4 h-4 text-[#047857] dark:text-[#86EFAC] shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-[#26352A] dark:text-[#F2F5ED]">Operating Regime Interpretation: </span>
+              <span className="font-bold text-[#10251A] dark:text-[#ECFDF3]">Operating Regime Interpretation: </span>
               {hasSurplus ? (
                 <span>
                   Between {summary.surplusStartTime} and {summary.surplusEndTime}, local rooftop PV output exceeds neighborhood consumption, dropping net demand to a peak surplus of {summary.maxSurplusKw.toFixed(1)} kW. During this window, power may reverse back through distribution lines towards the primary substation.
@@ -174,7 +174,7 @@ export const NetDemandChart: React.FC<NetDemandChartProps> = ({ dataPoints, summ
               )}
             </div>
           </div>
-          <p className="text-[10px] text-[#788477] dark:text-[#859483] italic pl-6">
+          <p className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] italic pl-6">
             Note: This curve illustrates active power balance at the feeder head. Statutory voltage rise and thermal ampacity limits must be verified via Digital Twin power-flow simulation.
           </p>
         </div>

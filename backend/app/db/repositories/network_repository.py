@@ -123,6 +123,9 @@ def initialize_default_grid() -> GridNetwork:
     return default_net
 
 
+get_default_network = initialize_default_grid
+
+
 def initialize_medium_grid() -> GridNetwork:
     substation = Transformer(
         id="TX-MED",

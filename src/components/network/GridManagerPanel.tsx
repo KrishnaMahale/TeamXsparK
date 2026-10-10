@@ -644,9 +644,9 @@ export const GridManagerPanel: React.FC = () => {
 
         {/* 3D Builder Callout */}
         {!is3DEnabled && (
-          <div className="flex items-center justify-between p-2.5 bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-lg text-xs">
-            <div className="flex items-center gap-2 text-[#506052] dark:text-[#C2CCC0]">
-              <Box className="w-4 h-4 text-[#A0C878] shrink-0" />
+          <div className="flex items-center justify-between p-3 bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 rounded-2xl text-xs shadow-2xs">
+            <div className="flex items-center gap-2 text-[#52665A] dark:text-[#A7F3D0]">
+              <Box className="w-4 h-4 text-[#047857] dark:text-[#86EFAC] shrink-0" />
               <span className="text-[11px]">3D Digital Twin available for spatial node editing</span>
             </div>
             <Button size="sm" variant="secondary" onClick={toggle3D} className="text-xs shrink-0 py-1 px-2.5">
