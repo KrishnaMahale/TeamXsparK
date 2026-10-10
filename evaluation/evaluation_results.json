@@ -1,0 +1,520 @@
+{
+  "evaluation_timestamp": "2026-10-10T06:03:15.358452+00:00",
+  "summary": "Genuine Measured Accuracy Evaluation of Production ML Forecasting Models",
+  "models": {
+    "solar_ghi_model": {
+      "architecture": "HistGradientBoostingRegressor",
+      "target": "target_ghi_wm2",
+      "units": "W/m\u00b2",
+      "dataset": "CWPRS Pune Solar Radiation Telemetry (2024-05 to 2025-06)",
+      "data_nature": "Real Historical Telemetry",
+      "test_period": "2025-05-01 to 2025-06-09",
+      "one_step_test": {
+        "all_period": {
+          "MAE": 36.1296,
+          "RMSE": 82.258,
+          "R2": 0.92,
+          "WAPE": 19.2662,
+          "sMAPE": 21.0938,
+          "Bias": 1.191,
+          "N": 2535
+        },
+        "daylight": {
+          "MAE": 70.9151,
+          "RMSE": 115.8136,
+          "R2": 0.8656,
+          "WAPE": 19.103,
+          "sMAPE": 25.5656,
+          "Bias": 3.1129,
+          "N": 1278
+        },
+        "nighttime": {
+          "MAE": 0.763,
+          "RMSE": 2.9844,
+          "R2": -0.0699,
+          "WAPE": 100.0,
+          "sMAPE": 16.5473,
+          "Bias": -0.763,
+          "N": 1257
+        },
+        "baseline_persistence_mae": 34.7435,
+        "model_common_mae": 33.3719,
+        "persistence_improvement_pct": 3.95
+      },
+      "twenty_four_hour_recursive": {
+        "valid_forecast_origins": 37,
+        "excluded_origins": 3,
+        "full_24h": {
+          "horizon_label": "Full 24h (0-24h)",
+          "metrics": {
+            "MAE": 88.0229,
+            "RMSE": 163.0772,
+            "R2": 0.6857,
+            "WAPE": 46.9384,
+            "sMAPE": 33.866,
+            "Bias": 15.7192,
+            "N": 2535
+          },
+          "baseline_persistence_mae": 193.9393,
+          "baseline_prev_day_mae": 108.4521,
+          "baseline_clearsky_mae": 134.5774,
+          "best_baseline_name": "Previous_Day_24h",
+          "best_baseline_mae": 108.4521,
+          "improvement_pct": 18.84,
+          "N": 2535
+        },
+        "daylight_only": {
+          "horizon_label": "Full 24h Daylight-Only",
+          "metrics": {
+            "MAE": 173.849,
+            "RMSE": 229.6575,
+            "R2": 0.4714,
+            "WAPE": 46.8311,
+            "sMAPE": 50.9001,
+            "Bias": 31.9307,
+            "N": 1278
+          },
+          "baseline_persistence_mae": 373.5141,
+          "baseline_prev_day_mae": 214.7934,
+          "baseline_clearsky_mae": 266.1929,
+          "best_baseline_name": "Previous_Day_24h",
+          "best_baseline_mae": 214.7934,
+          "improvement_pct": 19.06,
+          "N": 1278
+        },
+        "nighttime_only": {
+          "horizon_label": "Full 24h Nighttime-Only",
+          "metrics": {
+            "MAE": 0.763,
+            "RMSE": 2.9844,
+            "R2": -0.0699,
+            "WAPE": 100.0,
+            "sMAPE": 16.5473,
+            "Bias": -0.763,
+            "N": 1257
+          },
+          "baseline_persistence_mae": 11.3645,
+          "baseline_prev_day_mae": 0.3342,
+          "baseline_clearsky_mae": 0.763,
+          "best_baseline_name": "Previous_Day_24h",
+          "best_baseline_mae": 0.3342,
+          "improvement_pct": -128.31,
+          "N": 1257
+        },
+        "sub_horizons": {
+          "h_0_6": {
+            "horizon_label": "0-6 Hours (Steps 1-24)",
+            "metrics": {
+              "MAE": 0.4309,
+              "RMSE": 2.0866,
+              "R2": -0.0445,
+              "WAPE": 100.0,
+              "sMAPE": 10.5417,
+              "Bias": -0.4309,
+              "N": 683
+            },
+            "baseline_persistence_mae": 0.4309,
+            "baseline_prev_day_mae": 0.1728,
+            "baseline_clearsky_mae": 0.4309,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 0.1728,
+            "improvement_pct": -149.36,
+            "N": 683
+          },
+          "h_6_12": {
+            "horizon_label": "6-12 Hours (Steps 25-48)",
+            "metrics": {
+              "MAE": 149.9265,
+              "RMSE": 195.5475,
+              "R2": 0.6014,
+              "WAPE": 39.3079,
+              "sMAPE": 52.2211,
+              "Bias": -7.4569,
+              "N": 580
+            },
+            "baseline_persistence_mae": 381.4162,
+            "baseline_prev_day_mae": 221.9057,
+            "baseline_clearsky_mae": 193.9691,
+            "best_baseline_name": "ClearSky_Proxy",
+            "best_baseline_mae": 193.9691,
+            "improvement_pct": 22.71,
+            "N": 580
+          },
+          "h_12_18": {
+            "horizon_label": "12-18 Hours (Steps 49-72)",
+            "metrics": {
+              "MAE": 220.7952,
+              "RMSE": 272.6531,
+              "R2": 0.2602,
+              "WAPE": 53.83,
+              "sMAPE": 59.348,
+              "Bias": 72.8547,
+              "N": 608
+            },
+            "baseline_persistence_mae": 411.1976,
+            "baseline_prev_day_mae": 236.819,
+            "baseline_clearsky_mae": 363.1512,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 236.819,
+            "improvement_pct": 6.77,
+            "N": 608
+          },
+          "h_18_24": {
+            "horizon_label": "18-24 Hours (Steps 73-96)",
+            "metrics": {
+              "MAE": 2.4744,
+              "RMSE": 7.3809,
+              "R2": 0.814,
+              "WAPE": 36.6273,
+              "sMAPE": 18.4917,
+              "Bias": 0.259,
+              "N": 664
+            },
+            "baseline_persistence_mae": 30.2897,
+            "baseline_prev_day_mae": 3.188,
+            "baseline_clearsky_mae": 11.3876,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 3.188,
+            "improvement_pct": 22.38,
+            "N": 664
+          }
+        }
+      }
+    },
+    "temperature_model": {
+      "architecture": "Ridge_Regression_Pipeline",
+      "target": "target_temperature_c",
+      "units": "\u00b0C",
+      "dataset": "CWPRS Pune Temperature Telemetry (2024-05 to 2025-06)",
+      "data_nature": "Real Historical Telemetry",
+      "test_period": "2025-05-01 to 2025-06-09",
+      "one_step_test": {
+        "overall": {
+          "MAE": 1.7676,
+          "RMSE": 2.6291,
+          "R2": 0.5092,
+          "WAPE": 6.6127,
+          "sMAPE": 6.2977,
+          "Bias": 0.0529,
+          "N": 2444
+        },
+        "baseline_persistence_mae": 0.2757,
+        "model_common_mae": 1.7572,
+        "persistence_improvement_pct": -537.36
+      },
+      "twenty_four_hour_recursive": {
+        "valid_forecast_origins": 37,
+        "excluded_origins": 3,
+        "full_24h": {
+          "horizon_label": "Full 24h (0-24h)",
+          "metrics": {
+            "MAE": 1.6135,
+            "RMSE": 2.3783,
+            "R2": 0.5984,
+            "WAPE": 6.0363,
+            "sMAPE": 5.8201,
+            "Bias": 0.7687,
+            "N": 2444
+          },
+          "baseline_persistence_mae": 2.6191,
+          "baseline_prev_day_mae": 1.8919,
+          "best_baseline_name": "Previous_Day_24h",
+          "best_baseline_mae": 1.8919,
+          "improvement_pct": 14.72,
+          "N": 2444
+        },
+        "sub_horizons": {
+          "h_0_6": {
+            "horizon_label": "0-6 Hours (Steps 1-24)",
+            "metrics": {
+              "MAE": 0.7505,
+              "RMSE": 0.9267,
+              "R2": 0.2802,
+              "WAPE": 3.1178,
+              "sMAPE": 3.1297,
+              "Bias": 0.2627,
+              "N": 636
+            },
+            "baseline_persistence_mae": 0.7868,
+            "baseline_prev_day_mae": 1.4848,
+            "best_baseline_name": "Persistence_Origin",
+            "best_baseline_mae": 0.7868,
+            "improvement_pct": 4.61,
+            "N": 636
+          },
+          "h_6_12": {
+            "horizon_label": "6-12 Hours (Steps 25-48)",
+            "metrics": {
+              "MAE": 1.437,
+              "RMSE": 2.155,
+              "R2": 0.6553,
+              "WAPE": 5.2344,
+              "sMAPE": 5.1682,
+              "Bias": 0.3039,
+              "N": 580
+            },
+            "baseline_persistence_mae": 3.1629,
+            "baseline_prev_day_mae": 1.9909,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 1.9909,
+            "improvement_pct": 27.82,
+            "N": 580
+          },
+          "h_12_18": {
+            "horizon_label": "12-18 Hours (Steps 49-72)",
+            "metrics": {
+              "MAE": 3.0801,
+              "RMSE": 3.8613,
+              "R2": 0.2175,
+              "WAPE": 10.2817,
+              "sMAPE": 10.3722,
+              "Bias": 1.9421,
+              "N": 608
+            },
+            "baseline_persistence_mae": 5.166,
+            "baseline_prev_day_mae": 2.7598,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 2.7598,
+            "improvement_pct": -11.61,
+            "N": 608
+          },
+          "h_18_24": {
+            "horizon_label": "18-24 Hours (Steps 73-96)",
+            "metrics": {
+              "MAE": 1.2257,
+              "RMSE": 1.5652,
+              "R2": 0.3566,
+              "WAPE": 4.7846,
+              "sMAPE": 4.7256,
+              "Bias": 0.5718,
+              "N": 620
+            },
+            "baseline_persistence_mae": 1.4925,
+            "baseline_prev_day_mae": 1.3561,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 1.3561,
+            "improvement_pct": 9.62,
+            "N": 620
+          }
+        }
+      }
+    },
+    "load_profile_model": {
+      "architecture": "HistGradientBoostingRegressor_CategoricalPipeline",
+      "target": "target_gross_load_kw",
+      "units": "kW",
+      "dataset": "Pecan Street Austin Texas 10 Homes (2018-08-23 to 2018-08-25)",
+      "data_nature": "Real Historical Sub-metered Telemetry",
+      "test_period": "2018-08-25",
+      "one_step_test": {
+        "overall": {
+          "MAE": 0.805,
+          "RMSE": 1.0976,
+          "R2": 0.6158,
+          "WAPE": 30.4583,
+          "sMAPE": 37.6506,
+          "Bias": 0.0526,
+          "N": 960
+        },
+        "per_home": {
+          "Home_1": {
+            "MAE": 0.8951,
+            "RMSE": 1.2248,
+            "R2": 0.5704,
+            "WAPE": 24.4809,
+            "sMAPE": 30.1201,
+            "Bias": -0.1794,
+            "N": 96
+          },
+          "Home_2": {
+            "MAE": 0.9037,
+            "RMSE": 1.1208,
+            "R2": 0.6123,
+            "WAPE": 25.1804,
+            "sMAPE": 29.6603,
+            "Bias": -0.0681,
+            "N": 96
+          },
+          "Home_3": {
+            "MAE": 0.6015,
+            "RMSE": 0.9022,
+            "R2": 0.6037,
+            "WAPE": 18.1917,
+            "sMAPE": 22.7182,
+            "Bias": -0.1487,
+            "N": 96
+          },
+          "Home_4": {
+            "MAE": 0.6434,
+            "RMSE": 1.0424,
+            "R2": 0.3845,
+            "WAPE": 21.6789,
+            "sMAPE": 23.8374,
+            "Bias": -0.1413,
+            "N": 96
+          },
+          "Home_5": {
+            "MAE": 1.3149,
+            "RMSE": 1.6596,
+            "R2": 0.2454,
+            "WAPE": 40.4944,
+            "sMAPE": 45.5776,
+            "Bias": 0.1268,
+            "N": 96
+          },
+          "Home_6": {
+            "MAE": 0.5512,
+            "RMSE": 0.7248,
+            "R2": 0.2668,
+            "WAPE": 45.0347,
+            "sMAPE": 46.1927,
+            "Bias": 0.3784,
+            "N": 96
+          },
+          "Home_7": {
+            "MAE": 1.26,
+            "RMSE": 1.477,
+            "R2": 0.5241,
+            "WAPE": 38.9308,
+            "sMAPE": 52.8398,
+            "Bias": 0.0565,
+            "N": 96
+          },
+          "Home_8": {
+            "MAE": 0.6866,
+            "RMSE": 0.8878,
+            "R2": 0.203,
+            "WAPE": 42.4227,
+            "sMAPE": 48.8567,
+            "Bias": 0.2524,
+            "N": 96
+          },
+          "Home_9": {
+            "MAE": 0.7754,
+            "RMSE": 0.9107,
+            "R2": 0.5215,
+            "WAPE": 30.9613,
+            "sMAPE": 36.3139,
+            "Bias": 0.0763,
+            "N": 96
+          },
+          "Home_10": {
+            "MAE": 0.4183,
+            "RMSE": 0.5591,
+            "R2": 0.2626,
+            "WAPE": 38.7411,
+            "sMAPE": 40.3892,
+            "Bias": 0.1728,
+            "N": 96
+          }
+        },
+        "baseline_persistence_mae": 1.0189,
+        "persistence_improvement_pct": 20.99
+      },
+      "twenty_four_hour_recursive": {
+        "full_24h": {
+          "horizon_label": "Full 24h (0-24h)",
+          "metrics": {
+            "MAE": 1.1329,
+            "RMSE": 1.4288,
+            "R2": 0.349,
+            "WAPE": 42.8621,
+            "sMAPE": 50.1118,
+            "Bias": 0.0974,
+            "N": 960
+          },
+          "baseline_persistence_mae": 2.064,
+          "baseline_prev_day_mae": 1.3025,
+          "baseline_diurnal_mae": 1.3841,
+          "baseline_home_mean_mae": 1.3445,
+          "best_baseline_name": "Previous_Day_24h",
+          "best_baseline_mae": 1.3025,
+          "improvement_pct": 13.02,
+          "N": 960
+        },
+        "sub_horizons": {
+          "h_0_6": {
+            "horizon_label": "0-6 Hours (Steps 1-24)",
+            "metrics": {
+              "MAE": 1.0095,
+              "RMSE": 1.2683,
+              "R2": 0.1019,
+              "WAPE": 49.3378,
+              "sMAPE": 51.7121,
+              "Bias": 0.301,
+              "N": 240
+            },
+            "baseline_persistence_mae": 2.6094,
+            "baseline_prev_day_mae": 1.205,
+            "baseline_diurnal_mae": 1.2042,
+            "baseline_home_mean_mae": 1.27,
+            "best_baseline_name": "Diurnal_Slot_Profile",
+            "best_baseline_mae": 1.2042,
+            "improvement_pct": 16.17,
+            "N": 240
+          },
+          "h_6_12": {
+            "horizon_label": "6-12 Hours (Steps 25-48)",
+            "metrics": {
+              "MAE": 1.2354,
+              "RMSE": 1.5488,
+              "R2": 0.2413,
+              "WAPE": 62.9995,
+              "sMAPE": 68.2555,
+              "Bias": 0.1643,
+              "N": 240
+            },
+            "baseline_persistence_mae": 2.6809,
+            "baseline_prev_day_mae": 1.3073,
+            "baseline_diurnal_mae": 1.4158,
+            "baseline_home_mean_mae": 1.5747,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 1.3073,
+            "improvement_pct": 5.5,
+            "N": 240
+          },
+          "h_12_18": {
+            "horizon_label": "12-18 Hours (Steps 49-72)",
+            "metrics": {
+              "MAE": 1.3235,
+              "RMSE": 1.6127,
+              "R2": 0.2636,
+              "WAPE": 40.3476,
+              "sMAPE": 48.0664,
+              "Bias": -0.0894,
+              "N": 240
+            },
+            "baseline_persistence_mae": 1.6576,
+            "baseline_prev_day_mae": 1.5932,
+            "baseline_diurnal_mae": 1.7417,
+            "baseline_home_mean_mae": 1.3982,
+            "best_baseline_name": "Home_Mean",
+            "best_baseline_mae": 1.3982,
+            "improvement_pct": 5.34,
+            "N": 240
+          },
+          "h_18_24": {
+            "horizon_label": "18-24 Hours (Steps 73-96)",
+            "metrics": {
+              "MAE": 0.963,
+              "RMSE": 1.2481,
+              "R2": 0.3563,
+              "WAPE": 29.3177,
+              "sMAPE": 32.4131,
+              "Bias": 0.0136,
+              "N": 240
+            },
+            "baseline_persistence_mae": 1.3082,
+            "baseline_prev_day_mae": 1.1046,
+            "baseline_diurnal_mae": 1.1746,
+            "baseline_home_mean_mae": 1.1352,
+            "best_baseline_name": "Previous_Day_24h",
+            "best_baseline_mae": 1.1046,
+            "improvement_pct": 12.82,
+            "N": 240
+          }
+        }
+      }
+    }
+  }
+}

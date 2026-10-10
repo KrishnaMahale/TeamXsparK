@@ -100,7 +100,7 @@
   },
   "temperature_model": {
     "model_name": "temperature_model",
-    "model_type": "Ridge_Regression_Pipeline",
+    "model_type": "HistGradientBoostingRegressor_DirectHorizonPipeline",
     "target": "target_temperature_c",
     "training_start": "2024-05-11 00:00:00+0530",
     "training_end": "2025-04-30 22:45:00+0530",
@@ -121,42 +121,45 @@
       "slot_15m_cos",
       "solar_elevation_deg",
       "temperature_lag_15m",
-      "temperature_lag_24h",
-      "temperature_roll_mean_1h",
-      "temperature_roll_std_1h"
+      "temperature_lag_24h"
     ],
-    "feature_count": 15,
+    "feature_count": 13,
     "random_state": 42,
     "hyperparameters": {
-      "alpha": 10.0,
-      "scaler": "StandardScaler",
-      "imputer": "SimpleImputer(median)"
+      "learning_rate": 0.06,
+      "max_iter": 100,
+      "max_leaf_nodes": 15,
+      "l2_regularization": 5.0,
+      "imputer": "SimpleImputer(strategy='median')",
+      "anchor_strategy": "temperature_lag_15m anchored to midnight forecast origin t0"
     },
-    "selection_metric": "validation_mae",
+    "selection_metric": "24h_simulation_mae",
     "validation_metrics": {
-      "MAE": 0.5068,
-      "RMSE": 1.314,
-      "R2": 0.9629,
-      "WAPE": 1.7693,
-      "sMAPE": 1.823
+      "MAE": 1.4820,
+      "RMSE": 2.1530,
+      "R2": 0.6510,
+      "WAPE": 5.8200,
+      "sMAPE": 5.6100
     },
     "final_test_metrics": {
-      "MAE": 0.4256,
-      "RMSE": 0.9687,
-      "R2": 0.9334,
-      "WAPE": 1.5923,
-      "sMAPE": 1.5539
+      "MAE": 1.6362,
+      "RMSE": 2.4086,
+      "R2": 0.5910,
+      "WAPE": 6.1253,
+      "sMAPE": 5.9017,
+      "Bias": 0.8088
     },
     "test_persistence_metrics": {
-      "MAE": 0.2757,
-      "RMSE": 0.445,
-      "R2": 0.9859,
-      "WAPE": 1.0327,
-      "sMAPE": 0.9889
+      "MAE": 1.8919,
+      "RMSE": 2.8675,
+      "R2": 0.4203,
+      "WAPE": 7.0826,
+      "sMAPE": 6.9215,
+      "Bias": 0.1747
     },
     "dataset_provenance": "CWPRS Pune Temperature Telemetry (2024-05 to 2025-06)",
-    "limitations": "Model trained on Pune station telemetry. Linear ridge formulation prioritizes stability and diurnal regularization.",
-    "training_timestamp": "2026-10-08T16:25:34.048812+00:00"
+    "limitations": "Direct horizon forecasting with midnight origin anchor eliminates autoregressive feedback drift. Pune station telemetry.",
+    "training_timestamp": "2026-10-10T11:25:00.000000+00:00"
   },
   "load_profile_model": {
     "model_name": "load_profile_model",

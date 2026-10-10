@@ -138,6 +138,7 @@ class ForecastPipeline:
         temp_buffer = hist_tf["target_temperature_c"].dropna().tolist()[-4:]
         if len(temp_buffer) < 4:
             temp_buffer = [25.0] * 4
+        t_origin = float(temp_buffer[-1])
 
         # Prior 24h diurnal lags (the same slots 24h before forecast origin)
         prior_24h_ghi = hist_sf["target_ghi_wm2"].fillna(0.0).values
@@ -191,7 +192,7 @@ class ForecastPipeline:
                 "slot_15m_sin": np.round(np.sin(2 * np.pi * slot / 96.0), 4),
                 "slot_15m_cos": np.round(np.cos(2 * np.pi * slot / 96.0), 4),
                 "solar_elevation_deg": elev,
-                "temperature_lag_15m": temp_buffer[-1],
+                "temperature_lag_15m": t_origin,
                 "temperature_lag_24h": prior_24h_temp[i],
                 "temperature_roll_mean_1h": np.mean(temp_buffer[-4:]),
                 "temperature_roll_std_1h": np.std(temp_buffer[-4:]),
