@@ -18,7 +18,7 @@ interface ForecastMainChartProps {
   dataPoints: DayAheadForecastPoint[]
 }
 
-export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints }) => {
+export const ForecastMainChart = React.memo<ForecastMainChartProps>(({ dataPoints }) => {
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
 
@@ -151,6 +151,6 @@ export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints
       </CardContent>
     </Card>
   )
-}
+})
 
 export default ForecastMainChart

@@ -41,7 +41,7 @@ interface SequentialTrajectoryViewProps {
   currentTime?: string
 }
 
-export const SequentialTrajectoryView: React.FC<SequentialTrajectoryViewProps> = ({
+export const SequentialTrajectoryView = React.memo<SequentialTrajectoryViewProps>(({
   gridId,
   gridName,
   simulationDate,
@@ -749,4 +749,4 @@ export const SequentialTrajectoryView: React.FC<SequentialTrajectoryViewProps> =
       )}
     </div>
   )
-}
+})

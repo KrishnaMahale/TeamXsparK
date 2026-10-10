@@ -21,19 +21,19 @@ interface LiveSolarLoadChartProps {
   peakLoadKw?: number
 }
 
-export const LiveSolarLoadChart: React.FC<LiveSolarLoadChartProps> = ({
+export const LiveSolarLoadChart = React.memo<LiveSolarLoadChartProps>(({
   solarPoints,
   loadPoints,
 }) => {
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
 
-  const mergedData = useMemo(() => {
+  const { mergedData, peakSolar, peakLoad, avgSolar, avgLoad, maxNetExport } = useMemo(() => {
     const times = Array.from(
       new Set([...solarPoints.map((s) => s.time), ...loadPoints.map((l) => l.time)])
     ).sort()
 
-    return times.map((t) => {
+    const data = times.map((t) => {
       const s = solarPoints.find((sp) => sp.time === t)
       const l = loadPoints.find((lp) => lp.time === t)
       const solar = s ? s.solarKw : 0
@@ -45,18 +45,20 @@ export const LiveSolarLoadChart: React.FC<LiveSolarLoadChartProps> = ({
         netExportKw: Math.max(0, solar - load),
       }
     })
+
+    const solarValues = data.map((d) => d.solarKw)
+    const loadValues = data.map((d) => d.loadKw)
+    const netExportValues = data.map((d) => d.netExportKw)
+
+    return {
+      mergedData: data,
+      peakSolar: solarValues.length > 0 ? Math.max(...solarValues) : 0,
+      peakLoad: loadValues.length > 0 ? Math.max(...loadValues) : 0,
+      avgSolar: solarValues.length > 0 ? Math.round(solarValues.reduce((a, b) => a + b, 0) / solarValues.length) : 0,
+      avgLoad: loadValues.length > 0 ? Math.round(loadValues.reduce((a, b) => a + b, 0) / loadValues.length) : 0,
+      maxNetExport: netExportValues.length > 0 ? Math.max(...netExportValues) : 0,
+    }
   }, [solarPoints, loadPoints])
-
-  // Calculate live preview metrics
-  const solarValues = mergedData.map((d) => d.solarKw)
-  const loadValues = mergedData.map((d) => d.loadKw)
-  const netExportValues = mergedData.map((d) => d.netExportKw)
-
-  const peakSolar = solarValues.length > 0 ? Math.max(...solarValues) : 0
-  const peakLoad = loadValues.length > 0 ? Math.max(...loadValues) : 0
-  const avgSolar = solarValues.length > 0 ? Math.round(solarValues.reduce((a, b) => a + b, 0) / solarValues.length) : 0
-  const avgLoad = loadValues.length > 0 ? Math.round(loadValues.reduce((a, b) => a + b, 0) / loadValues.length) : 0
-  const maxNetExport = netExportValues.length > 0 ? Math.max(...netExportValues) : 0
 
   const gridStroke = isDark ? '#1E293B' : '#E2E8F0'
   const axisStroke = isDark ? '#94A3B8' : '#64748B'
@@ -150,4 +152,4 @@ export const LiveSolarLoadChart: React.FC<LiveSolarLoadChartProps> = ({
       </CardContent>
     </Card>
   )
-}
+})

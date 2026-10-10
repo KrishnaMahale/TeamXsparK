@@ -68,7 +68,7 @@ export const ForecastsPage: React.FC = () => {
     return () => {
       isMounted = false
     }
-  }, [fetchNetwork, activeGrid])
+  }, [fetchNetwork, activeGrid.id])
 
   // Current selected grid object
   const currentGrid = grids.find((g) => g.id === selectedGridId) || activeGrid || grids[0]

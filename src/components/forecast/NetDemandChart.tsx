@@ -19,7 +19,7 @@ interface NetDemandChartProps {
   summary: DayAheadSummary
 }
 
-export const NetDemandChart: React.FC<NetDemandChartProps> = ({ dataPoints, summary }) => {
+export const NetDemandChart = React.memo<NetDemandChartProps>(({ dataPoints, summary }) => {
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
 
@@ -181,6 +181,6 @@ export const NetDemandChart: React.FC<NetDemandChartProps> = ({ dataPoints, summ
       </CardContent>
     </Card>
   )
-}
+})
 
 export default NetDemandChart

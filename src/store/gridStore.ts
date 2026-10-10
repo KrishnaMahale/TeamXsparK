@@ -120,6 +120,28 @@ export const useGridStore = create<GridState>((set, get) => ({
     persist: boolean = true
   ) => {
     const current = get().network
+
+    // Short-circuit ephemeral update if position hasn't changed to avoid unnecessary reconciliations
+    if (!persist) {
+      let existingPos: { x: number; y: number; z: number } | undefined
+      if (current.substation && current.substation.id === id) existingPos = current.substation.position
+      else {
+        const item = current.buses.find((x) => x.id === id) ||
+          current.solarUnits.find((x) => x.id === id) ||
+          current.batteries.find((x) => x.id === id) ||
+          current.loads.find((x) => x.id === id)
+        existingPos = item?.position
+      }
+      if (
+        existingPos &&
+        Math.abs(existingPos.x - position.x) < 0.001 &&
+        Math.abs(existingPos.y - position.y) < 0.001 &&
+        Math.abs(existingPos.z - position.z) < 0.001
+      ) {
+        return
+      }
+    }
+
     let modified = false
 
     const updated: GridNetwork = {

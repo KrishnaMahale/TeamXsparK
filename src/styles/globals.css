@@ -46,11 +46,11 @@
     --radius-card: 18px;
     --radius-control: 12px;
 
-    /* Motion */
+    /* Motion — Snappy & fluid */
     --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
-    --duration-fast: 180ms;
-    --duration-normal: 320ms;
-    --duration-slow: 650ms;
+    --duration-fast: 140ms;
+    --duration-normal: 220ms;
+    --duration-slow: 380ms;
 
     /* Semantic Theme Mappings */
     --color-bg: #E8F5EC;
@@ -285,7 +285,7 @@ body {
   box-shadow:
     0 8px 24px -4px rgba(16, 80, 55, 0.08),
     0 2px 6px -1px rgba(16, 80, 55, 0.04);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease;
 }
 
 .glass-card-surface:hover {
@@ -459,4 +459,34 @@ body {
       #000000 100%
     );
   }
+}
+
+/* ======================================================
+   Accessibility & Performance: Reduced Motion Optimization
+   Ensures instantaneous responses when prefers-reduced-motion is active
+====================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .flow-line-normal,
+  .flow-line-solar,
+  .flow-line-fast,
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* GPU acceleration for interactive drag and transform surfaces */
+.gpu-accelerated {
+  will-change: transform;
+  transform: translateZ(0);
 }

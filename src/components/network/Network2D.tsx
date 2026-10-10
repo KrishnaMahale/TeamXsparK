@@ -72,6 +72,17 @@ export const Network2D: React.FC<Network2DProps> = ({
     bounds: { centerX: number; centerZ: number; scale: number }
   } | null>(null)
 
+  const rafIdRef = useRef<number | null>(null)
+  const pendingPointerRef = useRef<{ clientX: number; clientY: number } | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
+    }
+  }, [])
+
   // Toggle Full Screen View
   const toggleFullscreen = () => {
     if (!containerRef.current) return
@@ -150,36 +161,47 @@ export const Network2D: React.FC<Network2DProps> = ({
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
   }
 
-  // Pointer Move on container: handles active component drag or canvas panning
+  // Pointer Move on container: handles active component drag or canvas panning with RAF coalescing
   const handlePointerMove = (e: React.PointerEvent) => {
     if (dragInfoRef.current && isDraggingNode) {
       e.stopPropagation()
-      const scenePt = getScenePoint(e.clientX, e.clientY)
-      if (!scenePt) return
+      pendingPointerRef.current = { clientX: e.clientX, clientY: e.clientY }
 
-      const { offsetSvg, bounds: frozenBounds, id } = dragInfoRef.current
-      const targetSvgX = scenePt.x - offsetSvg.x
-      const targetSvgY = scenePt.y - offsetSvg.y
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null
+          if (!dragInfoRef.current || !pendingPointerRef.current) return
+          const scenePt = getScenePoint(
+            pendingPointerRef.current.clientX,
+            pendingPointerRef.current.clientY
+          )
+          if (!scenePt) return
 
-      const dx = targetSvgX - dragInfoRef.current.startSvgPos.x
-      const dy = targetSvgY - dragInfoRef.current.startSvgPos.y
-      if (Math.abs(dx) > 2.5 || Math.abs(dy) > 2.5) {
-        dragInfoRef.current.hasMoved = true
+          const { offsetSvg, bounds: frozenBounds, id } = dragInfoRef.current
+          const targetSvgX = scenePt.x - offsetSvg.x
+          const targetSvgY = scenePt.y - offsetSvg.y
+
+          const dx = targetSvgX - dragInfoRef.current.startSvgPos.x
+          const dy = targetSvgY - dragInfoRef.current.startSvgPos.y
+          if (Math.abs(dx) > 2.5 || Math.abs(dy) > 2.5) {
+            dragInfoRef.current.hasMoved = true
+          }
+
+          // Convert SVG scene space (500, 340 center) back to 3D grid space (x, z)
+          const newGridX = (targetSvgX - 500) / frozenBounds.scale + frozenBounds.centerX
+          const newGridZ = (targetSvgY - 340) / frozenBounds.scale + frozenBounds.centerZ
+
+          const roundedX = Math.round(newGridX * 10) / 10
+          const roundedZ = Math.round(newGridZ * 10) / 10
+
+          dragInfoRef.current.currentGridPos = { x: roundedX, z: roundedZ }
+
+          const elevationY = id === network.substation?.id ? 0.6 : 0
+
+          // Continuous vsync-aligned update to shared store: immediately synchronizes 2D and 3D views
+          updateComponentPosition(id, { x: roundedX, y: elevationY, z: roundedZ }, false)
+        })
       }
-
-      // Convert SVG scene space (500, 340 center) back to 3D grid space (x, z)
-      const newGridX = (targetSvgX - 500) / frozenBounds.scale + frozenBounds.centerX
-      const newGridZ = (targetSvgY - 340) / frozenBounds.scale + frozenBounds.centerZ
-
-      const roundedX = Math.round(newGridX * 10) / 10
-      const roundedZ = Math.round(newGridZ * 10) / 10
-
-      dragInfoRef.current.currentGridPos = { x: roundedX, z: roundedZ }
-
-      const elevationY = id === network.substation?.id ? 0.6 : 0
-
-      // Continuous 60fps update to shared store: immediately synchronizes 2D and 3D views
-      updateComponentPosition(id, { x: roundedX, y: elevationY, z: roundedZ }, false)
       return
     }
 
@@ -193,6 +215,11 @@ export const Network2D: React.FC<Network2DProps> = ({
 
   // Pointer Up on container: commits final position and releases pointer capture
   const handlePointerUp = async (e: React.PointerEvent) => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
+
     if (dragInfoRef.current) {
       const { id, currentGridPos, hasMoved } = dragInfoRef.current
       const elevationY = id === network.substation?.id ? 0.6 : 0
@@ -337,6 +364,14 @@ export const Network2D: React.FC<Network2DProps> = ({
         z: l.position?.z ?? (busPos ? busPos.z : defaultLoadZ[idx] ?? idx * 6),
       }
     })
+
+    // If actively dragging, retain frozen bounds to guarantee zero jitter and skip min/max recalculation
+    if (isDraggingNode) {
+      return {
+        nodePositions: pos,
+        bounds: lastFrozenBoundsRef.current,
+      }
+    }
 
     // Calculate bounding box for normalization into 2D SVG canvas
     const allPos = Object.values(pos)

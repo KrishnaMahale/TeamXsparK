@@ -42,7 +42,7 @@ import { SolarRooftopVillaSvg } from './assets/SolarRooftopIcon'
 
 // --- Reusable 3D Nodes ---
 
-const Bus3DNode: React.FC<{
+const Bus3DNode = React.memo<{
   id: string
   position: [number, number, number]
   name: string
@@ -53,7 +53,7 @@ const Bus3DNode: React.FC<{
   isConnectionSource?: boolean
   isDragging?: boolean
   onPointerDown: (e: ThreeEvent<PointerEvent>) => void
-}> = ({ position, name, isCritical, onClick, isSelected, isConnectionSource, isDragging, onPointerDown }) => {
+}>(({ position, name, isCritical, onClick, isSelected, isConnectionSource, isDragging, onPointerDown }) => {
   const meshRef = useRef<THREE.Group>(null)
   const internalRef = useRef<THREE.Mesh>(null)
 
@@ -184,9 +184,9 @@ const Bus3DNode: React.FC<{
       </Html>
     </group>
   )
-}
+})
 
-const Component3DNode: React.FC<{
+const Component3DNode = React.memo<{
   id: string
   position: [number, number, number]
   name: string
@@ -198,7 +198,7 @@ const Component3DNode: React.FC<{
   isConnectionSource?: boolean
   isDragging?: boolean
   onPointerDown: (e: ThreeEvent<PointerEvent>) => void
-}> = ({ position, name, type, kw, loadKw, isSolarRooftop, onClick, isConnectionSource, isDragging, onPointerDown }) => {
+}>(({ position, name, type, kw, loadKw, isSolarRooftop, onClick, isConnectionSource, isDragging, onPointerDown }) => {
   const meshRef = useRef<THREE.Group>(null)
   const groupRef = useRef<THREE.Group>(null)
 
@@ -299,7 +299,7 @@ const Component3DNode: React.FC<{
       </Html>
     </group>
   )
-}
+})
 
 // Reusable static vector and matrix scratch objects to eliminate GC pauses and 60FPS allocations
 const _startVec = new THREE.Vector3()
@@ -333,7 +333,7 @@ const Arrow3D: React.FC<{
   </group>
 )
 
-const DynamicFeederLine: React.FC<{
+const DynamicFeederLine = React.memo<{
   startPos: [number, number, number]
   endPos: [number, number, number]
   color?: string
@@ -342,7 +342,7 @@ const DynamicFeederLine: React.FC<{
   flowMagnitude?: number
   isSolarRooftop?: boolean
   onClick?: () => void
-}> = ({
+}>(({
   startPos,
   endPos,
   color = '#0284c7',
@@ -413,7 +413,7 @@ const DynamicFeederLine: React.FC<{
 
   useEffect(() => {
     updateGeometry()
-  })
+  }, [startPos[0], startPos[1], startPos[2], endPos[0], endPos[1], endPos[2]])
 
   useFrame((state) => {
     updateGeometry()
@@ -518,7 +518,7 @@ const DynamicFeederLine: React.FC<{
       ) : null}
     </group>
   )
-}
+})
 
 // --- Scene Drag Manager: Smooth Real-time Ground Plane Raycasting ---
 
@@ -536,38 +536,55 @@ const SceneDragManager: React.FC<{
   } | null>
 }> = ({ onDragMove, onDragEnd, dragStateRef }) => {
   const { camera, raycaster, gl } = useThree()
+  const rafIdRef = useRef<number | null>(null)
+  const pendingPointerRef = useRef<{ clientX: number; clientY: number } | null>(null)
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       const state = dragStateRef.current
       if (!state) return
 
-      const rect = gl.domElement.getBoundingClientRect()
-      const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1
-      const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      pendingPointerRef.current = { clientX: e.clientX, clientY: e.clientY }
 
-      raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera)
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null
+          const curState = dragStateRef.current
+          const curPointer = pendingPointerRef.current
+          if (!curState || !curPointer) return
 
-      const hit = new THREE.Vector3()
-      if (raycaster.ray.intersectPlane(state.plane, hit)) {
-        let newX = hit.x + state.offset.x
-        let newZ = hit.z + state.offset.z
+          const rect = gl.domElement.getBoundingClientRect()
+          const ndcX = ((curPointer.clientX - rect.left) / rect.width) * 2 - 1
+          const ndcY = -((curPointer.clientY - rect.top) / rect.height) * 2 + 1
 
-        // Grid arena boundary limits [-45, 45]
-        newX = Math.max(-45, Math.min(45, newX))
-        newZ = Math.max(-45, Math.min(45, newZ))
+          raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera)
 
-        const dist = Math.hypot(newX - state.startPos[0], newZ - state.startPos[2])
-        if (dist > 0.08) {
-          state.hasMoved = true
-        }
+          const hit = new THREE.Vector3()
+          if (raycaster.ray.intersectPlane(curState.plane, hit)) {
+            let newX = hit.x + curState.offset.x
+            let newZ = hit.z + curState.offset.z
 
-        state.currentPos = [newX, state.y, newZ]
-        onDragMove(state.id, newX, state.y, newZ)
+            // Grid arena boundary limits [-45, 45]
+            newX = Math.max(-45, Math.min(45, newX))
+            newZ = Math.max(-45, Math.min(45, newZ))
+
+            const dist = Math.hypot(newX - curState.startPos[0], newZ - curState.startPos[2])
+            if (dist > 0.08) {
+              curState.hasMoved = true
+            }
+
+            curState.currentPos = [newX, curState.y, newZ]
+            onDragMove(curState.id, newX, curState.y, newZ)
+          }
+        })
       }
     }
 
     const handlePointerUp = () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+        rafIdRef.current = null
+      }
       const state = dragStateRef.current
       if (!state) return
 
@@ -580,6 +597,9 @@ const SceneDragManager: React.FC<{
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     window.addEventListener('pointerup', handlePointerUp)
     return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
       window.removeEventListener('pointermove', handlePointerMove)
       window.removeEventListener('pointerup', handlePointerUp)
     }

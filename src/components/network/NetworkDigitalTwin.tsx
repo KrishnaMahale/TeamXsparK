@@ -16,7 +16,7 @@ export interface NetworkDigitalTwinProps {
   controllerSlot?: React.ReactNode
 }
 
-export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
+export const NetworkDigitalTwin = React.memo<NetworkDigitalTwinProps>(({
   readOnly = false,
   heightClassName,
   showSidebar,
@@ -117,6 +117,6 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
       )}
     </div>
   )
-}
+})
 
 export default NetworkDigitalTwin

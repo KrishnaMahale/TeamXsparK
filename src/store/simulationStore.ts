@@ -348,6 +348,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   },
 
   fetchActions: async () => {
+    if (get().isRunning) return
     const activeGridId = useGridStore.getState().network.id || get().input.gridId
     const currentInput = { ...get().input, gridId: activeGridId }
 
