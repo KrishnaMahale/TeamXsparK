@@ -5,109 +5,135 @@ import { ComponentDetailsPanel } from '../components/dashboard/BusDetails'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
+import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { useGridNetwork } from '../hooks/useGridNetwork'
 import { useGridStore } from '../store/gridStore'
 import { useSimulationStore } from '../store/simulationStore'
 import { GridManagerPanel } from '../components/network/GridManagerPanel'
-import { Activity, SlidersHorizontal } from 'lucide-react'
+import { Activity, SlidersHorizontal, CheckCircle2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export const NetworkPage: React.FC = () => {
   useGridNetwork() // Ensures fetchNetwork is invoked on mount from backend
-  const { violationSummary } = useGridStore()
+  const { network } = useGridStore()
   const { input } = useSimulationStore()
   const navigate = useNavigate()
 
   return (
-    <PageContainer
-      title="Grid Configurator"
-      subtitle="Interactive nodal power-flow schematic with branch impedance, voltage indicators, and tie-line switches"
-      actions={
-        <Button
-          variant="secondary"
-          size="sm"
-          leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
-          onClick={() => navigate('/simulation')}
-        >
-          Configure Network
-        </Button>
-      }
-    >
-      {/* Main Grid: Digital Twin (8 cols) + Telemetry Inspector & Grid Manager on Right (4 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Network Canvas & Operating Constraints */}
-        <div className="lg:col-span-8 flex flex-col gap-4">
-          <NetworkDigitalTwin />
-
-          {/* Operating Constraints & Bounds Card */}
-          <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 shadow-xs">
-            <CardHeader
-              title="Operating Constraints"
-              subtitle="IEEE 1547 / IEC statutory bounds & real-time monitoring"
-              icon={<Activity className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
+    <PageContainer compact className="py-3 px-4 lg:py-3.5 lg:px-5">
+      <div className="space-y-3.5 w-full pb-3">
+        {/* Upshifted Custom Hero Heading Box with Background Image (Requirement 2) */}
+        <div className="relative rounded-2xl overflow-hidden bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 p-4 sm:p-5 lg:p-6 shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+          {/* Background Visual Layer: Renewable Grid Landscape */}
+          <div className="absolute inset-y-0 right-0 w-full sm:w-2/3 lg:w-3/5 z-0 pointer-events-none overflow-hidden">
+            <img
+              src="/images/hero_grid.jpg"
+              alt="Renewable Grid Landscape"
+              className="w-full h-full object-cover object-right lg:object-center opacity-95 dark:opacity-65 transition-opacity"
+              loading="eager"
             />
-            <CardContent className="pt-2">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
-                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
-                    Voltage Bounds
-                  </div>
-                  <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
-                    {input.networkConfig.voltageMinPu.toFixed(2)} -{' '}
-                    {input.networkConfig.voltageMaxPu.toFixed(2)} pu
-                  </div>
-                </div>
+            {/* Soft Gradient Masks for Crisp High-Contrast Typography */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#122C1F] dark:via-[#122C1F]/80 dark:to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-[#122C1F]/30" />
+          </div>
 
-                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
-                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
-                    Feeder Loading Limit
-                  </div>
-                  <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
-                    {input.networkConfig.feederLoadingLimitPercent}%
-                  </div>
-                </div>
+          {/* Left: Upshifted Bigger Heading & Subtitle */}
+          <div className="relative z-10 max-w-2xl">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">
+              Grid Configurator
+            </h1>
+            <p className="text-xs sm:text-sm text-[#425B4C] dark:text-[#A7F3D0] font-medium mt-2 leading-relaxed max-w-xl">
+              Design, customize, and configure your power distribution network topology, substations, and DER assets.
+            </p>
+          </div>
 
-                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
-                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
-                    Active Topology
-                  </div>
-                  <div className="mt-1">
-                    <Badge
-                      variant={
-                        input.networkConfig.feederTopology === 'alternative'
-                          ? 'primary'
-                          : 'neutral'
-                      }
-                      size="sm"
-                    >
-                      {input.networkConfig.feederTopology.toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-white/80 dark:bg-[#122C1F]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
-                  <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
-                    Active Violations
-                  </div>
-                  <div
-                    className={`text-sm font-bold font-mono mt-1 ${
-                      violationSummary.critical > 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-[#16A34A] dark:text-[#86EFAC]'
-                    }`}
-                  >
-                    {violationSummary.total} Issues
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Right: Actions Bar & Theme Toggle */}
+          <div className="relative z-10 flex items-center gap-2 shrink-0 bg-[#F4FAF5]/90 dark:bg-[#0E2419]/90 p-1.5 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs backdrop-blur-sm">
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+              onClick={() => navigate('/simulation')}
+              className="font-bold shadow-xs hover:border-[#047857]"
+            >
+              Simulate Grid
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
 
-        {/* Component Telemetry Sidebar on Right Side of 3D Canvas */}
-        <div className="lg:col-span-4 flex flex-col gap-4">
-          <GridManagerPanel />
-          <ComponentDetailsPanel />
+        {/* Main Grid: Digital Twin (8 cols) + Telemetry Inspector & Grid Manager on Right (4 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
+          {/* Network Canvas & Operating Constraints */}
+          <div className="lg:col-span-8 flex flex-col gap-3.5">
+            <NetworkDigitalTwin />
+
+            {/* Operating Constraints & Design Parameters Card (Zero Violations shown per Requirement 6) */}
+            <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md rounded-2xl shadow-xs transition-colors">
+              <CardHeader
+                title="Operating Constraints & Boundaries"
+                subtitle="IEEE 1547 / IEC statutory design limits & feeder parameters"
+                icon={<Activity className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
+              />
+              <CardContent className="pt-1 pb-3 sm:pb-3.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0E2419]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                    <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
+                      Voltage Bounds
+                    </div>
+                    <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
+                      {input.networkConfig.voltageMinPu.toFixed(2)} -{' '}
+                      {input.networkConfig.voltageMaxPu.toFixed(2)} pu
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0E2419]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                    <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
+                      Feeder Loading Limit
+                    </div>
+                    <div className="text-sm font-bold font-mono text-[#10251A] dark:text-white mt-1">
+                      {input.networkConfig.feederLoadingLimitPercent}%
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0E2419]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                    <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
+                      Active Topology
+                    </div>
+                    <div className="mt-1">
+                      <Badge
+                        variant={
+                          input.networkConfig.feederTopology === 'alternative'
+                            ? 'primary'
+                            : 'neutral'
+                        }
+                        size="sm"
+                      >
+                        {input.networkConfig.feederTopology.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Design Status (Replaced Active Violations per Requirement 6) */}
+                  <div className="p-3 rounded-xl bg-white/80 dark:bg-[#0E2419]/80 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+                    <div className="text-[11px] text-[#425B4C] dark:text-[#A7F3D0] font-medium">
+                      Design State
+                    </div>
+                    <div className="text-xs font-bold font-mono text-[#047857] dark:text-[#86EFAC] mt-1 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                      <span>{network.buses.length} Buses Configured</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Component Telemetry Sidebar on Right Side of 3D Canvas */}
+          <div className="lg:col-span-4 flex flex-col gap-3.5">
+            <GridManagerPanel />
+            <ComponentDetailsPanel />
+          </div>
         </div>
       </div>
     </PageContainer>

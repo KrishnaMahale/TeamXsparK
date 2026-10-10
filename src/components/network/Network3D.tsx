@@ -5,8 +5,29 @@ import * as THREE from 'three'
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
-import { gridService } from '../../services/api/gridService'
-import { ZoomIn, ZoomOut, RotateCcw, RotateCw, Compass, ArrowUp, ArrowDown, Maximize2, Minimize2 } from 'lucide-react'
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  RotateCw,
+  Compass,
+  ArrowUp,
+  ArrowDown,
+  Maximize2,
+  Minimize2,
+  Undo2,
+  Redo2,
+  Link2,
+  Zap,
+  Home,
+  Building2,
+  Factory,
+  Sun,
+  SunMedium,
+  BatteryCharging,
+  Trash2,
+  Sparkles,
+} from 'lucide-react'
 import {
   FactoryAsset,
   ResidentialAsset,
@@ -136,8 +157,8 @@ const Bus3DNode: React.FC<{
         </mesh>
       </group>
 
-      {/* Dynamic HTML Badge */}
-      <Html position={[0, (isDragging ? 1.85 : 1.6), 0]} center distanceFactor={15}>
+      {/* Dynamic HTML Badge (Restrained z-index so it never overlaps Tool Palette) */}
+      <Html position={[0, (isDragging ? 1.85 : 1.6), 0]} center distanceFactor={15} zIndexRange={[10, 0]}>
         <div
           className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold tracking-wider whitespace-nowrap shadow-md border transition-all ${
             isConnectionSource
@@ -239,7 +260,8 @@ const Component3DNode: React.FC<{
         )}
       </group>
 
-      <Html position={[0, (type === 'load' && name.includes('[Commercial]') ? 4.1 : type === 'transformer' ? 3.0 : 2.5) + (isDragging ? 0.35 : 0), 0]} center distanceFactor={15}>
+      {/* Dynamic Asset HTML Badge (Restrained z-index so it never overlaps Tool Palette) */}
+      <Html position={[0, (type === 'load' && name.includes('[Commercial]') ? 4.1 : type === 'transformer' ? 3.0 : 2.5) + (isDragging ? 0.35 : 0), 0]} center distanceFactor={15} zIndexRange={[10, 0]}>
         <div
           className={`px-2.5 py-0.5 rounded text-[10px] font-mono whitespace-nowrap shadow-md backdrop-blur-md transition-all ${
             isConnectionSource
@@ -482,10 +504,31 @@ export const Network3D: React.FC<Network3DProps> = ({
   readOnly = false,
   heightClassName,
 }) => {
-  const { network, updateNetwork } = useGridStore()
+  const { network, updateNetwork, pastNetworks, futureNetworks, undo, redo } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
+
+  // Undo & Redo Keyboard Shortcuts (Ctrl+Z / Ctrl+Y)
+  useEffect(() => {
+    if (readOnly) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault()
+          redo()
+        } else {
+          e.preventDefault()
+          undo()
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [readOnly, undo, redo])
 
   const orbitRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -904,17 +947,17 @@ export const Network3D: React.FC<Network3DProps> = ({
       }`}
     >
       
-      {/* Visual Spawn & Edit Palette (Hidden in readOnly mode) */}
+      {/* Visual Spawn & Edit Palette with Previous Icons (z-50 ensures 3D labels never overlap it) */}
       {!readOnly && (
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg text-xs text-slate-700 dark:text-slate-300 shadow-sm font-semibold text-center mb-1">
+        <div className="absolute top-3 left-3 z-50 flex flex-col gap-1.5 select-none pointer-events-auto">
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 shadow-md font-bold text-center">
             {activeTool 
               ? (activeTool === 'connect' 
-                  ? (connectionSource ? 'Click target node' : 'Click source node') 
-                  : (activeTool === 'delete' ? 'Click node to delete' : 'Click floor to spawn')) 
-              : 'Tool Palette'}
+                  ? (connectionSource ? 'Target' : 'Source') 
+                  : (activeTool === 'delete' ? 'Delete' : 'Spawn')) 
+              : 'Tools'}
           </div>
-          <div className="flex flex-col gap-1.5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+          <div className="flex flex-col gap-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md">
             {tools.map(t => (
               <button
                 key={t.id}
@@ -922,14 +965,14 @@ export const Network3D: React.FC<Network3DProps> = ({
                   setActiveTool(activeTool === t.id ? null : t.id)
                   setConnectionSource(null)
                 }}
-                className={`group relative w-10 h-10 flex items-center justify-center rounded-md text-xl transition-all shadow-sm ${
+                className={`group relative w-12 h-12 flex items-center justify-center rounded-xl transition-all shadow-sm cursor-pointer ${
                   activeTool === t.id 
                     ? (t.id === 'delete' ? 'bg-rose-500 text-white ring-2 ring-rose-300 scale-110 z-20' : 'bg-sky-500 text-white ring-2 ring-sky-300 scale-110 z-20')
-                    : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+                    : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:scale-105'
                 }`}
               >
-                {t.icon}
-                <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                <span className="text-[26px] leading-none select-none">{t.icon}</span>
+                <div className="absolute left-full ml-2.5 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-semibold rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity shadow-lg border border-slate-700">
                   {t.label}
                 </div>
               </button>
@@ -1020,7 +1063,7 @@ export const Network3D: React.FC<Network3DProps> = ({
             position={positions[b.id]}
             name={b.name}
             voltage={b.voltage}
-            isCritical={b.status === 'critical'}
+            isCritical={readOnly ? b.status === 'critical' : false}
             isSelected={selectedComponent?.id === b.id}
             onClick={() => handleNodeClick('bus', b.id, b)}
             onPointerDown={(e) => handleStartNodeDrag(b.id, e)}
@@ -1089,8 +1132,8 @@ export const Network3D: React.FC<Network3DProps> = ({
               key={f.id}
               startPos={startPos}
               endPos={endPos}
-              color={f.status === 'critical' ? '#dc2626' : '#0284c7'}
-              isCritical={f.status === 'critical'}
+              color={readOnly && f.status === 'critical' ? '#dc2626' : '#047857'}
+              isCritical={readOnly && f.status === 'critical'}
               flowDirection={f.isSwitchClosed ? (f.activePowerKw > 0 ? "forward" : "none") : "none"}
               flowMagnitude={Math.abs(f.activePowerKw || 0)}
               onClick={() => handleNodeClick('feeder', f.id, f)}
@@ -1159,11 +1202,41 @@ export const Network3D: React.FC<Network3DProps> = ({
         })}
       </Canvas>
 
-      {/* 3D Navigation Controls (Zoom / Rotate / Tilt / Reset) */}
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md select-none">
+      {/* 3D Navigation Controls with Undo & Redo (Per Requirement 4) */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-white/95 dark:bg-[#122C1F]/95 backdrop-blur-md p-1.5 rounded-xl border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 shadow-md select-none">
+        {/* Undo & Redo Buttons */}
+        {!readOnly && (
+          <>
+            <button
+              onClick={() => undo()}
+              disabled={pastNetworks.length === 0}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                pastNetworks.length > 0
+                  ? 'hover:bg-[#ECFDF3] dark:hover:bg-[#163826] text-[#047857] dark:text-[#86EFAC] active:scale-95'
+                  : 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-50'
+              }`}
+              title="Undo Grid Change (Ctrl+Z)"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => redo()}
+              disabled={futureNetworks.length === 0}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                futureNetworks.length > 0
+                  ? 'hover:bg-[#ECFDF3] dark:hover:bg-[#163826] text-[#047857] dark:text-[#86EFAC] active:scale-95'
+                  : 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-50'
+              }`}
+              title="Redo Grid Change (Ctrl+Y)"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+            <div className="w-[1px] h-4 bg-[#BBF7D0]/70 dark:bg-[#86EFAC]/20 mx-0.5" />
+          </>
+        )}
         <button
           onClick={() => handleZoomCamera(-3)}
-          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg hover:bg-[#ECFDF3] dark:hover:bg-[#163826] text-[#10251A] dark:text-[#ECFDF3] transition-colors cursor-pointer"
           title="Zoom In (+)"
         >
           <ZoomIn className="w-4 h-4" />

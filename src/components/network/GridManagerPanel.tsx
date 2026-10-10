@@ -307,20 +307,16 @@ export const GridManagerPanel: React.FC = () => {
   const totalLoadKw = network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
 
   return (
-    <Card className="overflow-hidden border-[#DDD9C9] dark:border-[#2A3A2C] shadow-sm">
+    <Card className="overflow-hidden border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md rounded-2xl shadow-xs transition-colors">
       <CardHeader
         title={
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-[#26352A] dark:text-[#E8F0E6]">Grid Manager</span>
-            <span className="w-2 h-2 rounded-full bg-[#A0C878] animate-pulse" title="Grid Active" />
-            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-800/80">
-              <Database className="w-2.5 h-2.5" />
-              DB Synced
-            </span>
+            <span className="font-bold text-sm text-[#10251A] dark:text-[#ECFDF3]">Grid Manager</span>
+            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" title="Grid Active" />
           </div>
         }
         subtitle="Model topologies & sandbox"
-        icon={<Settings className="w-4 h-4 text-[#A0C878]" />}
+        icon={<Settings className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
           <Badge variant={network.id === 'default-grid' ? 'neutral' : 'primary'} size="sm">
             {network.id}

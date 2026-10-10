@@ -33,19 +33,19 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
       <div className="flex items-center justify-between gap-3 px-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <Cpu className="w-4 h-4 text-[#A0C878] shrink-0" />
-            <span className="text-xs font-semibold text-[#26352A] dark:text-[#F2F5ED] uppercase tracking-wider">
+            <Cpu className="w-4 h-4 text-[#047857] dark:text-[#86EFAC] shrink-0" />
+            <span className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] uppercase tracking-wider">
               {readOnly ? 'Active Simulation Grid:' : 'Topology Model:'} {network.name || '11kV Radial Distribution Feeder'}
             </span>
             {/* If not readOnly, retain standard topology badge */}
             {!readOnly && (
-              <span className="text-[11px] font-mono text-[#788477] dark:text-[#859483]">
+              <span className="text-[11px] font-mono text-[#52665A] dark:text-[#A7F3D0]">
                 ({network.buses.length} Buses • {network.feeders.length} Feeders)
               </span>
             )}
           </div>
           {/* Top horizontal legend only when sidebar is NOT shown */}
-          {!hasSideLegend && <NetworkLegend />}
+          {!hasSideLegend && <NetworkLegend showViolations={readOnly} />}
         </div>
 
         {/* Top Right Controls */}

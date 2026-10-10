@@ -356,16 +356,18 @@ export const ComponentDetailsPanel: React.FC = () => {
     }
   }, [liveComponent, network])
 
+  const isConfiguratorMode = typeof window !== 'undefined' && window.location.pathname.startsWith('/network')
+
   return (
-    <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] shadow-sm flex flex-col">
+    <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md rounded-2xl shadow-xs transition-colors flex flex-col">
       <CardHeader
         title={
-          <span className="font-semibold text-sm text-[#26352A] dark:text-[#F2F5ED]">
+          <span className="font-bold text-sm text-[#10251A] dark:text-[#ECFDF3]">
             Component Inspector
           </span>
         }
         subtitle="Telemetry & Electrical Parameters"
-        icon={<Sliders className="w-4 h-4 text-[#A0C878]" />}
+        icon={<Sliders className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
           liveComponent ? (
             <div className="flex items-center gap-1.5">
@@ -401,14 +403,14 @@ export const ComponentDetailsPanel: React.FC = () => {
             <optgroup label="Buses">
               {network.buses.map((b) => (
                 <option key={b.id} value={`bus:${b.id}`}>
-                  Bus {b.id} — {b.name} ({b.voltage?.toFixed(3) || '1.000'} pu)
+                  Bus {b.id} — {b.name} {!isConfiguratorMode ? `(${b.voltage?.toFixed(3) || '1.000'} pu)` : ''}
                 </option>
               ))}
             </optgroup>
             <optgroup label="Feeders">
               {network.feeders.map((f) => (
                 <option key={f.id} value={`feeder:${f.id}`}>
-                  Feeder {f.id} — {f.fromBus} → {f.toBus} ({Math.round(f.loadingPercent || 0)}%)
+                  Feeder {f.id} — {f.fromBus} → {f.toBus} {!isConfiguratorMode ? `(${Math.round(f.loadingPercent || 0)}%)` : `(${f.capacityKw} kW)`}
                 </option>
               ))}
             </optgroup>
@@ -481,7 +483,9 @@ export const ComponentDetailsPanel: React.FC = () => {
                 </div>
                 <Badge
                   variant={
-                    (liveComponent.data as any)?.status === 'critical'
+                    isConfiguratorMode
+                      ? 'success'
+                      : (liveComponent.data as any)?.status === 'critical'
                       ? 'danger'
                       : (liveComponent.data as any)?.status === 'warning'
                       ? 'warning'
@@ -489,7 +493,7 @@ export const ComponentDetailsPanel: React.FC = () => {
                   }
                   size="sm"
                 >
-                  {(liveComponent.data as any)?.status?.toUpperCase() || 'NORMAL'}
+                  {isConfiguratorMode ? 'CONFIGURED' : (liveComponent.data as any)?.status?.toUpperCase() || 'NORMAL'}
                 </Badge>
               </button>
 

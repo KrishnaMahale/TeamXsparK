@@ -32,6 +32,10 @@ interface GridState {
   applyActionToNetwork: (action: any) => void
 
   // Grid Management actions
+  pastNetworks: GridNetwork[]
+  futureNetworks: GridNetwork[]
+  undo: () => Promise<void>
+  redo: () => Promise<void>
   setNetwork: (network: GridNetwork) => void
   updateNetwork: (updated: GridNetwork) => Promise<void>
   switchGrid: (gridId: string) => Promise<void>
@@ -56,6 +60,30 @@ export const useGridStore = create<GridState>((set, get) => ({
   activeActionApplied: null,
   isLoading: false,
   error: null,
+  pastNetworks: [],
+  futureNetworks: [],
+
+  undo: async () => {
+    const { pastNetworks, network, futureNetworks } = get()
+    if (pastNetworks.length === 0) return
+    const prev = pastNetworks[pastNetworks.length - 1]
+    const newPast = pastNetworks.slice(0, pastNetworks.length - 1)
+    const newFuture = [JSON.parse(JSON.stringify(network)), ...futureNetworks].slice(0, 30)
+    set({ network: prev, pastNetworks: newPast, futureNetworks: newFuture })
+    await gridService.updateGrid(prev.id, prev)
+    await get().setTime(get().currentTime)
+  },
+
+  redo: async () => {
+    const { pastNetworks, network, futureNetworks } = get()
+    if (futureNetworks.length === 0) return
+    const next = futureNetworks[0]
+    const newFuture = futureNetworks.slice(1)
+    const newPast = [...pastNetworks, JSON.parse(JSON.stringify(network))].slice(-30)
+    set({ network: next, pastNetworks: newPast, futureNetworks: newFuture })
+    await gridService.updateGrid(next.id, next)
+    await get().setTime(get().currentTime)
+  },
 
   fetchNetwork: async (force: boolean = false) => {
     if (!force && get().isInitialized) {
@@ -78,7 +106,9 @@ export const useGridStore = create<GridState>((set, get) => ({
   },
 
   updateNetwork: async (updated: GridNetwork) => {
-    set({ network: updated })
+    const current = get().network
+    const past = [...get().pastNetworks, JSON.parse(JSON.stringify(current))].slice(-30)
+    set({ network: updated, pastNetworks: past, futureNetworks: [] })
     await gridService.updateGrid(updated.id, updated)
   },
 
