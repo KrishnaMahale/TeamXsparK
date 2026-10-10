@@ -44,61 +44,61 @@ export const DashboardPage: React.FC = () => {
       ) : (
         <>
           {/* 1. Top Banner (Solar Panel Management) */}
-          <div className="bg-[#FAF6E9] dark:bg-[#1E2B20] border border-[#DDD9C9] dark:border-[#2C3C2E] rounded-xl p-6 lg:p-7 relative overflow-hidden flex flex-col justify-between min-h-[290px] shadow-xs">
+          <div className="bg-gradient-to-r from-[#F0FDF4]/95 via-white/95 to-[#F4FAF5]/90 dark:from-[#0E291C]/95 dark:via-[#1E2B20] dark:to-[#0B1E15]/90 border border-[#86EFAC]/75 dark:border-[#86EFAC]/30 rounded-2xl p-6 lg:p-7 relative overflow-hidden flex flex-col justify-between min-h-[280px] shadow-[0_10px_30px_rgba(16,80,55,0.08),0_2px_8px_rgba(16,80,55,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)]">
             <div className="flex flex-col md:flex-row justify-between relative z-10 gap-6">
               <div>
-                <h1 className="text-2xl lg:text-3xl font-semibold text-[#26352A] dark:text-[#F2F5ED] tracking-tight">Solar Panel Management</h1>
-                <p className="text-xs sm:text-sm text-[#506052] dark:text-[#C2CCC0] mt-1">Live energy production, consumption, and system performance</p>
+                <h1 className="text-2xl lg:text-3xl font-black text-[#064E3B] dark:text-[#F0FDF4] tracking-tight">Solar Panel Management</h1>
+                <p className="text-xs sm:text-sm text-[#375243] dark:text-[#A7F3D0] mt-1 font-medium">Live energy production, consumption, and system performance</p>
               </div>
-              <div className="flex gap-8 text-right bg-[#FFFDF6] dark:bg-[#151F17] p-3.5 rounded-lg h-fit border border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs">
+              <div className="flex gap-8 text-right bg-white/95 dark:bg-[#151F17] p-3.5 rounded-xl h-fit border border-[#86EFAC]/65 dark:border-[#86EFAC]/25 shadow-xs">
                 <div>
-                  <div className="text-2xl font-bold text-[#26352A] dark:text-[#F2F5ED] font-mono">{currentLoadKw.toFixed(1)} <span className="text-sm font-normal">kW</span></div>
-                  <div className="text-[10px] text-[#788477] dark:text-[#859483] font-semibold tracking-wider mt-0.5">Current Load</div>
+                  <div className="text-2xl font-bold text-[#064E3B] dark:text-[#F2F5ED] font-mono">{currentLoadKw.toFixed(1)} <span className="text-sm font-normal">kW</span></div>
+                  <div className="text-[10px] text-[#52665A] dark:text-[#859483] font-semibold tracking-wider mt-0.5">Current Load</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-[#26352A] dark:text-[#F2F5ED] font-mono">98.4 <span className="text-sm font-normal">%</span></div>
-                  <div className="text-[10px] text-[#788477] dark:text-[#859483] font-semibold tracking-wider mt-0.5">System Health</div>
+                  <div className="text-2xl font-bold text-[#047857] dark:text-[#86EFAC] font-mono">98.4 <span className="text-sm font-normal">%</span></div>
+                  <div className="text-[10px] text-[#52665A] dark:text-[#859483] font-semibold tracking-wider mt-0.5">System Health</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-4 mt-8 relative z-10">
+            <div className="flex flex-wrap gap-4 mt-6 relative z-10">
               {/* Power Efficiency card */}
-              <div className="bg-[#FFFDF6] dark:bg-[#151F17] rounded-lg p-3.5 w-52 shadow-xs border border-[#DDD9C9] dark:border-[#2C3C2E]">
+              <div className="bg-white/95 dark:bg-[#151F17] rounded-xl p-3.5 w-52 shadow-xs border border-[#86EFAC]/65 dark:border-[#86EFAC]/25">
                 <div className="flex justify-between items-start">
-                  <span className="text-xs font-semibold text-[#26352A] dark:text-[#F2F5ED]">Power Efficiency</span>
-                  <div className="bg-[#FAF6E9] dark:bg-[#1E2B20] p-1 rounded-md shadow-xs border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                    <ArrowRight className="-rotate-45 w-3 h-3 text-[#506052] dark:text-[#C2CCC0]" />
+                  <span className="text-xs font-bold text-[#064E3B] dark:text-[#F2F5ED]">Power Efficiency</span>
+                  <div className="bg-[#ECFDF3] dark:bg-[#1E2B20] p-1 rounded-md shadow-2xs border border-[#86EFAC]/60 dark:border-[#86EFAC]/30">
+                    <ArrowRight className="-rotate-45 w-3 h-3 text-[#047857] dark:text-[#C2CCC0]" />
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-[#26352A] dark:text-[#F2F5ED] mt-2 text-center">64%</div>
-                <div className="h-2 w-full bg-[#DDD9C9]/60 dark:bg-[#2C3C2E] rounded-full mt-2.5 overflow-hidden flex">
-                  <div className="w-[64%] bg-[#A0C878] h-full" />
-                  <div className="w-[36%] bg-[#26352A] dark:bg-[#788477] h-full" />
+                <div className="text-2xl font-black text-[#10251A] dark:text-[#F2F5ED] mt-2 text-center">64%</div>
+                <div className="h-2 w-full bg-[#ECFDF3] dark:bg-[#2C3C2E] rounded-full mt-2.5 overflow-hidden flex">
+                  <div className="w-[64%] bg-[#10B981] h-full" />
+                  <div className="w-[36%] bg-[#064E3B] dark:bg-[#788477] h-full" />
                 </div>
-                <div className="flex justify-between text-[10px] text-[#788477] dark:text-[#859483] mt-2 font-medium">
+                <div className="flex justify-between text-[10px] text-[#52665A] dark:text-[#859483] mt-2 font-medium">
                   <span>Surface +3%</span>
                   <span>Trim +5%</span>
                 </div>
               </div>
               
               {/* Power Consumption card */}
-              <div className="bg-[#FFFDF6] dark:bg-[#151F17] rounded-lg p-3.5 w-52 shadow-xs border border-[#DDD9C9] dark:border-[#2C3C2E]">
+              <div className="bg-white/95 dark:bg-[#151F17] rounded-xl p-3.5 w-52 shadow-xs border border-[#86EFAC]/65 dark:border-[#86EFAC]/25">
                 <div className="flex justify-between items-start">
-                  <span className="text-xs font-semibold text-[#26352A] dark:text-[#F2F5ED]">Power Infeed</span>
-                  <div className="bg-[#FAF6E9] dark:bg-[#1E2B20] p-1 rounded-md shadow-xs border border-[#DDD9C9] dark:border-[#2C3C2E]">
-                    <ArrowRight className="-rotate-45 w-3 h-3 text-[#506052] dark:text-[#C2CCC0]" />
+                  <span className="text-xs font-bold text-[#064E3B] dark:text-[#F2F5ED]">Power Infeed</span>
+                  <div className="bg-[#ECFDF3] dark:bg-[#1E2B20] p-1 rounded-md shadow-2xs border border-[#86EFAC]/60 dark:border-[#86EFAC]/30">
+                    <ArrowRight className="-rotate-45 w-3 h-3 text-[#047857] dark:text-[#C2CCC0]" />
                   </div>
                 </div>
                 <div className="flex items-end gap-2 mt-2">
-                  <div className="text-xl font-bold text-[#26352A] dark:text-[#F2F5ED] font-mono">{currentSolarKw.toFixed(1)} kWh</div>
-                  <div className="text-[10px] text-[#A0C878] font-bold mb-0.5">↓ 0.88%</div>
+                  <div className="text-xl font-bold text-[#10251A] dark:text-[#F2F5ED] font-mono">{currentSolarKw.toFixed(1)} kWh</div>
+                  <div className="text-[10px] text-[#10B981] font-bold mb-0.5">↓ 0.88%</div>
                 </div>
                 <div className="flex gap-1 h-5 mt-2.5 items-end">
                   {[...Array(16)].map((_, i) => (
                     <div
                       key={i}
-                      className={`flex-1 rounded-t-xs ${i > 10 ? 'bg-[#DDD9C9] dark:bg-[#2C3C2E]' : 'bg-[#A0C878]'}`}
+                      className={`flex-1 rounded-t-xs ${i > 10 ? 'bg-[#ECFDF3] dark:bg-[#2C3C2E]' : 'bg-[#10B981]'}`}
                       style={{height: `${Math.max(30, ((i * 19 + 35) % 100))}%`}}
                     />
                   ))}

@@ -256,45 +256,55 @@ body {
 }
 
 .glass-main-panel {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(134, 239, 172, 0.70);
   border-radius: 26px;
-  box-shadow: 0 18px 48px rgba(16, 80, 55, 0.10);
+  box-shadow:
+    0 24px 60px -12px rgba(4, 78, 59, 0.16),
+    0 12px 24px -8px rgba(4, 78, 59, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .dark .glass-main-panel {
-  background: rgba(14, 34, 24, 0.94);
-  border: 1px solid rgba(134, 239, 172, 0.18);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  background: rgba(14, 34, 24, 0.95);
+  border: 1px solid rgba(134, 239, 172, 0.32);
+  box-shadow:
+    0 24px 60px -12px rgba(0, 0, 0, 0.65),
+    0 12px 24px -8px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(134, 239, 172, 0.18);
 }
 
 .glass-card-surface {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(16, 80, 55, 0.10);
+  border: 1px solid rgba(134, 239, 172, 0.70);
   border-radius: 18px;
-  box-shadow: 0 6px 20px rgba(16, 80, 55, 0.05);
+  box-shadow:
+    0 8px 24px -4px rgba(16, 80, 55, 0.08),
+    0 2px 6px -1px rgba(16, 80, 55, 0.04);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
 }
 
 .glass-card-surface:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(16, 80, 55, 0.09);
-  border-color: rgba(134, 239, 172, 0.6);
+  box-shadow:
+    0 14px 34px -4px rgba(16, 80, 55, 0.12),
+    0 4px 10px -2px rgba(16, 80, 55, 0.06);
+  border-color: rgba(74, 222, 128, 0.85);
 }
 
 .dark .glass-card-surface {
-  background: rgba(18, 44, 31, 0.82);
-  border: 1px solid rgba(134, 239, 172, 0.16);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: rgba(18, 44, 31, 0.84);
+  border: 1px solid rgba(134, 239, 172, 0.30);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
 }
 
 .dark .glass-card-surface:hover {
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-  border-color: rgba(134, 239, 172, 0.35);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+  border-color: rgba(134, 239, 172, 0.55);
 }
 
 /* Nav Item Mint Glass Active State */
@@ -391,4 +401,62 @@ body {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 8px;
+}
+
+/* ======================================================
+   Header Hero Background Image — Seamless Gradient Mask
+   Completely eliminates vertical boundary seam across all page headers
+====================================================== */
+.header-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.header-hero-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 18%,
+    rgba(0, 0, 0, 0.25) 38%,
+    rgba(0, 0, 0, 0.75) 62%,
+    #000000 85%,
+    #000000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 18%,
+    rgba(0, 0, 0, 0.25) 38%,
+    rgba(0, 0, 0, 0.75) 62%,
+    #000000 85%,
+    #000000 100%
+  );
+}
+
+@media (max-width: 640px) {
+  .header-hero-bg-img {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 10%,
+      rgba(0, 0, 0, 0.2) 28%,
+      rgba(0, 0, 0, 0.65) 65%,
+      #000000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 10%,
+      rgba(0, 0, 0, 0.2) 28%,
+      rgba(0, 0, 0, 0.65) 65%,
+      #000000 100%
+    );
+  }
 }

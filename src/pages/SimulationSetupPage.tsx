@@ -17,7 +17,6 @@ import {
   Play,
   CheckCircle2,
   AlertTriangle,
-  Share2,
 } from 'lucide-react'
 
 export const SimulationSetupPage: React.FC = () => {
@@ -152,44 +151,28 @@ export const SimulationSetupPage: React.FC = () => {
   return (
     <PageContainer compact className="py-3 px-4 lg:py-3.5 lg:px-5">
       <div className="space-y-3 w-full pb-2">
-        {/* Custom Hero Heading Box with Background Image matching Home Page hero */}
-        <div className="relative rounded-2xl overflow-hidden bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 p-4 sm:p-5 lg:p-6 shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
-          {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
-          <div className="absolute inset-y-0 right-0 w-full sm:w-2/3 lg:w-3/5 z-0 pointer-events-none overflow-hidden">
+        {/* Custom Hero Heading Box with Refined Mint Gradient & Depth */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#F0FDF4]/95 via-white/95 to-white/85 dark:from-[#0E291C]/95 dark:via-[#122C1F]/90 dark:to-[#0E2419]/85 backdrop-blur-md border border-[#86EFAC]/75 dark:border-[#86EFAC]/35 p-4 sm:p-5 lg:p-5.5 shadow-[0_10px_30px_rgba(16,80,55,0.08),0_2px_8px_rgba(16,80,55,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+          {/* Background Visual Layer: Renewable Grid Landscape Seamless Gradient Fade */}
+          <div className="header-hero-bg absolute inset-0 z-0 pointer-events-none overflow-hidden">
             <img
               src="/images/hero_grid.jpg"
               alt="Renewable Grid Background"
-              className="w-full h-full object-cover object-right lg:object-center opacity-95 dark:opacity-65 transition-opacity"
+              className="header-hero-bg-img w-full h-full object-cover object-right lg:object-center opacity-90 dark:opacity-60 transition-opacity"
               loading="eager"
             />
-            {/* Soft Gradient Masks for Crisp Typography */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/75 to-transparent dark:from-[#122C1F] dark:via-[#122C1F]/75 dark:to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-[#122C1F]/30" />
           </div>
 
-          {/* Left: Much Bigger Heading & Subtitle */}
+          {/* Left: Heading & Subtitle */}
           <div className="relative z-10 max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#064E3B] dark:text-[#F0FDF4] tracking-tight leading-none">
               Digital Twin Simulation
             </h1>
-            <p className="text-xs sm:text-sm text-[#425B4C] dark:text-[#A7F3D0] font-medium mt-2 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-[#375243] dark:text-[#A7F3D0] font-medium mt-1.5 leading-relaxed max-w-xl">
               {isForecastContext
                 ? "Evaluate the selected day's ML forecast against the physical grid model."
                 : 'Evaluate how the selected grid behaves under its configured operating conditions.'}
             </p>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="relative z-10 flex items-center gap-2 shrink-0 bg-[#F4FAF5]/90 dark:bg-[#0E2419]/90 p-1.5 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs backdrop-blur-sm">
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Share2 className="w-3.5 h-3.5" />}
-              onClick={() => navigate('/network')}
-              className="font-bold shadow-xs hover:border-[#047857]"
-            >
-              Grid Configurator
-            </Button>
           </div>
         </div>
         {/* CONTEXT-AWARE CONFIGURATION SECTION */}

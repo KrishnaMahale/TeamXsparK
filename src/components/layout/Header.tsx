@@ -14,12 +14,14 @@ import {
 export const Header: React.FC = () => {
   const location = useLocation()
 
+  // Suppress redundant header on Home page
+  if (location.pathname === '/' || location.pathname === '/home') {
+    return null
+  }
+
   // Resolve active page header title and icon
   const getPageInfo = () => {
     const path = location.pathname
-    if (path === '/' || path === '/home') {
-      return { title: 'Home', icon: Home }
-    }
     if (path === '/simulation/results') {
       return { title: 'Simulation Results', icon: SlidersHorizontal }
     }
@@ -48,17 +50,16 @@ export const Header: React.FC = () => {
   const PageIcon = pageInfo.icon
 
   return (
-    <header className="relative h-16 px-4 sm:px-6 bg-white/70 dark:bg-[#0E2419]/70 backdrop-blur-md border-b border-[#105037]/10 dark:border-[#86EFAC]/15 flex items-center justify-between gap-3 shrink-0 z-20 select-none transition-colors duration-200">
-      {/* Left: Dynamic Page Title Pill (Matching Reference) */}
+    <header className="relative h-14 px-4 sm:px-6 bg-white/80 dark:bg-[#0E2419]/80 backdrop-blur-md border-b border-[#A7F3D0]/60 dark:border-[#86EFAC]/20 flex items-center justify-between gap-3 shrink-0 z-20 select-none transition-colors duration-200">
+      {/* Left: Dynamic Page Title Pill */}
       <div className="flex items-center gap-2.5">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#ECFDF3] dark:bg-[#132F21] border border-[#A7F3D0]/80 dark:border-[#86EFAC]/30 shadow-2xs">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#ECFDF3] dark:bg-[#132F21] border border-[#86EFAC]/80 dark:border-[#86EFAC]/35 shadow-xs">
           <PageIcon className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />
-          <span className="text-sm font-bold text-[#10251A] dark:text-white tracking-tight">
+          <span className="text-sm font-bold text-[#064E3B] dark:text-white tracking-tight">
             {pageInfo.title}
           </span>
         </div>
       </div>
-
     </header>
   )
 }

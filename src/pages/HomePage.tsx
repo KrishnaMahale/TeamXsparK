@@ -713,14 +713,16 @@ export const HomePage: React.FC = () => {
         data-section-id="section-hero"
         className="relative w-full min-h-[85vh] lg:min-h-[88vh] pt-10 sm:pt-14 pb-8 flex flex-col justify-between bg-gradient-to-b from-white via-[#F4FAF5] to-[#ECFDF3]/60 dark:from-[#0B1E15] dark:via-[#0E2419] dark:to-[#132F21]/60 text-[#10251A] dark:text-white overflow-hidden transition-colors"
       >
-        {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
-        <div className="absolute inset-y-0 right-0 w-full lg:w-3/4 z-0 pointer-events-none overflow-hidden">
+        {/* Background Visual Layer: Renewable Grid Landscape Seamless Gradient Fade */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
           <img
             src="/images/hero_grid.jpg"
             alt="TeamXsparK Renewable Distribution Grid Digital Twin"
             className="w-full h-full object-cover object-right lg:object-center transition-transform duration-75 ease-out opacity-90 dark:opacity-40"
             style={{
               transform: `translateY(${Math.min(50, scrollY * 0.05)}px) scale(${1 + Math.min(0.02, scrollY * 0.00004)})`,
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, transparent 18%, rgba(0, 0, 0, 0.3) 42%, rgba(0, 0, 0, 0.85) 70%, #000000 90%)',
+              maskImage: 'linear-gradient(to right, transparent 0%, transparent 18%, rgba(0, 0, 0, 0.3) 42%, rgba(0, 0, 0, 0.85) 70%, #000000 90%)',
             }}
             loading="eager"
             onError={(e) => {
@@ -728,9 +730,8 @@ export const HomePage: React.FC = () => {
             }}
           />
 
-          {/* Seamless Soft Gradient Masks for Crisp Typography and Glass Cards */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent dark:from-[#0B1E15] dark:via-[#0B1E15]/85 dark:to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white/40 dark:from-[#0B1E15] dark:via-transparent dark:to-[#0B1E15]/40" />
+          {/* Soft ambient tint */}
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-[#0B1E15] dark:via-transparent" />
 
           {/* Ambient Glowing Green Power Grid Overlay Lines */}
           <svg

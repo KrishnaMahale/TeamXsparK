@@ -599,7 +599,7 @@ export const Network3D: React.FC<Network3DProps> = ({
   readOnly = false,
   heightClassName,
 }) => {
-  const { network, updateNetwork, pastNetworks, futureNetworks, undo, redo } = useGridStore()
+  const { network, updateNetwork, updateComponentPosition, pastNetworks, futureNetworks, undo, redo } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
@@ -744,14 +744,16 @@ export const Network3D: React.FC<Network3DProps> = ({
     positionsRef.current = newPos
   }, [network])
 
-  // Fast drag move callback: updates positions state in real-time
+  // Fast drag move callback: updates positions state in real-time and broadcasts to shared gridStore for 2D sync
   const handleDragMove = useCallback((id: string, x: number, y: number, z: number) => {
     positionsRef.current[id] = [x, y, z]
     setPositions(prev => ({
       ...prev,
       [id]: [x, y, z]
     }))
-  }, [])
+    // Live continuous synchronization with shared gridStore
+    updateComponentPosition(id, { x, y, z }, false)
+  }, [updateComponentPosition])
 
   // Drag release: commits new coordinates and persists to gridStore
   const handleDragEnd = useCallback(async (id: string, hasMoved: boolean) => {
@@ -766,30 +768,13 @@ export const Network3D: React.FC<Network3DProps> = ({
       if (!finalPos) return
 
       const [x, y, z] = finalPos
-      const updatedNetwork = JSON.parse(JSON.stringify(network))
-      if (updatedNetwork.substation?.id === id) {
-        updatedNetwork.substation.position = { x, y, z }
-      }
-      const compLists = [
-        updatedNetwork.buses,
-        updatedNetwork.solarUnits,
-        updatedNetwork.batteries,
-        updatedNetwork.loads,
-      ]
-      compLists.forEach(list => {
-        const item = list.find((i: any) => i.id === id)
-        if (item) {
-          item.position = { x, y, z }
-        }
-      })
-
       try {
-        await updateNetwork(updatedNetwork)
+        await updateComponentPosition(id, { x, y, z }, true)
       } catch (e) {
         console.error("Failed to persist moved position", e)
       }
     }
-  }, [network, updateNetwork])
+  }, [updateComponentPosition])
 
   // Pointer down on component node: starts drag operation
   const handleStartNodeDrag = (id: string, e: ThreeEvent<PointerEvent>) => {

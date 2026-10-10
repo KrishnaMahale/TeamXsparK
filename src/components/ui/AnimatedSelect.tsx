@@ -97,7 +97,7 @@ export const AnimatedSelect: React.FC<AnimatedSelectProps> = ({
         } ${
           isOpen
             ? 'border-[#047857] dark:border-[#86EFAC] ring-2 ring-[#047857]/30 dark:ring-[#86EFAC]/30 bg-white dark:bg-[#163826] shadow-[0_4px_16px_rgba(4,120,87,0.18)]'
-            : 'border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 bg-white/90 dark:bg-[#132F21]/90 hover:border-[#047857]/70 dark:hover:border-[#86EFAC]/60 hover:bg-white dark:hover:bg-[#163826] shadow-[0_2px_8px_rgba(16,80,55,0.04)] hover:shadow-[0_4px_14px_rgba(4,120,87,0.10)]'
+            : 'border-[#86EFAC]/75 dark:border-[#86EFAC]/40 bg-white/92 dark:bg-[#132F21]/90 hover:border-[#047857]/80 dark:hover:border-[#86EFAC]/70 hover:bg-white dark:hover:bg-[#163826] shadow-[0_2px_8px_rgba(16,80,55,0.05)] hover:shadow-[0_4px_14px_rgba(4,120,87,0.10)]'
         } text-[#10251A] dark:text-[#ECFDF3] backdrop-blur-md`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
@@ -135,7 +135,7 @@ export const AnimatedSelect: React.FC<AnimatedSelectProps> = ({
       {isOpen && (
         <div
           role="listbox"
-          className={`absolute z-[100] left-0 right-0 max-h-60 overflow-y-auto p-1.5 rounded-xl bg-white/95 dark:bg-[#122C1F]/95 backdrop-blur-xl border border-[#BBF7D0] dark:border-[#86EFAC]/30 shadow-[0_12px_36px_rgba(4,120,87,0.22)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] ${
+          className={`absolute z-[100] left-0 right-0 max-h-60 overflow-y-auto p-1.5 rounded-xl bg-white/98 dark:bg-[#122C1F]/95 backdrop-blur-xl border border-[#86EFAC]/80 dark:border-[#86EFAC]/40 shadow-[0_12px_36px_rgba(4,120,87,0.22)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] ${
             isUp
               ? 'bottom-full mb-1.5 animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-200 ease-out'
               : 'top-full mt-1.5 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 ease-out'

@@ -24,15 +24,17 @@ export const AppShell: React.FC = () => {
       {/* Left Floating Deep Emerald-Green Glass Sidebar */}
       <Sidebar />
 
-      {/* Right Floating White Main Content Panel (Matching Reference Image) */}
-      <div className="flex-1 flex flex-col min-w-0 h-full rounded-[26px] bg-white/95 dark:bg-[#0B1E15]/95 border border-white/90 dark:border-[#86EFAC]/20 shadow-[0_20px_50px_rgba(16,80,55,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.55)] overflow-hidden backdrop-blur-2xl transition-all duration-300 z-10">
-        {/* Top Header inside the floating main panel (hidden on simulation, network configurator, forecast, violations, reports, and actions pages) */}
+      {/* Right Floating White Main Content Panel (Enhanced Multi-Layer Floating Depth) */}
+      <div className="flex-1 flex flex-col min-w-0 h-full rounded-[26px] bg-white/95 dark:bg-[#0B1E15]/95 border border-[#86EFAC]/70 dark:border-[#86EFAC]/30 shadow-[0_24px_60px_-12px_rgba(4,78,59,0.16),0_12px_24px_-8px_rgba(4,78,59,0.08),0_0_0_1px_rgba(255,255,255,0.85)] dark:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.65),0_12px_24px_-8px_rgba(0,0,0,0.4),0_0_0_1px_rgba(134,239,172,0.18)] overflow-hidden backdrop-blur-2xl transition-all duration-300 z-10">
+        {/* Top Header inside the floating main panel (hidden on pages that have custom hero headers or on Home) */}
         {!location.pathname.startsWith('/simulation') &&
           !location.pathname.startsWith('/network') &&
           !location.pathname.startsWith('/forecast') &&
           !location.pathname.startsWith('/violations') &&
           !location.pathname.startsWith('/reports') &&
-          !location.pathname.startsWith('/actions') && <Header />}
+          !location.pathname.startsWith('/actions') &&
+          location.pathname !== '/' &&
+          location.pathname !== '/home' && <Header />}
 
         {/* Dynamic Route Content */}
         <main

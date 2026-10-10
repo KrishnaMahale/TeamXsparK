@@ -18,15 +18,15 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const variantStyles = {
     default:
-      'bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 shadow-[0_6px_20px_rgba(16,80,55,0.06)] dark:shadow-[0_6px_20px_rgba(0,0,0,0.3)] hover:border-[#86EFAC]/80',
+      'bg-white/92 dark:bg-[#122C1F]/92 backdrop-blur-md border border-[#86EFAC]/70 dark:border-[#86EFAC]/30 shadow-[0_4px_16px_rgba(16,80,55,0.05),0_1px_3px_rgba(16,80,55,0.03)] dark:shadow-[0_6px_20px_rgba(0,0,0,0.3)] hover:border-[#4ADE80] hover:shadow-[0_8px_24px_rgba(16,80,55,0.08)]',
     highlight:
-      'bg-[#ECFDF3]/85 dark:bg-[#163826]/85 backdrop-blur-md border border-[#86EFAC] dark:border-[#86EFAC]/60 shadow-[0_6px_20px_rgba(134,239,172,0.18)]',
+      'bg-[#ECFDF3]/90 dark:bg-[#163826]/90 backdrop-blur-md border border-[#4ADE80] dark:border-[#86EFAC]/70 shadow-[0_6px_20px_rgba(16,80,55,0.08)]',
     danger:
-      'bg-red-50/80 dark:bg-red-950/35 backdrop-blur-md border border-red-200 dark:border-red-900/60 shadow-xs',
+      'bg-red-50/80 dark:bg-red-950/35 backdrop-blur-md border border-red-300 dark:border-red-900/60 shadow-2xs',
     warning:
-      'bg-amber-50/80 dark:bg-amber-950/35 backdrop-blur-md border border-amber-200 dark:border-amber-900/60 shadow-xs',
+      'bg-amber-50/80 dark:bg-amber-950/35 backdrop-blur-md border border-amber-300 dark:border-amber-900/60 shadow-2xs',
     success:
-      'bg-emerald-50/80 dark:bg-emerald-950/35 backdrop-blur-md border border-emerald-200 dark:border-emerald-800/60 shadow-xs',
+      'bg-emerald-50/80 dark:bg-emerald-950/35 backdrop-blur-md border border-emerald-300 dark:border-emerald-800/60 shadow-2xs',
   }
 
   // Support backward compatible glowColor mapping
@@ -53,7 +53,7 @@ export const CardHeader: React.FC<{
   className?: string
   icon?: React.ReactNode
 }> = ({ title, subtitle, action, className = '', icon }) => (
-  <div className={`p-4 sm:p-5 border-b border-[#BBF7D0]/60 dark:border-[#86EFAC]/18 flex items-center justify-between ${className}`}>
+  <div className={`p-4 sm:p-5 border-b border-[#A7F3D0]/60 dark:border-[#86EFAC]/22 flex items-center justify-between ${className}`}>
     <div className="flex items-center gap-2.5">
       {icon && <span className="text-[#047857] dark:text-[#86EFAC] shrink-0">{icon}</span>}
       <div>

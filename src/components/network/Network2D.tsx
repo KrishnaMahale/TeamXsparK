@@ -19,7 +19,7 @@ import {
 import { useGridStore } from '../../store/gridStore'
 import { useSelectedComponent } from '../../hooks/useSelectedComponent'
 import { useUIStore } from '../../store/uiStore'
-import { Bus, Feeder, SolarUnit, Battery, Load } from '../../types/network'
+import { Bus, Feeder, SolarUnit, Battery, Load, ComponentType } from '../../types/network'
 import { SolarRooftopVillaSvg } from './assets/SolarRooftopIcon'
 
 export interface Network2DProps {
@@ -31,7 +31,7 @@ export const Network2D: React.FC<Network2DProps> = ({
   readOnly = false,
   heightClassName,
 }) => {
-  const { network, currentTime } = useGridStore()
+  const { network, currentTime, updateComponentPosition } = useGridStore()
   const { selectedComponent, setSelectedComponent } = useSelectedComponent()
   const { theme } = useUIStore()
   const isDark = theme === 'dark'
@@ -43,7 +43,34 @@ export const Network2D: React.FC<Network2DProps> = ({
   const [isPanning, setIsPanning] = useState(false)
   const dragStartRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const sceneGroupRef = useRef<SVGGElement>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // 2D Interactive Drag & Move Component State
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [isDraggingNode, setIsDraggingNode] = useState(false)
+  const lastDragEndTimeRef = useRef<number>(0)
+  const lastFrozenBoundsRef = useRef<{
+    minX: number
+    maxX: number
+    minZ: number
+    maxZ: number
+    centerX: number
+    centerZ: number
+    scale: number
+  }>({ minX: -15, maxX: 15, minZ: -15, maxZ: 15, centerX: 0, centerZ: 0, scale: 20 })
+
+  const dragInfoRef = useRef<{
+    id: string
+    type: 'transformer' | 'bus' | 'solar' | 'battery' | 'load'
+    startGridPos: { x: number; z: number }
+    startSvgPos: { x: number; y: number }
+    offsetSvg: { x: number; y: number }
+    currentGridPos: { x: number; z: number }
+    hasMoved: boolean
+    bounds: { centerX: number; centerZ: number; scale: number }
+  } | null>(null)
 
   // Toggle Full Screen View
   const toggleFullscreen = () => {
@@ -97,24 +124,159 @@ export const Network2D: React.FC<Network2DProps> = ({
     return () => el.removeEventListener('wheel', onWheel)
   }, [])
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Helper: map pointer screen coordinates (clientX, clientY) through SVG inverse transformation matrix
+  const getScenePoint = (clientX: number, clientY: number): { x: number; y: number } | null => {
+    if (!svgRef.current || !sceneGroupRef.current) return null
+    const ctm = sceneGroupRef.current.getScreenCTM()
+    if (!ctm) return null
+    const pt = svgRef.current.createSVGPoint()
+    pt.x = clientX
+    pt.y = clientY
+    const transformed = pt.matrixTransform(ctm.inverse())
+    return { x: transformed.x, y: transformed.y }
+  }
+
+  // Pointer Down on background canvas: initiates pan
+  const handlePointerDown = (e: React.PointerEvent) => {
     const target = e.target as HTMLElement
-    const isInteractive = target.closest('[data-component]') || target.closest('.cursor-pointer')
+    const isInteractive =
+      target.closest('[data-component]') ||
+      target.closest('.cursor-pointer') ||
+      target.closest('button')
     if (isInteractive) return
+    if (e.button !== 0) return
+
     setIsPanning(true)
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isPanning) return
-    setPan({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y,
-    })
+  // Pointer Move on container: handles active component drag or canvas panning
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (dragInfoRef.current && isDraggingNode) {
+      e.stopPropagation()
+      const scenePt = getScenePoint(e.clientX, e.clientY)
+      if (!scenePt) return
+
+      const { offsetSvg, bounds: frozenBounds, id } = dragInfoRef.current
+      const targetSvgX = scenePt.x - offsetSvg.x
+      const targetSvgY = scenePt.y - offsetSvg.y
+
+      const dx = targetSvgX - dragInfoRef.current.startSvgPos.x
+      const dy = targetSvgY - dragInfoRef.current.startSvgPos.y
+      if (Math.abs(dx) > 2.5 || Math.abs(dy) > 2.5) {
+        dragInfoRef.current.hasMoved = true
+      }
+
+      // Convert SVG scene space (500, 340 center) back to 3D grid space (x, z)
+      const newGridX = (targetSvgX - 500) / frozenBounds.scale + frozenBounds.centerX
+      const newGridZ = (targetSvgY - 340) / frozenBounds.scale + frozenBounds.centerZ
+
+      const roundedX = Math.round(newGridX * 10) / 10
+      const roundedZ = Math.round(newGridZ * 10) / 10
+
+      dragInfoRef.current.currentGridPos = { x: roundedX, z: roundedZ }
+
+      const elevationY = id === network.substation?.id ? 0.6 : 0
+
+      // Continuous 60fps update to shared store: immediately synchronizes 2D and 3D views
+      updateComponentPosition(id, { x: roundedX, y: elevationY, z: roundedZ }, false)
+      return
+    }
+
+    if (isPanning) {
+      setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      })
+    }
   }
 
-  const handleMouseUp = () => {
+  // Pointer Up on container: commits final position and releases pointer capture
+  const handlePointerUp = async (e: React.PointerEvent) => {
+    if (dragInfoRef.current) {
+      const { id, currentGridPos, hasMoved } = dragInfoRef.current
+      const elevationY = id === network.substation?.id ? 0.6 : 0
+
+      if (hasMoved) {
+        lastDragEndTimeRef.current = Date.now()
+        await updateComponentPosition(
+          id,
+          { x: currentGridPos.x, y: elevationY, z: currentGridPos.z },
+          true
+        )
+      }
+
+      dragInfoRef.current = null
+      setDraggingId(null)
+      setIsDraggingNode(false)
+      try {
+        ;(e.currentTarget as Element).releasePointerCapture?.(e.pointerId)
+      } catch {}
+      return
+    }
+
     setIsPanning(false)
+  }
+
+  // Pointer Down on movable component node: initiates 2D component dragging
+  const handleStartNodeDrag = (
+    e: React.PointerEvent,
+    id: string,
+    type: 'transformer' | 'bus' | 'solar' | 'battery' | 'load',
+    componentData: any
+  ) => {
+    if (readOnly) return
+    if (e.button !== 0) return // Primary left button only
+
+    e.stopPropagation()
+
+    setSelectedComponent({
+      type,
+      id,
+      data: componentData,
+    })
+
+    const scenePt = getScenePoint(e.clientX, e.clientY)
+    if (!scenePt) return
+
+    const currentSvg = getSvgCoords(id)
+    if (!currentSvg) return
+
+    const currentGrid = nodePositions[id] || { x: 0, z: 0 }
+    const frozenBounds = { ...lastFrozenBoundsRef.current }
+
+    dragInfoRef.current = {
+      id,
+      type,
+      startGridPos: { ...currentGrid },
+      startSvgPos: { ...currentSvg },
+      offsetSvg: {
+        x: scenePt.x - currentSvg.x,
+        y: scenePt.y - currentSvg.y,
+      },
+      currentGridPos: { ...currentGrid },
+      hasMoved: false,
+      bounds: frozenBounds,
+    }
+
+    setDraggingId(id)
+    setIsDraggingNode(true)
+    try {
+      ;(e.currentTarget as Element).setPointerCapture?.(e.pointerId)
+    } catch {}
+  }
+
+  // Click on movable component node: select component if not dragging
+  const handleClickNode = (
+    e: React.MouseEvent,
+    type: ComponentType,
+    id: string,
+    data: any
+  ) => {
+    e.stopPropagation()
+    // Avoid re-selecting immediately after dragging release
+    if (Date.now() - lastDragEndTimeRef.current < 250) return
+    setSelectedComponent({ type, id, data })
   }
 
   const handleZoomIn = () => setZoom((z) => Math.min(3.5, +(z * 1.2).toFixed(2)))
@@ -135,7 +297,7 @@ export const Network2D: React.FC<Network2DProps> = ({
     if (network.substation) {
       pos[network.substation.id] = {
         x: network.substation.position?.x ?? 0,
-        z: network.substation.position?.z ?? -15,
+        z: network.substation.position?.z ?? -10,
       }
     }
 
@@ -207,18 +369,24 @@ export const Network2D: React.FC<Network2DProps> = ({
     const scaleZ = 540 / spanZ
     const scale = Math.min(scaleX, scaleZ)
 
+    const computedBounds = { minX, maxX, minZ, maxZ, centerX, centerZ, scale }
+    if (!isDraggingNode) {
+      lastFrozenBoundsRef.current = computedBounds
+    }
+
     return {
       nodePositions: pos,
-      bounds: { minX, maxX, minZ, maxZ, centerX, centerZ, scale },
+      bounds: computedBounds,
     }
-  }, [network])
+  }, [network, isDraggingNode])
 
   // Helper to project 3D (x, z) coordinates to SVG canvas (x, y)
   const getSvgCoords = (id: string): { x: number; y: number } | null => {
     const p = nodePositions[id]
     if (!p) return null
-    const svgX = 500 + (p.x - bounds.centerX) * bounds.scale
-    const svgY = 340 + (p.z - bounds.centerZ) * bounds.scale
+    const b = isDraggingNode ? lastFrozenBoundsRef.current : bounds
+    const svgX = 500 + (p.x - b.centerX) * b.scale
+    const svgY = 340 + (p.z - b.centerZ) * b.scale
     return { x: Math.round(svgX * 10) / 10, y: Math.round(svgY * 10) / 10 }
   }
 
@@ -336,11 +504,11 @@ export const Network2D: React.FC<Network2DProps> = ({
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      style={{ cursor: isDraggingNode ? 'grabbing' : isPanning ? 'grabbing' : 'grab' }}
       className={`relative w-full flex items-center justify-center overflow-hidden transition-all select-none ${
         isFullscreen
           ? 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-white dark:bg-[#0B1220] p-4'
@@ -423,6 +591,7 @@ export const Network2D: React.FC<Network2DProps> = ({
       </div>
 
       <svg
+        ref={svgRef}
         viewBox="0 0 1000 680"
         className="w-full h-full object-contain select-none"
       >
@@ -489,9 +658,10 @@ export const Network2D: React.FC<Network2DProps> = ({
 
         {/* Dynamic Zoom & Pan Transformed Group */}
         <g
+          ref={sceneGroupRef}
           transform={`translate(${500 + pan.x}, ${340 + pan.y}) scale(${zoom}) rotate(${rotation}) translate(-500, -340)`}
           style={{
-            transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+            transition: isPanning || isDraggingNode ? 'none' : 'transform 0.15s ease-out',
           }}
         >
           {/* ===================================================
@@ -766,20 +936,59 @@ export const Network2D: React.FC<Network2DProps> = ({
             const subCoord = getSvgCoords(network.substation.id)
             if (!subCoord) return null
             const isSel = isSelected('transformer', network.substation.id)
+            const isDragging = isDraggingNode && draggingId === network.substation.id
 
             return (
               <g
                 key="substation-node"
+                data-component="true"
                 transform={`translate(${subCoord.x}, ${subCoord.y})`}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedComponent({
-                    type: 'transformer',
-                    id: network.substation.id,
-                    data: network.substation,
-                  })
-                }}
+                className={
+                  readOnly
+                    ? 'cursor-pointer'
+                    : isDragging
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab group'
+                }
+                onPointerDown={(e) =>
+                  handleStartNodeDrag(e, network.substation.id, 'transformer', network.substation)
+                }
+                onClick={(e) =>
+                  handleClickNode(e, 'transformer', network.substation.id, network.substation)
+                }
               >
+                {/* Dragging Active Halo & Elevation Ring */}
+                {isDragging && (
+                  <>
+                    <rect
+                      x="-62"
+                      y="-33"
+                      width="124"
+                      height="66"
+                      rx="12"
+                      fill="none"
+                      stroke="#38BDF8"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 4"
+                      opacity="0.95"
+                    />
+                    <g transform="translate(0, -44)">
+                      <rect x="-38" y="-8" width="76" height="16" rx="4" fill="#0284C7" />
+                      <text
+                        x="0"
+                        y="3.5"
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                      >
+                        X:{(nodePositions[network.substation.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[network.substation.id]?.z ?? -10).toFixed(1)}
+                      </text>
+                    </g>
+                  </>
+                )}
+
                 <rect
                   x="-55"
                   y="-26"
@@ -787,8 +996,8 @@ export const Network2D: React.FC<Network2DProps> = ({
                   height="52"
                   rx="8"
                   fill={cardBg}
-                  stroke={isSel ? primaryColor : lineBaseColor}
-                  strokeWidth={isSel ? '2.5' : '1.8'}
+                  stroke={isDragging ? '#38BDF8' : isSel ? primaryColor : lineBaseColor}
+                  strokeWidth={isDragging || isSel ? '2.5' : '1.8'}
                   className="shadow-sm"
                 />
                 <rect
@@ -797,7 +1006,7 @@ export const Network2D: React.FC<Network2DProps> = ({
                   width="110"
                   height="16"
                   rx="6"
-                  fill={primaryColor}
+                  fill={isDragging ? '#0284C7' : primaryColor}
                   opacity="0.9"
                 />
                 <text
@@ -844,21 +1053,56 @@ export const Network2D: React.FC<Network2DProps> = ({
             const coord = getSvgCoords(b.id)
             if (!coord) return null
             const isSel = isSelected('bus', b.id)
+            const isDragging = isDraggingNode && draggingId === b.id
             const isCritical = b.status === 'critical' || b.voltage > 1.05 || b.voltage < 0.95
             const isUnder = b.voltage < 0.95
-            const nodeColor = getNodeColor(b.status, b.voltage, isSel)
+            const nodeColor = isDragging ? '#38BDF8' : getNodeColor(b.status, b.voltage, isSel)
 
             return (
               <g
                 key={`bus-${b.id}`}
+                data-component="true"
                 transform={`translate(${coord.x}, ${coord.y})`}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedComponent({ type: 'bus', id: b.id, data: b })
-                }}
+                className={
+                  readOnly
+                    ? 'cursor-pointer'
+                    : isDragging
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab group'
+                }
+                onPointerDown={(e) => handleStartNodeDrag(e, b.id, 'bus', b)}
+                onClick={(e) => handleClickNode(e, 'bus', b.id, b)}
               >
+                {/* Dragging Active Halo Ring & Coordinate Badge */}
+                {isDragging && (
+                  <>
+                    <circle
+                      r="22"
+                      fill="none"
+                      stroke="#38BDF8"
+                      strokeWidth="2.5"
+                      strokeDasharray="5 3"
+                      opacity="0.95"
+                    />
+                    <g transform="translate(0, -44)">
+                      <rect x="-32" y="-8" width="64" height="16" rx="4" fill="#0284C7" />
+                      <text
+                        x="0"
+                        y="3.5"
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                      >
+                        X:{(nodePositions[b.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[b.id]?.z ?? 0).toFixed(1)}
+                      </text>
+                    </g>
+                  </>
+                )}
+
                 {/* Critical Pulse Ring */}
-                {isCritical && (
+                {isCritical && !isDragging && (
                   <circle
                     r="20"
                     fill="none"
@@ -874,7 +1118,7 @@ export const Network2D: React.FC<Network2DProps> = ({
                   r="13"
                   fill={cardBg}
                   stroke={nodeColor}
-                  strokeWidth={isSel ? '3.5' : '2.5'}
+                  strokeWidth={isDragging || isSel ? '3.5' : '2.5'}
                   className="shadow-sm"
                 />
 
@@ -920,7 +1164,7 @@ export const Network2D: React.FC<Network2DProps> = ({
                 </g>
 
                 {/* Violation Warning Tag */}
-                {isCritical && (
+                {isCritical && !isDragging && (
                   <g transform="translate(0, -32)">
                     <rect
                       x="-38"
@@ -963,15 +1207,54 @@ export const Network2D: React.FC<Network2DProps> = ({
             )
 
             if (isRooftop) {
+              const isDragging = isDraggingNode && draggingId === s.id
               return (
                 <g
                   key={`solar-node-${s.id}`}
+                  data-component="true"
                   transform={`translate(${coord.x}, ${coord.y})`}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    setSelectedComponent({ type: 'solar', id: s.id, data: s })
-                  }}
+                  className={
+                    readOnly
+                      ? 'cursor-pointer'
+                      : isDragging
+                      ? 'cursor-grabbing'
+                      : 'cursor-grab group'
+                  }
+                  onPointerDown={(e) => handleStartNodeDrag(e, s.id, 'solar', s)}
+                  onClick={(e) => handleClickNode(e, 'solar', s.id, s)}
                 >
+                  {/* Dragging Active Halo Ring & Coordinate Badge */}
+                  {isDragging && (
+                    <>
+                      <rect
+                        x="-54"
+                        y="-28"
+                        width="108"
+                        height="56"
+                        rx="10"
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="2.5"
+                        strokeDasharray="6 4"
+                        opacity="0.95"
+                      />
+                      <g transform="translate(0, -38)">
+                        <rect x="-30" y="-8" width="60" height="16" rx="4" fill="#047857" />
+                        <text
+                          x="0"
+                          y="3.5"
+                          textAnchor="middle"
+                          fill="#FFFFFF"
+                          fontSize="8.5"
+                          fontFamily="monospace"
+                          fontWeight="bold"
+                        >
+                          X:{(nodePositions[s.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[s.id]?.z ?? 0).toFixed(1)}
+                        </text>
+                      </g>
+                    </>
+                  )}
+
                   {/* Outer Card with emerald highlight */}
                   <rect
                     x="-48"
@@ -980,8 +1263,8 @@ export const Network2D: React.FC<Network2DProps> = ({
                     height="44"
                     rx="8"
                     fill={cardBg}
-                    stroke={isSel ? primaryColor : '#10B981'}
-                    strokeWidth={isSel ? '2.5' : '1.8'}
+                    stroke={isDragging ? '#10B981' : isSel ? primaryColor : '#10B981'}
+                    strokeWidth={isDragging || isSel ? '2.5' : '1.8'}
                     className="shadow-sm"
                   />
                   {/* Modern Villa Solar Rooftop Icon matching reference image */}
@@ -1023,15 +1306,54 @@ export const Network2D: React.FC<Network2DProps> = ({
               )
             }
 
+            const isDragging = isDraggingNode && draggingId === s.id
             return (
               <g
                 key={`solar-node-${s.id}`}
+                data-component="true"
                 transform={`translate(${coord.x}, ${coord.y})`}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedComponent({ type: 'solar', id: s.id, data: s })
-                }}
+                className={
+                  readOnly
+                    ? 'cursor-pointer'
+                    : isDragging
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab group'
+                }
+                onPointerDown={(e) => handleStartNodeDrag(e, s.id, 'solar', s)}
+                onClick={(e) => handleClickNode(e, 'solar', s.id, s)}
               >
+                {/* Dragging Active Halo Ring & Coordinate Badge */}
+                {isDragging && (
+                  <>
+                    <rect
+                      x="-46"
+                      y="-24"
+                      width="92"
+                      height="48"
+                      rx="8"
+                      fill="none"
+                      stroke="#F59E0B"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 4"
+                      opacity="0.95"
+                    />
+                    <g transform="translate(0, -34)">
+                      <rect x="-30" y="-8" width="60" height="16" rx="4" fill="#D97706" />
+                      <text
+                        x="0"
+                        y="3.5"
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                      >
+                        X:{(nodePositions[s.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[s.id]?.z ?? 0).toFixed(1)}
+                      </text>
+                    </g>
+                  </>
+                )}
+
                 <rect
                   x="-40"
                   y="-18"
@@ -1039,8 +1361,8 @@ export const Network2D: React.FC<Network2DProps> = ({
                   height="36"
                   rx="6"
                   fill={cardBg}
-                  stroke={isSel ? primaryColor : '#F59E0B'}
-                  strokeWidth={isSel ? '2.5' : '1.5'}
+                  stroke={isDragging ? '#F59E0B' : isSel ? primaryColor : '#F59E0B'}
+                  strokeWidth={isDragging || isSel ? '2.5' : '1.5'}
                   className="shadow-xs"
                 />
                 <circle cx="-26" cy="0" r="8" fill="#FEF3C7" />
@@ -1080,16 +1402,55 @@ export const Network2D: React.FC<Network2DProps> = ({
             const coord = getSvgCoords(b.id)
             if (!coord) return null
             const isSel = isSelected('battery', b.id)
+            const isDragging = isDraggingNode && draggingId === b.id
 
             return (
               <g
                 key={`bat-node-${b.id}`}
+                data-component="true"
                 transform={`translate(${coord.x}, ${coord.y})`}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedComponent({ type: 'battery', id: b.id, data: b })
-                }}
+                className={
+                  readOnly
+                    ? 'cursor-pointer'
+                    : isDragging
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab group'
+                }
+                onPointerDown={(e) => handleStartNodeDrag(e, b.id, 'battery', b)}
+                onClick={(e) => handleClickNode(e, 'battery', b.id, b)}
               >
+                {/* Dragging Active Halo Ring & Coordinate Badge */}
+                {isDragging && (
+                  <>
+                    <rect
+                      x="-48"
+                      y="-24"
+                      width="96"
+                      height="48"
+                      rx="8"
+                      fill="none"
+                      stroke="#10B981"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 4"
+                      opacity="0.95"
+                    />
+                    <g transform="translate(0, -34)">
+                      <rect x="-30" y="-8" width="60" height="16" rx="4" fill="#047857" />
+                      <text
+                        x="0"
+                        y="3.5"
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                      >
+                        X:{(nodePositions[b.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[b.id]?.z ?? 0).toFixed(1)}
+                      </text>
+                    </g>
+                  </>
+                )}
+
                 <rect
                   x="-42"
                   y="-18"
@@ -1097,8 +1458,8 @@ export const Network2D: React.FC<Network2DProps> = ({
                   height="36"
                   rx="6"
                   fill={cardBg}
-                  stroke={isSel ? primaryColor : '#10B981'}
-                  strokeWidth={isSel ? '2.5' : '1.5'}
+                  stroke={isDragging ? '#10B981' : isSel ? primaryColor : '#10B981'}
+                  strokeWidth={isDragging || isSel ? '2.5' : '1.5'}
                   className="shadow-xs"
                 />
                 <circle cx="-28" cy="0" r="8" fill="#D1FAE5" />
@@ -1134,18 +1495,57 @@ export const Network2D: React.FC<Network2DProps> = ({
             const coord = getSvgCoords(l.id)
             if (!coord) return null
             const isSel = isSelected('load', l.id)
+            const isDragging = isDraggingNode && draggingId === l.id
             const isInd = l.name.toLowerCase().includes('factory') || l.name.toLowerCase().includes('industrial')
             const isCom = l.name.toLowerCase().includes('commercial') || l.name.toLowerCase().includes('office') || l.name.toLowerCase().includes('mall')
 
             return (
               <g
                 key={`load-node-${l.id}`}
+                data-component="true"
                 transform={`translate(${coord.x}, ${coord.y})`}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedComponent({ type: 'load', id: l.id, data: l })
-                }}
+                className={
+                  readOnly
+                    ? 'cursor-pointer'
+                    : isDragging
+                    ? 'cursor-grabbing'
+                    : 'cursor-grab group'
+                }
+                onPointerDown={(e) => handleStartNodeDrag(e, l.id, 'load', l)}
+                onClick={(e) => handleClickNode(e, 'load', l.id, l)}
               >
+                {/* Dragging Active Halo Ring & Coordinate Badge */}
+                {isDragging && (
+                  <>
+                    <rect
+                      x="-46"
+                      y="-24"
+                      width="92"
+                      height="48"
+                      rx="8"
+                      fill="none"
+                      stroke="#38BDF8"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 4"
+                      opacity="0.95"
+                    />
+                    <g transform="translate(0, -34)">
+                      <rect x="-30" y="-8" width="60" height="16" rx="4" fill="#0284C7" />
+                      <text
+                        x="0"
+                        y="3.5"
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8.5"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                      >
+                        X:{(nodePositions[l.id]?.x ?? 0).toFixed(1)} Z:{(nodePositions[l.id]?.z ?? 0).toFixed(1)}
+                      </text>
+                    </g>
+                  </>
+                )}
+
                 <rect
                   x="-40"
                   y="-18"
@@ -1153,8 +1553,8 @@ export const Network2D: React.FC<Network2DProps> = ({
                   height="36"
                   rx="6"
                   fill={cardBg}
-                  stroke={isSel ? primaryColor : isInd ? '#64748B' : isCom ? '#0284C7' : '#94A3B8'}
-                  strokeWidth={isSel ? '2.5' : '1.5'}
+                  stroke={isDragging ? '#38BDF8' : isSel ? primaryColor : isInd ? '#64748B' : isCom ? '#0284C7' : '#94A3B8'}
+                  strokeWidth={isDragging || isSel ? '2.5' : '1.5'}
                   className="shadow-xs"
                 />
                 <circle cx="-26" cy="0" r="8" fill={isDark ? '#1E293B' : '#F1F5F9'} />

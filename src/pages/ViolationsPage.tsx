@@ -2,7 +2,6 @@ import React from 'react'
 import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
-import { Button } from '../components/ui/Button'
 import { useViolations } from '../hooks/useViolations'
 import { GridViolation } from '../types/violation'
 import { useNavigate } from 'react-router-dom'
@@ -13,7 +12,6 @@ import {
   CheckCircle2,
   Filter,
   Activity,
-  ArrowRight,
   ShieldCheck,
   MapPin,
 } from 'lucide-react'
@@ -23,11 +21,9 @@ export const ViolationsPage: React.FC = () => {
     violations,
     summary,
     viewScope,
-    setViewScope,
     worstTime,
     worstTimestepViolations,
     fullHorizonViolations,
-    hasFullSimulation,
     severityFilter,
     setSeverityFilter,
     statusFilter,
@@ -46,75 +42,33 @@ export const ViolationsPage: React.FC = () => {
   return (
     <PageContainer compact className="py-2.5 px-3.5 lg:py-3 lg:px-4 flex flex-col flex-1">
       <div className="space-y-3.5 w-full flex-1 flex flex-col pb-4">
-        {/* Upshifted Custom Hero Heading Box with Background Image matching Simulations and Forecasts Pages */}
-        <div className="relative rounded-2xl overflow-hidden bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 p-4 sm:p-5 lg:p-6 shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
-          {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
-          <div className="absolute inset-y-0 right-0 w-full sm:w-2/3 lg:w-3/5 z-0 pointer-events-none overflow-hidden">
+        {/* Upshifted Custom Hero Heading Box with Refined Mint Gradient & Depth */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#F0FDF4]/95 via-white/95 to-white/85 dark:from-[#0E291C]/95 dark:via-[#122C1F]/90 dark:to-[#0E2419]/85 backdrop-blur-md border border-[#86EFAC]/75 dark:border-[#86EFAC]/35 p-4 sm:p-5 lg:p-5.5 shadow-[0_10px_30px_rgba(16,80,55,0.08),0_2px_8px_rgba(16,80,55,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+          {/* Background Visual Layer: Renewable Grid Landscape Seamless Gradient Fade */}
+          <div className="header-hero-bg absolute inset-0 z-0 pointer-events-none overflow-hidden">
             <img
               src="/images/hero_grid.jpg"
               alt="Renewable Grid Background"
-              className="w-full h-full object-cover object-right lg:object-center opacity-95 dark:opacity-65 transition-opacity"
+              className="header-hero-bg-img w-full h-full object-cover object-right lg:object-center opacity-90 dark:opacity-60 transition-opacity"
               loading="eager"
             />
-            {/* Soft Gradient Masks for Crisp High-Contrast Typography */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#122C1F] dark:via-[#122C1F]/80 dark:to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-[#122C1F]/30" />
           </div>
 
           {/* Left: Upshifted Bigger Heading & Subtitle */}
           <div className="relative z-10 max-w-2xl">
-            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#064E3B] dark:text-[#F0FDF4] tracking-tight leading-none">
               Grid Health & Violations Log
             </h1>
-            <p className="text-xs sm:text-sm text-[#425B4C] dark:text-[#A7F3D0] font-medium mt-2 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-[#375243] dark:text-[#A7F3D0] font-medium mt-1.5 leading-relaxed max-w-xl">
               {viewScope === 'worst_timestep'
                 ? `Operating violations at peak stress timestep (${worstTime}) for ${network.name} — Identical baseline used by Corrective Actions.`
                 : `Full 24-hour diurnal chronological log of all constraint violations across 96 simulation intervals for ${network.name}.`}
             </p>
           </div>
-
-          {/* Right: Actions Bar, Scope Switcher & Theme Toggle */}
-          <div className="relative z-10 flex flex-wrap items-center gap-2 shrink-0 bg-[#F4FAF5]/90 dark:bg-[#0E2419]/90 p-1.5 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs backdrop-blur-sm">
-            {/* Scope Selector */}
-            <div className="flex items-center bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 rounded-lg p-0.5 text-xs font-semibold shadow-2xs">
-              <button
-                onClick={() => setViewScope('worst_timestep')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  viewScope === 'worst_timestep'
-                    ? 'bg-[#047857] text-white font-bold shadow-xs'
-                    : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B] dark:hover:text-white'
-                }`}
-              >
-                Worst ({worstTime})
-              </button>
-              <button
-                onClick={() => setViewScope('full_horizon')}
-                disabled={!hasFullSimulation}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  viewScope === 'full_horizon'
-                    ? 'bg-[#047857] text-white font-bold shadow-xs'
-                    : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B] dark:hover:text-white disabled:opacity-50'
-                }`}
-                title={hasFullSimulation ? 'View all violations across 24h simulation' : 'Run 24h simulation to view full horizon'}
-              >
-                24h Horizon
-              </button>
-            </div>
-
-            <Button
-              variant="primary"
-              size="sm"
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              onClick={() => navigate('/actions')}
-              className="font-bold shadow-xs hover:border-[#047857]"
-            >
-              Evaluate Actions
-            </Button>
-          </div>
         </div>
 
         {/* Scope Context Banner */}
-        <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs backdrop-blur-md">
+        <div className="p-3.5 rounded-2xl bg-white/95 dark:bg-[#122C1F]/90 border border-[#86EFAC]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
             <span className="font-bold text-[#10251A] dark:text-white">

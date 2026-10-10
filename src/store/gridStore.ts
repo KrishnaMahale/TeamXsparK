@@ -38,6 +38,7 @@ interface GridState {
   redo: () => Promise<void>
   setNetwork: (network: GridNetwork) => void
   updateNetwork: (updated: GridNetwork) => Promise<void>
+  updateComponentPosition: (id: string, position: { x: number; y: number; z: number }, persist?: boolean) => Promise<void>
   switchGrid: (gridId: string) => Promise<void>
   createGrid: (name: string, template?: 'clone' | 'starter' | 'empty') => Promise<GridNetwork>
   deleteGrid: (gridId: string) => Promise<boolean>
@@ -111,6 +112,95 @@ export const useGridStore = create<GridState>((set, get) => ({
     const past = [...get().pastNetworks, JSON.parse(JSON.stringify(current))].slice(-30)
     set({ network: updated, pastNetworks: past, futureNetworks: [] })
     await gridService.updateGrid(updated.id, updated)
+  },
+
+  updateComponentPosition: async (
+    id: string,
+    position: { x: number; y: number; z: number },
+    persist: boolean = true
+  ) => {
+    const current = get().network
+    let modified = false
+
+    const updated: GridNetwork = {
+      ...current,
+      buses: current.buses.map((b) => {
+        if (b.id === id) {
+          modified = true
+          return { ...b, position }
+        }
+        return b
+      }),
+      solarUnits: current.solarUnits.map((s) => {
+        if (s.id === id) {
+          modified = true
+          return { ...s, position }
+        }
+        return s
+      }),
+      batteries: current.batteries.map((bat) => {
+        if (bat.id === id) {
+          modified = true
+          return { ...bat, position }
+        }
+        return bat
+      }),
+      loads: current.loads.map((l) => {
+        if (l.id === id) {
+          modified = true
+          return { ...l, position }
+        }
+        return l
+      }),
+      substation:
+        current.substation && current.substation.id === id
+          ? (() => {
+              modified = true
+              return { ...current.substation, position }
+            })()
+          : current.substation,
+    }
+
+    if (!modified) return
+
+    // Update selectedComponent if it matches the moved component so inspection panel is always in sync
+    const sel = get().selectedComponent
+    const updatedSelected =
+      sel && sel.id === id
+        ? {
+            ...sel,
+            data:
+              sel.type === 'transformer' && updated.substation?.id === id
+                ? updated.substation
+                : sel.type === 'bus'
+                ? updated.buses.find((b) => b.id === id) || sel.data
+                : sel.type === 'solar'
+                ? updated.solarUnits.find((s) => s.id === id) || sel.data
+                : sel.type === 'battery'
+                ? updated.batteries.find((b) => b.id === id) || sel.data
+                : sel.type === 'load'
+                ? updated.loads.find((l) => l.id === id) || sel.data
+                : sel.data,
+          }
+        : sel
+
+    if (persist) {
+      const past = [...get().pastNetworks, JSON.parse(JSON.stringify(current))].slice(-30)
+      set({
+        network: updated,
+        selectedComponent: updatedSelected,
+        pastNetworks: past,
+        futureNetworks: [],
+      })
+      try {
+        await gridService.updateGrid(updated.id, updated)
+      } catch (err) {
+        console.warn('Failed to persist component position to backend:', err)
+      }
+    } else {
+      // Ephemeral update during active dragging: instant 60fps state update, no history push, no network overhead
+      set({ network: updated, selectedComponent: updatedSelected })
+    }
   },
 
   switchGrid: async (gridId: string) => {

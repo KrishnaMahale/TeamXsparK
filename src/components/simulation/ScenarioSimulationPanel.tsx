@@ -134,9 +134,9 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
   return (
     <div className="space-y-4">
       {/* FLOATING SIMULATION CONFIGURATION BOX */}
-      <Card className="border-[#BBF7D0]/80 dark:border-[#86EFAC]/25 bg-white/85 dark:bg-[#122C1F]/85 backdrop-blur-md shadow-[0_8px_30px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] rounded-2xl overflow-visible transition-all duration-200 relative z-20">
+      <Card className="border-[#86EFAC]/75 dark:border-[#86EFAC]/35 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md shadow-[0_8px_30px_rgba(16,80,55,0.06),0_2px_8px_rgba(16,80,55,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] rounded-2xl overflow-visible transition-all duration-200 relative z-20">
         <CardHeader
-          className="p-3 px-4 sm:p-3.5 sm:px-5"
+          className="p-3 px-4 sm:p-3.5 sm:px-5 border-b border-[#A7F3D0]/60 dark:border-[#86EFAC]/25"
           title="Simulation Configuration"
           subtitle="Configure target grid and select a predefined operating condition for power-flow evaluation"
           icon={<SlidersHorizontal className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
@@ -144,7 +144,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
             <Badge
               variant="neutral"
               size="sm"
-              className="hidden sm:inline-flex border-[#BBF7D0] dark:border-[#86EFAC]/30 text-[#047857] dark:text-[#86EFAC] bg-[#ECFDF3] dark:bg-[#132F21]"
+              className="hidden sm:inline-flex border-[#86EFAC]/70 dark:border-[#86EFAC]/35 text-[#047857] dark:text-[#86EFAC] bg-[#ECFDF3] dark:bg-[#132F21]"
             >
               Active Digital Model
             </Badge>
@@ -178,13 +178,13 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
               />
 
               {/* Compact Floating Grid Telemetry Pill */}
-              <div className="p-2 px-3 rounded-xl bg-[#ECFDF3]/80 dark:bg-[#163826]/70 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-wrap items-center justify-between gap-1.5 text-[11px] shadow-2xs">
+              <div className="p-2 px-3 rounded-xl bg-[#ECFDF3]/85 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 flex flex-wrap items-center justify-between gap-1.5 text-[11px] shadow-2xs">
                 <div className="flex items-center gap-1.5">
                   <Building className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC] shrink-0" />
                   <span className="font-bold text-[#10251A] dark:text-[#ECFDF3] truncate">
                     {currentGrid.name}
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white dark:bg-[#064E3B]/70 border border-[#BBF7D0] dark:border-[#86EFAC]/30 text-[#047857] dark:text-[#86EFAC]">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white dark:bg-[#064E3B]/70 border border-[#86EFAC]/70 dark:border-[#86EFAC]/40 text-[#047857] dark:text-[#86EFAC]">
                     {currentGrid.gridConnectionStatus === 'islanded' ? 'Islanded' : '33/11 kV'}
                   </span>
                 </div>
@@ -222,7 +222,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
               />
 
               {/* Scenario Quick Status Pill */}
-              <div className="p-2 px-3 rounded-xl bg-[#ECFDF3]/80 dark:bg-[#163826]/70 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex items-center justify-between gap-1.5 text-[11px] shadow-2xs">
+              <div className="p-2 px-3 rounded-xl bg-[#ECFDF3]/85 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 flex items-center justify-between gap-1.5 text-[11px] shadow-2xs">
                 <div className="flex items-center gap-2">
                   <Badge variant={getStatusBadgeVariant(selectedScenario?.status)} size="sm">
                     {getStatusLabel(selectedScenario)}
@@ -240,7 +240,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
           </div>
 
           {/* 2. SCENARIO PARAMETERS & RUN HORIZON (Opens Downwards Cleanly Inside Box) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-[#BBF7D0]/50 dark:border-[#86EFAC]/15 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-[#A7F3D0]/60 dark:border-[#86EFAC]/20 text-xs">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold uppercase tracking-wider text-[#10251A] dark:text-[#ECFDF3] block">
                 Scenario Identifier
@@ -249,7 +249,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                 type="text"
                 value={input.scenarioName}
                 onChange={(e) => onUpdateInput({ scenarioName: e.target.value })}
-                className="w-full h-10 px-3.5 py-2 rounded-xl bg-white/90 dark:bg-[#132F21]/90 border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 text-[#10251A] dark:text-white text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#047857]/40 dark:focus:ring-[#86EFAC]/40 focus:border-[#047857] shadow-2xs transition-all"
+                className="w-full h-10 px-3.5 py-2 rounded-xl bg-white/95 dark:bg-[#132F21]/90 border border-[#86EFAC]/75 dark:border-[#86EFAC]/35 text-[#10251A] dark:text-white text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#047857]/40 dark:focus:ring-[#86EFAC]/40 focus:border-[#047857] shadow-2xs transition-all"
               />
             </div>
 
@@ -320,7 +320,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
 
           {/* 3. FLOATING SCENARIO SUMMARY */}
           {selectedScenario && (
-            <div className="p-3 sm:p-3.5 rounded-xl bg-[#F7FCF9]/90 dark:bg-[#143224]/80 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 space-y-2.5 shadow-xs">
+            <div className="p-3 sm:p-3.5 rounded-xl bg-[#F7FCF9]/95 dark:bg-[#143224]/85 backdrop-blur-md border border-[#86EFAC]/70 dark:border-[#86EFAC]/30 space-y-2.5 shadow-2xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#52665A] dark:text-[#A7F3D0]">
@@ -331,7 +331,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   </p>
                 </div>
                 {selectedScenario.recommendedActionHint && (
-                  <div className="text-[11px] text-[#064E3B] dark:text-[#A7F3D0] flex items-center gap-1.5 bg-white/80 dark:bg-[#0E2419]/80 px-2.5 py-1 rounded-lg border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shrink-0 shadow-2xs">
+                  <div className="text-[11px] text-[#064E3B] dark:text-[#A7F3D0] flex items-center gap-1.5 bg-white/90 dark:bg-[#0E2419]/90 px-2.5 py-1 rounded-lg border border-[#86EFAC]/60 dark:border-[#86EFAC]/25 shrink-0 shadow-2xs">
                     <Sparkles className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC] shrink-0" />
                     <span className="truncate max-w-xs xl:max-w-md font-medium">
                       {selectedScenario.recommendedActionHint}
@@ -341,8 +341,8 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
               </div>
 
               {/* Technical Operating Parameters Micro-Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-[#BBF7D0]/50 dark:border-[#86EFAC]/15">
-                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-[#0E2419]/90 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs hover:border-[#047857]/40 transition-colors">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-[#A7F3D0]/60 dark:border-[#86EFAC]/20">
+                <div className="p-2.5 rounded-lg bg-white/95 dark:bg-[#0E2419]/90 border border-[#86EFAC]/60 dark:border-[#86EFAC]/25 shadow-2xs hover:border-[#047857]/50 transition-colors">
                   <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
                     <Sun className="w-3 h-3" />
                     Solar Profile
@@ -353,7 +353,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   <div className="text-[9.5px] text-[#52665A] dark:text-[#A7F3D0]">Peak generation</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-[#0E2419]/90 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs hover:border-[#047857]/40 transition-colors">
+                <div className="p-2.5 rounded-lg bg-white/95 dark:bg-[#0E2419]/90 border border-[#86EFAC]/60 dark:border-[#86EFAC]/25 shadow-2xs hover:border-[#047857]/50 transition-colors">
                   <div className="text-[10px] text-sky-700 dark:text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1">
                     <Zap className="w-3 h-3" />
                     Load Profile
@@ -364,7 +364,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   <div className="text-[9.5px] text-[#52665A] dark:text-[#A7F3D0]">Feeder demand</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-[#0E2419]/90 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs hover:border-[#047857]/40 transition-colors">
+                <div className="p-2.5 rounded-lg bg-white/95 dark:bg-[#0E2419]/90 border border-[#86EFAC]/60 dark:border-[#86EFAC]/25 shadow-2xs hover:border-[#047857]/50 transition-colors">
                   <div className="text-[10px] text-[#047857] dark:text-[#86EFAC] font-bold uppercase tracking-wider flex items-center gap-1">
                     <Battery className="w-3 h-3" />
                     Battery State
@@ -375,7 +375,7 @@ export const ScenarioSimulationPanel: React.FC<ScenarioSimulationPanelProps> = (
                   <div className="text-[9.5px] text-[#52665A] dark:text-[#A7F3D0]">Initial SOC</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-white/90 dark:bg-[#0E2419]/90 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs hover:border-[#047857]/40 transition-colors">
+                <div className="p-2.5 rounded-lg bg-white/95 dark:bg-[#0E2419]/90 border border-[#86EFAC]/60 dark:border-[#86EFAC]/25 shadow-2xs hover:border-[#047857]/50 transition-colors">
                   <div className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
                     Stress Level

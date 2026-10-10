@@ -108,11 +108,12 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
 
   // 2. ESTABLISHED FORECAST CONTEXT VIEW
   return (
-    <Card className="border-[#DDD9C9] dark:border-[#2C3C2E] shadow-xs">
+    <Card className="border-[#86EFAC]/75 dark:border-[#86EFAC]/35 bg-white/90 dark:bg-[#122C1F]/90 shadow-[0_8px_30px_rgba(16,80,55,0.06),0_2px_8px_rgba(16,80,55,0.03)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] rounded-2xl">
       <CardHeader
+        className="border-b border-[#A7F3D0]/60 dark:border-[#86EFAC]/25"
         title="Simulation Configuration"
         subtitle="Evaluate the selected day's ML forecast against the physical grid model"
-        icon={<CheckCircle2 className="w-4 h-4 text-[#A0C878]" />}
+        icon={<CheckCircle2 className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
           <div className="flex items-center gap-2">
             <Badge variant="success" size="sm">
@@ -123,7 +124,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
                 variant="ghost"
                 size="sm"
                 onClick={onSwitchToScenario}
-                className="text-xs text-[#788477] hover:text-[#26352A] dark:hover:text-[#F2F5ED]"
+                className="text-xs text-[#425B4C] hover:text-[#064E3B] dark:hover:text-[#F0FDF4]"
               >
                 Switch to Scenario Preset
               </Button>
@@ -132,11 +133,11 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
         }
       />
 
-      <CardContent className="p-5 space-y-5">
+      <CardContent className="p-4 sm:p-5 space-y-4 sm:space-y-4.5">
         {/* Established Grid & Date Row (Read-Only) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Grid Configuration */}
-          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
             <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
               <Building className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Grid Configuration
@@ -150,7 +151,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
           </div>
 
           {/* Simulation Date */}
-          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
             <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
               <Calendar className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Simulation Date
@@ -164,7 +165,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
           </div>
 
           {/* Forecast Status & Horizon */}
-          <div className="p-3.5 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
             <div className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" />
               Forecast Horizon
@@ -179,12 +180,12 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
         </div>
 
         {/* Forecast Summary Metrics */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <div className="text-[11px] font-bold uppercase tracking-wider text-[#52665A] dark:text-[#A7F3D0]">
             Forecast Summary
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
               <span className="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold tracking-wider block flex items-center gap-1">
                 <Sun className="w-3 h-3" /> Peak Solar
               </span>
@@ -194,7 +195,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Midday generation</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
               <span className="text-[10px] text-sky-700 dark:text-sky-400 uppercase font-bold tracking-wider block flex items-center gap-1">
                 <Zap className="w-3 h-3" /> Peak Load
               </span>
@@ -204,7 +205,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Peak consumer demand</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block">
                 Total Solar
               </span>
@@ -214,7 +215,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Daily expected energy</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs">
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block">
                 Total Load
               </span>
@@ -224,7 +225,7 @@ export const ForecastSimulationPanel: React.FC<ForecastSimulationPanelProps> = (
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0]">Daily energy demand</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-[#F7FCF9] dark:bg-[#163826]/70 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs col-span-2 sm:col-span-1">
+            <div className="p-3 rounded-2xl bg-[#F7FCF9]/95 dark:bg-[#163826]/75 border border-[#86EFAC]/65 dark:border-[#86EFAC]/30 shadow-2xs col-span-2 sm:col-span-1">
               <span className="text-[10px] text-[#52665A] dark:text-[#A7F3D0] uppercase font-bold tracking-wider block flex items-center gap-1">
                 <TrendingDown className="w-3 h-3 text-[#047857] dark:text-[#86EFAC]" /> Net Demand
               </span>

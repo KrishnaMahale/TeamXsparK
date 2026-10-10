@@ -85,55 +85,39 @@ export const ActionsPage: React.FC = () => {
   return (
     <PageContainer compact={true} className="py-2.5 px-3.5 lg:py-3 lg:px-4 flex flex-col flex-1">
       <div className="space-y-4 sm:space-y-5 w-full flex-1 flex flex-col pb-6">
-        {/* 1. Custom Hero Heading Box with Background Image matching Violations, Reports, and Simulations Pages */}
-        <div className="relative rounded-2xl overflow-hidden bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 p-4 sm:p-5 lg:p-6 shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
-          {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
-          <div className="absolute inset-y-0 right-0 w-full sm:w-2/3 lg:w-3/5 z-0 pointer-events-none overflow-hidden">
+        {/* 1. Custom Hero Heading Box with Refined Mint Gradient & Depth */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#F0FDF4]/95 via-white/95 to-white/85 dark:from-[#0E291C]/95 dark:via-[#122C1F]/90 dark:to-[#0E2419]/85 backdrop-blur-md border border-[#86EFAC]/75 dark:border-[#86EFAC]/35 p-4 sm:p-5 lg:p-5.5 shadow-[0_10px_30px_rgba(16,80,55,0.08),0_2px_8px_rgba(16,80,55,0.04)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+          {/* Background Visual Layer: Renewable Grid Landscape Seamless Gradient Fade */}
+          <div className="header-hero-bg absolute inset-0 z-0 pointer-events-none overflow-hidden">
             <img
               src="/images/hero_grid.jpg"
               alt="Renewable Grid Background"
-              className="w-full h-full object-cover object-right lg:object-center opacity-95 dark:opacity-65 transition-opacity"
+              className="header-hero-bg-img w-full h-full object-cover object-right lg:object-center opacity-90 dark:opacity-60 transition-opacity"
               loading="eager"
             />
-            {/* Soft Gradient Masks for Crisp High-Contrast Typography */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#122C1F] dark:via-[#122C1F]/80 dark:to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-[#122C1F]/30" />
           </div>
 
           {/* Left: Upshifted Bigger Heading & Subtitle */}
           <div className="relative z-10 max-w-2xl">
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#ECFDF3] dark:bg-[#064E3B] text-[#047857] dark:text-[#86EFAC] border border-[#BBF7D0] dark:border-[#86EFAC]/30">
+              <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#ECFDF3] dark:bg-[#064E3B] text-[#047857] dark:text-[#86EFAC] border border-[#86EFAC]/70 dark:border-[#86EFAC]/30">
                 Corrective Control Engine
               </span>
               <span className="text-xs text-[#52665A] dark:text-[#A7F3D0] font-mono">
                 {network.name}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#064E3B] dark:text-[#F0FDF4] tracking-tight leading-none">
               Actions & Interventions
             </h1>
-            <p className="text-xs sm:text-sm text-[#425B4C] dark:text-[#A7F3D0] font-medium mt-2 leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-[#375243] dark:text-[#A7F3D0] font-medium mt-1.5 leading-relaxed max-w-xl">
               Multi-criteria constraint resolution, BESS energy storage dispatch, feeder reconfiguration, and hybrid trajectory optimization for {network.name}.
             </p>
-          </div>
-
-          {/* Right: Quick Reset Test Action Button */}
-          <div className="relative z-10 flex items-center gap-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
-              onClick={resetSimulation}
-              className="text-xs font-bold px-3 py-2"
-            >
-              Reset Test
-            </Button>
           </div>
         </div>
 
         {/* 2. Read-Only Digital Twin Simulation for Active Grid with Horizontal Controller */}
-        <div className="rounded-2xl border border-[#BBF7D0]/70 dark:border-[#86EFAC]/20 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md p-3 sm:p-4 shadow-[0_8px_30px_rgba(16,80,55,0.06)]">
+        <div className="rounded-2xl border border-[#86EFAC]/70 dark:border-[#86EFAC]/25 bg-white/95 dark:bg-[#122C1F]/90 backdrop-blur-md p-3 sm:p-4 shadow-[0_8px_30px_rgba(16,80,55,0.06)]">
           <NetworkDigitalTwin
             readOnly={true}
             heightClassName="h-[380px] lg:h-[420px]"

@@ -76,11 +76,11 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
 
       {/* Custom Grid Notification in 2D mode (Only when interactive/editing) */}
       {!readOnly && isCustomGrid && !is3DEnabled && (
-        <div className="flex items-center justify-between p-2.5 px-3 bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs">
-          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
-            <Box className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+        <div className="flex items-center justify-between p-2.5 px-3 bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-xs">
+          <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
+            <Box className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>
-              Active model <strong className="font-semibold">{network.name}</strong> ({network.buses.length} buses). Switch to 3D Isometric View to interactively layout, move, and connect equipment.
+              Active model <strong className="font-semibold">{network.name}</strong> ({network.buses.length} buses). Click and drag components in 2D or 3D to layout equipment with live position synchronization.
             </span>
           </div>
           <Button size="sm" variant="secondary" onClick={toggle3D} className="shrink-0 text-xs py-1 px-3">
