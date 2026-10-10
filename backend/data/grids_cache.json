@@ -297,7 +297,7 @@
   },
   "GRID-WSOF5I": {
     "id": "GRID-WSOF5I",
-    "name": "Default Grid (Copy)",
+    "name": "Smart Microgrid Alpha",
     "gridConnectionStatus": "connected",
     "gridFrequencyHz": 50.02,
     "substation": {
@@ -662,7 +662,7 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-11T02:28:58.458025"
+    "lastUpdated": "2026-10-11T02:49:27.270505"
   },
   "large-test-grid": {
     "id": "large-test-grid",

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export interface ModalProps {
@@ -43,12 +44,18 @@ export const Modal: React.FC<ModalProps> = ({
     '4xl': 'max-w-4xl',
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
+  const modalElement = (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div
-        className={`w-full ${maxWidths[maxWidth]} bg-white/95 dark:bg-[#122C1F]/95 backdrop-blur-2xl border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 rounded-2xl shadow-[0_20px_60px_rgba(4,78,59,0.25)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200`}
+        className={`w-full ${maxWidths[maxWidth]} bg-white dark:bg-[#122C1F] border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.45)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 relative z-10`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4.5 border-b border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 flex items-center justify-between shrink-0">
+        <div className="px-6 py-4.5 border-b border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 flex items-center justify-between shrink-0 bg-white/70 dark:bg-[#0E2419]/70 backdrop-blur-md">
           <div>
             <h3 className="text-base font-extrabold text-[#10251A] dark:text-white uppercase tracking-wide">
               {title}
@@ -67,6 +74,13 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   )
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalElement, document.body)
+  }
+
+  return modalElement
 }
 
 export default Modal
+

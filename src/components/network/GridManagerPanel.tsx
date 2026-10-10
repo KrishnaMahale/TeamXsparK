@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   GitBranch,
   Database,
+  Pencil,
 } from 'lucide-react'
 import { useGridStore } from '../../store/gridStore'
 import { useUIStore } from '../../store/uiStore'
@@ -23,19 +24,22 @@ import { gridService } from '../../services/api/gridService'
 import { GridNetwork, Bus, Feeder, SolarUnit, Battery, Load } from '../../types/network'
 
 export const GridManagerPanel: React.FC = () => {
-  const { network, switchGrid, createGrid, deleteGrid, addComponent, removeComponent, setSelectedComponent, selectedComponent } = useGridStore()
+  const { network, switchGrid, createGrid, deleteGrid, renameGrid, addComponent, removeComponent, setSelectedComponent, selectedComponent } = useGridStore()
   const { is3DEnabled, toggle3D } = useUIStore()
 
   const [grids, setGrids] = useState<GridNetwork[]>([])
   const [isLoadingGrids, setIsLoadingGrids] = useState(false)
   const [activeModal, setActiveModal] = useState<
-    'new-grid' | 'bus' | 'feeder' | 'solar' | 'battery' | 'load' | 'delete-grid' | null
+    'new-grid' | 'rename-grid' | 'bus' | 'feeder' | 'solar' | 'battery' | 'load' | 'delete-grid' | null
   >(null)
   const [showComponentList, setShowComponentList] = useState(false)
 
   // New Grid Form State
   const [newGridName, setNewGridName] = useState('')
   const [newGridTemplate, setNewGridTemplate] = useState<'clone' | 'starter' | 'empty'>('clone')
+
+  // Rename Grid Form State
+  const [renameGridName, setRenameGridName] = useState('')
 
   // Form states for adding components
   const [busForm, setBusForm] = useState({
@@ -125,6 +129,19 @@ export const GridManagerPanel: React.FC = () => {
     const cloneName = `${network.name} (Copy)`
     await createGrid(cloneName, 'clone')
     await refreshGrids()
+  }
+
+  const handleOpenRenameModal = () => {
+    setRenameGridName(network.name)
+    setActiveModal('rename-grid')
+  }
+
+  const handleConfirmRenameGrid = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!renameGridName.trim()) return
+    await renameGrid(network.id, renameGridName.trim())
+    await refreshGrids()
+    setActiveModal(null)
   }
 
   const handleConfirmDeleteGrid = async () => {
@@ -326,53 +343,88 @@ export const GridManagerPanel: React.FC = () => {
 
       <CardContent className="space-y-4 pt-1">
         {/* Row 1: Grid Selector & Core Grid Operations */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <select
-            value={network.id}
-            onChange={(e) => handleSelectGrid(e.target.value)}
-            disabled={isLoadingGrids}
-            className="flex-1 min-w-0 bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] rounded-lg text-xs py-2 px-3 text-[#26352A] dark:text-[#E8F0E6] font-medium focus:ring-2 focus:ring-[#A0C878] focus:outline-none transition-all"
-          >
-            {grids && grids.length > 0 ? (
-              grids.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders)
-                </option>
-              ))
-            ) : (
-              <option value="default-grid">Default 4-Bus Feeder</option>
-            )}
-          </select>
+        <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <select
+              value={network.id}
+              onChange={(e) => handleSelectGrid(e.target.value)}
+              disabled={isLoadingGrids}
+              className="flex-1 min-w-0 bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] rounded-lg text-xs py-2 px-3 text-[#26352A] dark:text-[#E8F0E6] font-medium focus:ring-2 focus:ring-[#A0C878] focus:outline-none transition-all"
+            >
+              {grids && grids.length > 0 ? (
+                grids.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.buses?.length || 0} Buses • {g.feeders?.length || 0} Feeders)
+                  </option>
+                ))
+              ) : (
+                <option value="default-grid">Default 4-Bus Feeder</option>
+              )}
+            </select>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleOpenNewGridModal}
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-              title="Create a new network model"
-            >
-              New
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleCloneCurrentGrid}
-              leftIcon={<Copy className="w-3.5 h-3.5" />}
-              title="Duplicate current grid for sandbox scenario testing"
-            >
-              Clone
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => setActiveModal('delete-grid')}
-              disabled={network.id === 'default-grid' || grids.length <= 1}
-              leftIcon={<Trash className="w-3.5 h-3.5" />}
-              title={network.id === 'default-grid' ? 'Cannot delete default benchmark grid' : 'Delete active grid'}
-            >
-              Delete
-            </Button>
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleOpenNewGridModal}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                title="Create a new network model"
+              >
+                New
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleOpenRenameModal}
+                leftIcon={<Pencil className="w-3.5 h-3.5" />}
+                title="Rename active network model"
+              >
+                Rename
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleCloneCurrentGrid}
+                leftIcon={<Copy className="w-3.5 h-3.5" />}
+                title="Duplicate current grid for sandbox scenario testing"
+              >
+                Clone
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => setActiveModal('delete-grid')}
+                disabled={network.id === 'default-grid' || grids.length <= 1}
+                leftIcon={<Trash className="w-3.5 h-3.5" />}
+                title={network.id === 'default-grid' ? 'Cannot delete default benchmark grid' : 'Delete active grid'}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+
+          {/* Active Grid Name & Quick Rename Indicator */}
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-[#F7FCF9] dark:bg-[#163826]/40 border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[11px] text-[#52665A] dark:text-[#A7F3D0] font-semibold uppercase tracking-wider shrink-0">
+                Active:
+              </span>
+              <span className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] truncate" title={network.name}>
+                {network.name}
+              </span>
+              <button
+                type="button"
+                onClick={handleOpenRenameModal}
+                className="p-1 text-[#047857] hover:text-[#064E3B] dark:text-[#86EFAC] dark:hover:text-white rounded hover:bg-[#ECFDF3] dark:hover:bg-[#163826] transition-colors cursor-pointer shrink-0"
+                title="Rename this grid"
+                aria-label="Rename active grid"
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
+            </div>
+            <span className="text-[10px] font-mono font-medium text-[#788477] dark:text-[#A7F3D0]/75 shrink-0 ml-2">
+              {network.id}
+            </span>
           </div>
         </div>
 
@@ -662,11 +714,11 @@ export const GridManagerPanel: React.FC = () => {
         onClose={() => setActiveModal(null)}
         title="Create New Grid Network"
         subtitle="Configure model metadata and choose your starting topology"
-        maxWidth="md"
+        maxWidth="lg"
       >
         <form onSubmit={handleConfirmCreateGrid} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] mb-1.5 uppercase tracking-wider">
               Grid Name
             </label>
             <input
@@ -675,20 +727,20 @@ export const GridManagerPanel: React.FC = () => {
               onChange={(e) => setNewGridName(e.target.value)}
               required
               placeholder="e.g. Microgrid Campus East"
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm p-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] rounded-xl text-sm p-3 text-[#26352A] dark:text-[#E8F0E6] focus:ring-2 focus:ring-[#10B981] focus:border-[#10B981] focus:outline-none transition-all font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] mb-2 uppercase tracking-wider">
               Starting Template
             </label>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <label
-                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                   newGridTemplate === 'clone'
-                    ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500 text-emerald-900 dark:text-emerald-100'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-[#ECFDF3] dark:bg-[#064E3B]/40 border-[#10B981] text-[#064E3B] dark:text-[#A7F3D0] shadow-2xs'
+                    : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2A3A2C] text-[#26352A] dark:text-[#E8F0E6] hover:border-[#A0C878]'
                 }`}
               >
                 <input
@@ -696,21 +748,21 @@ export const GridManagerPanel: React.FC = () => {
                   name="gridTemplate"
                   checked={newGridTemplate === 'clone'}
                   onChange={() => setNewGridTemplate('clone')}
-                  className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                  className="mt-0.5 text-[#10B981] focus:ring-[#10B981] accent-[#10B981]"
                 />
                 <div>
-                  <div className="text-xs font-semibold">Clone Active Grid (Recommended)</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Duplicate all existing buses, feeders, and assets from {network.name} for isolated sandbox testing.
+                  <div className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3]">Clone Active Grid (Recommended)</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]/80 mt-0.5 leading-relaxed">
+                    Duplicate all existing buses, feeders, and assets from <span className="font-semibold text-[#047857] dark:text-[#86EFAC]">{network.name}</span> for isolated sandbox testing.
                   </div>
                 </div>
               </label>
 
               <label
-                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                   newGridTemplate === 'starter'
-                    ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500 text-emerald-900 dark:text-emerald-100'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-[#ECFDF3] dark:bg-[#064E3B]/40 border-[#10B981] text-[#064E3B] dark:text-[#A7F3D0] shadow-2xs'
+                    : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2A3A2C] text-[#26352A] dark:text-[#E8F0E6] hover:border-[#A0C878]'
                 }`}
               >
                 <input
@@ -718,21 +770,21 @@ export const GridManagerPanel: React.FC = () => {
                   name="gridTemplate"
                   checked={newGridTemplate === 'starter'}
                   onChange={() => setNewGridTemplate('starter')}
-                  className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                  className="mt-0.5 text-[#10B981] focus:ring-[#10B981] accent-[#10B981]"
                 />
                 <div>
-                  <div className="text-xs font-semibold">Starter Radial Feeder</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  <div className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3]">Starter Radial Feeder</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]/80 mt-0.5 leading-relaxed">
                     Includes a primary 33/11kV Substation, Feeder F-01, and Bus B1 ready for new branch lines.
                   </div>
                 </div>
               </label>
 
               <label
-                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                   newGridTemplate === 'empty'
-                    ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500 text-emerald-900 dark:text-emerald-100'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                    ? 'bg-[#ECFDF3] dark:bg-[#064E3B]/40 border-[#10B981] text-[#064E3B] dark:text-[#A7F3D0] shadow-2xs'
+                    : 'bg-[#FFFDF6] dark:bg-[#151F17] border-[#DDD9C9] dark:border-[#2A3A2C] text-[#26352A] dark:text-[#E8F0E6] hover:border-[#A0C878]'
                 }`}
               >
                 <input
@@ -740,11 +792,11 @@ export const GridManagerPanel: React.FC = () => {
                   name="gridTemplate"
                   checked={newGridTemplate === 'empty'}
                   onChange={() => setNewGridTemplate('empty')}
-                  className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                  className="mt-0.5 text-[#10B981] focus:ring-[#10B981] accent-[#10B981]"
                 />
                 <div>
-                  <div className="text-xs font-semibold">Blank Grid</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  <div className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3]">Blank Grid</div>
+                  <div className="text-[11px] text-[#52665A] dark:text-[#A7F3D0]/80 mt-0.5 leading-relaxed">
                     Clean slate with a main substation node. Build your complete network from scratch.
                   </div>
                 </div>
@@ -752,12 +804,55 @@ export const GridManagerPanel: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
             <Button type="button" variant="secondary" onClick={() => setActiveModal(null)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
               Create Grid
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* 1b. Rename Grid Modal */}
+      <Modal
+        isOpen={activeModal === 'rename-grid'}
+        onClose={() => setActiveModal(null)}
+        title="Rename Grid Network"
+        subtitle={`Update display name for ${network.id}`}
+        maxWidth="md"
+      >
+        <form onSubmit={handleConfirmRenameGrid} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] mb-1.5 uppercase tracking-wider">
+              Grid Name
+            </label>
+            <input
+              type="text"
+              value={renameGridName}
+              onChange={(e) => setRenameGridName(e.target.value)}
+              required
+              autoFocus
+              placeholder="e.g. Microgrid Campus East"
+              className="w-full bg-[#FFFDF6] dark:bg-[#151F17] border border-[#DDD9C9] dark:border-[#2A3A2C] rounded-xl text-sm p-3 text-[#26352A] dark:text-[#E8F0E6] focus:ring-2 focus:ring-[#10B981] focus:border-[#10B981] focus:outline-none transition-all font-medium"
+            />
+            <div className="flex items-center justify-between text-[11px] text-[#52665A] dark:text-[#A7F3D0]/70 mt-2 px-1">
+              <span>Grid Identifier:</span>
+              <span className="font-mono font-semibold text-[#047857] dark:text-[#86EFAC]">{network.id}</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
+            <Button type="button" variant="secondary" onClick={() => setActiveModal(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!renameGridName.trim() || renameGridName.trim() === network.name}
+            >
+              Save Name
             </Button>
           </div>
         </form>

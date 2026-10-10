@@ -41,6 +41,7 @@ interface GridState {
   switchGrid: (gridId: string) => Promise<void>
   createGrid: (name: string, template?: 'clone' | 'starter' | 'empty') => Promise<GridNetwork>
   deleteGrid: (gridId: string) => Promise<boolean>
+  renameGrid: (gridId: string, newName: string) => Promise<boolean>
   addComponent: (type: 'bus' | 'feeder' | 'solar' | 'battery' | 'load', item: any) => Promise<void>
   removeComponent: (type: string, id: string) => Promise<void>
 }
@@ -206,6 +207,32 @@ export const useGridStore = create<GridState>((set, get) => ({
       await get().switchGrid('default-grid')
     }
     return success
+  },
+
+  renameGrid: async (gridId: string, newName: string) => {
+    const trimmed = newName.trim()
+    if (!trimmed) return false
+    const targetId = gridId || get().network.id
+
+    if (targetId === get().network.id) {
+      const updated: GridNetwork = {
+        ...get().network,
+        name: trimmed,
+        lastUpdated: new Date().toISOString(),
+      }
+      set({ network: updated })
+      await gridService.updateGrid(targetId, updated)
+      return true
+    } else {
+      const existing = await gridService.getGrid(targetId)
+      if (existing) {
+        existing.name = trimmed
+        existing.lastUpdated = new Date().toISOString()
+        await gridService.updateGrid(targetId, existing)
+        return true
+      }
+    }
+    return false
   },
 
   addComponent: async (type, item) => {
