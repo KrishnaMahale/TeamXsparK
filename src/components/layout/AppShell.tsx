@@ -26,8 +26,12 @@ export const AppShell: React.FC = () => {
 
       {/* Right Floating White Main Content Panel (Matching Reference Image) */}
       <div className="flex-1 flex flex-col min-w-0 h-full rounded-[26px] bg-white/95 dark:bg-[#0B1E15]/95 border border-white/90 dark:border-[#86EFAC]/20 shadow-[0_20px_50px_rgba(16,80,55,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.55)] overflow-hidden backdrop-blur-2xl transition-all duration-300 z-10">
-        {/* Top Header inside the floating main panel (hidden on simulation and network configurator pages) */}
-        {!location.pathname.startsWith('/simulation') && !location.pathname.startsWith('/network') && <Header />}
+        {/* Top Header inside the floating main panel (hidden on simulation, network configurator, forecast, violations, and reports pages) */}
+        {!location.pathname.startsWith('/simulation') &&
+          !location.pathname.startsWith('/network') &&
+          !location.pathname.startsWith('/forecast') &&
+          !location.pathname.startsWith('/violations') &&
+          !location.pathname.startsWith('/reports') && <Header />}
 
         {/* Dynamic Route Content */}
         <main

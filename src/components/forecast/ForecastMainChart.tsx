@@ -23,30 +23,30 @@ export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints
   const isDark = theme === 'dark'
 
   // Visual design tokens
-  const gridStroke = isDark ? '#163826' : '#BBF7D0'
-  const axisStroke = isDark ? '#86EFAC' : '#52665A'
-  const tooltipBg = isDark ? '#122C1F' : '#FFFFFF'
-  const tooltipBorder = isDark ? '#163826' : '#BBF7D0'
-  const tooltipText = isDark ? '#ECFDF3' : '#10251A'
+  const gridStroke = isDark ? 'rgba(134, 239, 172, 0.12)' : 'rgba(16, 80, 55, 0.1)'
+  const axisStroke = isDark ? '#A7F3D0' : '#425B4C'
+  const tooltipBg = isDark ? '#0E2419' : '#FFFFFF'
+  const tooltipBorder = isDark ? 'rgba(134, 239, 172, 0.35)' : 'rgba(187, 247, 208, 0.9)'
+  const tooltipText = isDark ? '#F0FDF4' : '#10251A'
 
   // Solar and load color tokens
   const solarStroke = isDark ? '#F59E0B' : '#D97706'
-  const loadStroke = isDark ? '#86EFAC' : '#047857'
+  const loadStroke = isDark ? '#10B981' : '#047857'
 
   return (
-    <Card className="border-[#BBF7D0]/60 dark:border-[#86EFAC]/20">
+    <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] transition-all duration-300">
       <CardHeader
         title="24-Hour Solar Generation & Load Demand Lookahead"
         subtitle="Diurnal renewable PV production vs. aggregate consumer power demand across 24 hours"
         icon={<TrendingUp className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
         action={
-          <div className="flex flex-wrap items-center gap-4 text-xs font-medium">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
             <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
-              <span className="w-3 h-1 rounded-full bg-amber-500 inline-block" />
+              <span className="w-3 h-1.5 rounded-full bg-amber-500 inline-block" />
               <span>Solar Generation (kW)</span>
             </span>
-            <span className="flex items-center gap-1.5 text-[#506052] dark:text-[#A0C878]">
-              <span className="w-3 h-1 rounded-full bg-[#506052] dark:bg-[#A0C878] inline-block" />
+            <span className="flex items-center gap-1.5 text-[#047857] dark:text-[#86EFAC]">
+              <span className="w-3 h-1.5 rounded-full bg-[#047857] dark:bg-[#10B981] inline-block" />
               <span>Load Demand (kW)</span>
             </span>
           </div>
@@ -89,28 +89,28 @@ export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints
                         borderColor: tooltipBorder,
                         color: tooltipText,
                       }}
-                      className="p-3 rounded-lg border shadow-md text-xs space-y-1.5 font-sans min-w-[190px]"
+                      className="p-3.5 rounded-xl border shadow-xl text-xs space-y-1.5 font-sans min-w-[190px] backdrop-blur-md"
                     >
-                      <div className="font-mono font-bold border-b border-[#DDD9C9]/50 dark:border-[#2C3C2E]/50 pb-1 text-[#26352A] dark:text-[#F2F5ED]">
+                      <div className="font-mono font-bold border-b border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 pb-1 text-[#10251A] dark:text-white">
                         Time: {label}
                       </div>
-                      <div className="flex items-center justify-between text-[#B09B29] dark:text-[#D4B838]">
+                      <div className="flex items-center justify-between text-amber-600 dark:text-amber-400">
                         <span className="flex items-center gap-1.5">
                           <Sun className="w-3 h-3" />
                           <span>Solar PV:</span>
                         </span>
                         <span className="font-mono font-bold">{solar.toFixed(1)} kW</span>
                       </div>
-                      <div className="flex items-center justify-between text-[#506052] dark:text-[#A0C878]">
+                      <div className="flex items-center justify-between text-[#047857] dark:text-[#86EFAC]">
                         <span className="flex items-center gap-1.5">
                           <Activity className="w-3 h-3" />
                           <span>Demand:</span>
                         </span>
                         <span className="font-mono font-bold">{load.toFixed(1)} kW</span>
                       </div>
-                      <div className="flex items-center justify-between border-t border-[#DDD9C9]/40 dark:border-[#2C3C2E]/40 pt-1 text-[#788477] dark:text-[#859483] font-medium">
+                      <div className="flex items-center justify-between border-t border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 pt-1 text-[#425B4C] dark:text-[#A7F3D0] font-medium">
                         <span>Net Demand:</span>
-                        <span className={`font-mono font-bold ${net < 0 ? 'text-[#B09B29] dark:text-[#D4B838]' : 'text-[#26352A] dark:text-[#F2F5ED]'}`}>
+                        <span className={`font-mono font-bold ${net < 0 ? 'text-amber-600 dark:text-amber-400' : 'text-[#10251A] dark:text-white'}`}>
                           {net > 0 ? `+${net.toFixed(1)}` : net.toFixed(1)} kW
                         </span>
                       </div>
@@ -141,12 +141,12 @@ export const ForecastMainChart: React.FC<ForecastMainChartProps> = ({ dataPoints
         </div>
 
         {/* Legend / Context footer */}
-        <div className="mt-3 pt-3 border-t border-[#DDD9C9]/60 dark:border-[#2C3C2E]/60 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#788477] dark:text-[#859483]">
+        <div className="mt-3 pt-3 border-t border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#425B4C] dark:text-[#A7F3D0]">
           <span className="flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-[#A0C878] shrink-0" />
+            <Info className="w-3.5 h-3.5 text-[#047857] dark:text-[#86EFAC] shrink-0" />
             <span>Solar rises between 06:00–19:00 with peak irradiance at midday; load displays dual-peak diurnal demand.</span>
           </span>
-          <span className="font-mono font-medium">Resolution: 1 Hour</span>
+          <span className="font-mono font-semibold">Resolution: 1 Hour</span>
         </div>
       </CardContent>
     </Card>

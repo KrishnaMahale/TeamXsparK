@@ -18,6 +18,8 @@ import {
   MapPin,
 } from 'lucide-react'
 
+import { ThemeToggle } from '../components/ui/ThemeToggle'
+
 export const ViolationsPage: React.FC = () => {
   const {
     violations,
@@ -44,55 +46,78 @@ export const ViolationsPage: React.FC = () => {
   }
 
   return (
-    <PageContainer
-      title="Grid Health & Violations Log"
-      subtitle={
-        viewScope === 'worst_timestep'
-          ? `Operating violations at peak stress timestep (${worstTime}) for ${network.name} — Identical baseline used by Corrective Actions`
-          : `Full 24-hour diurnal chronological log of all constraint violations across 96 simulation intervals for ${network.name}`
-      }
-      actions={
-        <div className="flex items-center gap-2.5">
-          {/* Scope Selector: Aligns Worst Timestep with Actions Page */}
-          <div className="flex items-center bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 rounded-xl p-0.5 text-xs font-semibold shadow-2xs">
-            <button
-              onClick={() => setViewScope('worst_timestep')}
-              className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-                viewScope === 'worst_timestep'
-                  ? 'bg-[#047857] text-white font-bold shadow-xs'
-                  : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B]'
-              }`}
-            >
-              Worst Timestep ({worstTime})
-            </button>
-            <button
-              onClick={() => setViewScope('full_horizon')}
-              disabled={!hasFullSimulation}
-              className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-                viewScope === 'full_horizon'
-                  ? 'bg-[#047857] text-white font-bold shadow-xs'
-                  : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B] disabled:opacity-50'
-              }`}
-              title={hasFullSimulation ? 'View all violations across 24h simulation' : 'Run 24h simulation to view full horizon'}
-            >
-              Full Horizon (24h)
-            </button>
+    <PageContainer compact className="py-2.5 px-3.5 lg:py-3 lg:px-4 flex flex-col flex-1">
+      <div className="space-y-3.5 w-full flex-1 flex flex-col pb-4">
+        {/* Upshifted Custom Hero Heading Box with Background Image matching Simulations and Forecasts Pages */}
+        <div className="relative rounded-2xl overflow-hidden bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 p-4 sm:p-5 lg:p-6 shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors">
+          {/* Background Visual Layer: Renewable Grid Landscape Fading to Left */}
+          <div className="absolute inset-y-0 right-0 w-full sm:w-2/3 lg:w-3/5 z-0 pointer-events-none overflow-hidden">
+            <img
+              src="/images/hero_grid.jpg"
+              alt="Renewable Grid Background"
+              className="w-full h-full object-cover object-right lg:object-center opacity-95 dark:opacity-65 transition-opacity"
+              loading="eager"
+            />
+            {/* Soft Gradient Masks for Crisp High-Contrast Typography */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-[#122C1F] dark:via-[#122C1F]/80 dark:to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent dark:from-[#122C1F]/30" />
           </div>
 
-          <Button
-            variant="primary"
-            size="sm"
-            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-            onClick={() => navigate('/actions')}
-          >
-            Evaluate Corrective Actions
-          </Button>
+          {/* Left: Upshifted Bigger Heading & Subtitle */}
+          <div className="relative z-10 max-w-2xl">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black text-[#10251A] dark:text-white tracking-tight leading-none">
+              Grid Health & Violations Log
+            </h1>
+            <p className="text-xs sm:text-sm text-[#425B4C] dark:text-[#A7F3D0] font-medium mt-2 leading-relaxed max-w-xl">
+              {viewScope === 'worst_timestep'
+                ? `Operating violations at peak stress timestep (${worstTime}) for ${network.name} — Identical baseline used by Corrective Actions.`
+                : `Full 24-hour diurnal chronological log of all constraint violations across 96 simulation intervals for ${network.name}.`}
+            </p>
+          </div>
+
+          {/* Right: Actions Bar, Scope Switcher & Theme Toggle */}
+          <div className="relative z-10 flex flex-wrap items-center gap-2 shrink-0 bg-[#F4FAF5]/90 dark:bg-[#0E2419]/90 p-1.5 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs backdrop-blur-sm">
+            {/* Scope Selector */}
+            <div className="flex items-center bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 rounded-lg p-0.5 text-xs font-semibold shadow-2xs">
+              <button
+                onClick={() => setViewScope('worst_timestep')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  viewScope === 'worst_timestep'
+                    ? 'bg-[#047857] text-white font-bold shadow-xs'
+                    : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B] dark:hover:text-white'
+                }`}
+              >
+                Worst ({worstTime})
+              </button>
+              <button
+                onClick={() => setViewScope('full_horizon')}
+                disabled={!hasFullSimulation}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  viewScope === 'full_horizon'
+                    ? 'bg-[#047857] text-white font-bold shadow-xs'
+                    : 'text-[#425B4C] dark:text-[#A7F3D0] hover:text-[#064E3B] dark:hover:text-white disabled:opacity-50'
+                }`}
+                title={hasFullSimulation ? 'View all violations across 24h simulation' : 'Run 24h simulation to view full horizon'}
+              >
+                24h Horizon
+              </button>
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              onClick={() => navigate('/actions')}
+              className="font-bold shadow-xs hover:border-[#047857]"
+            >
+              Evaluate Actions
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
-      }
-    >
-      <div className="space-y-6">
+
         {/* Scope Context Banner */}
-        <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
+        <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
             <span className="font-bold text-[#10251A] dark:text-white">
@@ -114,10 +139,10 @@ export const ViolationsPage: React.FC = () => {
         </div>
 
         {/* 1. Grid Health Summary Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           {/* Critical Issues */}
           <div
-            className={`p-5 rounded-2xl border flex items-center justify-between shadow-xs transition-colors backdrop-blur-md ${
+            className={`p-4 sm:p-5 rounded-2xl border flex items-center justify-between shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md backdrop-blur-md ${
               summary.critical > 0
                 ? 'bg-red-50/80 dark:bg-red-950/35 border-red-300 dark:border-red-900/80'
                 : 'bg-white/90 dark:bg-[#122C1F]/90 border-[#BBF7D0]/70 dark:border-[#86EFAC]/25'
@@ -141,7 +166,7 @@ export const ViolationsPage: React.FC = () => {
           </div>
 
           {/* Warning Issues */}
-          <div className="p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/35 border border-amber-200 dark:border-amber-900/60 flex items-center justify-between shadow-xs transition-colors backdrop-blur-md">
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/35 border border-amber-200 dark:border-amber-900/60 flex items-center justify-between shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md backdrop-blur-md">
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -158,7 +183,7 @@ export const ViolationsPage: React.FC = () => {
           </div>
 
           {/* Resolved Issues */}
-          <div className="p-5 rounded-2xl bg-[#ECFDF3]/80 dark:bg-[#132F21]/80 border border-[#86EFAC]/70 dark:border-[#86EFAC]/40 flex items-center justify-between shadow-xs transition-colors backdrop-blur-md">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#ECFDF3]/80 dark:bg-[#132F21]/80 border border-[#86EFAC]/70 dark:border-[#86EFAC]/40 flex items-center justify-between shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md backdrop-blur-md">
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />
@@ -176,7 +201,7 @@ export const ViolationsPage: React.FC = () => {
         </div>
 
         {/* 2. Filter Bar */}
-        <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-wrap items-center justify-between gap-4 shadow-2xs transition-colors">
+        <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-[#122C1F]/90 border border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 flex flex-wrap items-center justify-between gap-4 shadow-2xs transition-colors backdrop-blur-md">
           <div className="flex items-center gap-2 text-xs font-medium text-[#425B4C] dark:text-[#A7F3D0]">
             <Filter className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />
             <span>Severity:</span>
@@ -214,20 +239,20 @@ export const ViolationsPage: React.FC = () => {
         </div>
 
         {/* 3. Violations Table */}
-        <Card>
+        <Card className="border-[#BBF7D0]/70 dark:border-[#86EFAC]/25 bg-white/90 dark:bg-[#122C1F]/90 backdrop-blur-md shadow-[0_8px_25px_rgba(16,80,55,0.06)] dark:shadow-[0_8px_25px_rgba(0,0,0,0.3)] flex-1 flex flex-col overflow-hidden transition-all duration-300">
           <CardHeader
             title="Active & Historical Violations"
             subtitle="Click any row to synchronize digital twin time and locate asset on schematic"
             icon={<Activity className="w-4 h-4 text-[#047857] dark:text-[#86EFAC]" />}
           />
-          <CardContent className="p-0 overflow-x-auto">
+          <CardContent className="p-0 overflow-x-auto flex-1 flex flex-col">
             {violations.length === 0 ? (
-              <div className="p-12 text-center text-[#425B4C] dark:text-[#A7F3D0]">
-                <ShieldCheck className="w-10 h-10 text-[#047857] dark:text-[#86EFAC] mx-auto mb-2" />
-                <div className="text-sm font-bold text-[#10251A] dark:text-white">
+              <div className="py-16 px-6 flex-1 flex flex-col items-center justify-center text-center text-[#425B4C] dark:text-[#A7F3D0]">
+                <ShieldCheck className="w-12 h-12 text-[#047857] dark:text-[#86EFAC] mx-auto mb-3" />
+                <div className="text-base font-bold text-[#10251A] dark:text-white">
                   No Violations Detected on {network.name}
                 </div>
-                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-1 font-medium">
+                <p className="text-xs text-[#425B4C] dark:text-[#A7F3D0] mt-1 font-medium max-w-md">
                   All {network.buses.length} buses and {network.feeders.length} branches satisfy statutory voltage and thermal constraints.
                 </p>
               </div>
