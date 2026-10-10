@@ -168,6 +168,7 @@ class SequentialControlService:
         controller = SequentialController(
             grid=grid,
             step_duration_hours=request.stepDurationHours,
+            use_surrogate_screening=request.allowSurrogateScreening,
         )
 
         # Validate forecast series windowing and 15-minute spacing

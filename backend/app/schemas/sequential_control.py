@@ -82,3 +82,6 @@ class SequentialControlResponse(BaseModel):
     terminalSocPercent: float = Field(..., description="Predicted battery SOC at the end of the planning horizon")
     physicalSolveCount: int = Field(default=0, description="Authoritative PowerFlowEngine.solve() calls executed during planning")
     planningLatencyMs: float = Field(default=0.0, description="Total execution wall-clock time in milliseconds")
+    surrogateEvaluationCount: int = Field(default=0, description="Total candidate action transitions screened via surrogate")
+    surrogateFallbackCount: int = Field(default=0, description="Candidate transitions requiring physical solver fallback")
+    surrogatePrunedCount: int = Field(default=0, description="Candidate transitions safely pruned without physical power flow solve")

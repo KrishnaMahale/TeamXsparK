@@ -289,7 +289,7 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-10T16:08:01.901287"
+    "lastUpdated": "2026-10-10T16:37:08.174983"
   },
   "large-test-grid": {
     "id": "large-test-grid",
@@ -302,7 +302,7 @@
       "ratingKva": 800.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 64.0,
+      "loadingPercent": 4.6,
       "temperatureC": 38.0,
       "status": "normal",
       "position": {
@@ -1172,7 +1172,7 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-10T16:07:59.245026"
+    "lastUpdated": "2026-10-10T16:37:04.436523"
   },
   "medium-test-grid": {
     "id": "medium-test-grid",
@@ -1185,7 +1185,7 @@
       "ratingKva": 350.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 58.0,
+      "loadingPercent": 22.1,
       "temperatureC": 36.0,
       "status": "normal",
       "position": {
@@ -1600,6 +1600,6 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-10T16:07:59.222716"
+    "lastUpdated": "2026-10-10T16:37:02.559773"
   }
 }
