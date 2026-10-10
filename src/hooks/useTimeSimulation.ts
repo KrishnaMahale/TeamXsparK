@@ -4,6 +4,7 @@ import { useGridStore } from '../store/gridStore'
 export const useTimeSimulation = () => {
   const { currentTime, setTime, isLoading } = useGridStore()
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [speed, setSpeed] = useState<1 | 2 | 4>(1)
   const timerRef = useRef<number | null>(null)
 
   // Converts "13:15" to fractional hours e.g. 13.25
@@ -32,6 +33,10 @@ export const useTimeSimulation = () => {
     setIsPlaying((prev) => !prev)
   }
 
+  const toggleSpeed = () => {
+    setSpeed((prev) => (prev === 1 ? 2 : prev === 2 ? 4 : 1))
+  }
+
   const stepForward = () => {
     const nextHour = Math.min(24, Math.floor(currentHours) + 1)
     setTime(hoursToTime(nextHour))
@@ -44,6 +49,7 @@ export const useTimeSimulation = () => {
 
   useEffect(() => {
     if (isPlaying) {
+      const intervalMs = Math.round(1800 / speed)
       timerRef.current = window.setInterval(() => {
         const nextHour = currentHours + 1.0 // advance 1 hour every tick
         if (nextHour > 24) {
@@ -51,7 +57,7 @@ export const useTimeSimulation = () => {
         } else {
           setTime(hoursToTime(nextHour))
         }
-      }, 1800)
+      }, intervalMs)
     } else if (timerRef.current) {
       clearInterval(timerRef.current)
     }
@@ -59,13 +65,16 @@ export const useTimeSimulation = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isPlaying, currentHours, setTime])
+  }, [isPlaying, currentHours, speed, setTime])
 
   return {
     currentTime,
     currentHours,
     isPlaying,
     isLoading,
+    speed,
+    setSpeed,
+    toggleSpeed,
     handleSliderChange,
     togglePlay,
     stepForward,
@@ -73,3 +82,4 @@ export const useTimeSimulation = () => {
     setTime,
   }
 }
+

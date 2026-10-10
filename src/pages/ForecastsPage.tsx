@@ -18,7 +18,6 @@ import { GridResponsePreview } from '../components/forecast/GridResponsePreview'
 import { ForecastEmptyState } from '../components/forecast/ForecastEmptyState'
 import { ForecastErrorState } from '../components/forecast/ForecastErrorState'
 
-import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { Button } from '../components/ui/Button'
 import { SlidersHorizontal } from 'lucide-react'
 
@@ -217,7 +216,6 @@ export const ForecastsPage: React.FC = () => {
             >
               Simulate Grid
             </Button>
-            <ThemeToggle />
           </div>
         </div>
 

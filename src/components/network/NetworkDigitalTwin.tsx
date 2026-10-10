@@ -13,6 +13,7 @@ export interface NetworkDigitalTwinProps {
   heightClassName?: string
   showSidebar?: boolean
   headerRightExtra?: React.ReactNode
+  controllerSlot?: React.ReactNode
 }
 
 export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
@@ -20,6 +21,7 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
   heightClassName,
   showSidebar,
   headerRightExtra,
+  controllerSlot,
 }) => {
   const { is3DEnabled, toggle3D } = useUIStore()
   const { network } = useGridStore()
@@ -33,8 +35,8 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
       <div className="flex items-center justify-between gap-3 px-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <Cpu className="w-4 h-4 text-[#047857] dark:text-[#86EFAC] shrink-0" />
-            <span className="text-xs font-bold text-[#10251A] dark:text-[#ECFDF3] uppercase tracking-wider">
+            <Cpu className="w-4 h-4 sm:w-5 sm:h-5 text-[#047857] dark:text-[#86EFAC] shrink-0" />
+            <span className="text-sm sm:text-base font-extrabold text-[#10251A] dark:text-[#ECFDF3] uppercase tracking-wider">
               {readOnly ? 'Active Simulation Grid:' : 'Topology Model:'} {network.name || '11kV Radial Distribution Feeder'}
             </span>
             {/* If not readOnly, retain standard topology badge */}
@@ -68,6 +70,9 @@ export const NetworkDigitalTwin: React.FC<NetworkDigitalTwinProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Horizontal Simulation Controller (Below Active Simulation Heading and Above Grid Simulation) */}
+      {controllerSlot && <div className="w-full">{controllerSlot}</div>}
 
       {/* Custom Grid Notification in 2D mode (Only when interactive/editing) */}
       {!readOnly && isCustomGrid && !is3DEnabled && (

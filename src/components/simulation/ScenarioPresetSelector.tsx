@@ -16,7 +16,6 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
 }) => {
   const { scenarios } = useScenarios()
   const [isOpen, setIsOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown on click outside
@@ -64,16 +63,6 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
   }
 
   const selectedScenario = scenarios.find((s) => s.id === activePresetKey) || scenarios[0]
-
-  const filteredScenarios = scenarios.filter((s) => {
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      getBadgeLabel(s).toLowerCase().includes(q)
-    )
-  })
 
   return (
     <div className={`space-y-2.5 ${className}`} ref={dropdownRef}>
@@ -142,23 +131,9 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
         {/* Dropdown Menu Overlay */}
         {isOpen && (
           <div className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-[#122C1F] border border-[#BBF7D0]/80 dark:border-[#86EFAC]/30 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-            {/* Search filter if more than 4 items */}
-            {scenarios.length > 4 && (
-              <div className="p-2 border-b border-[#BBF7D0]/50 dark:border-[#86EFAC]/20 bg-[#F7FCF9] dark:bg-[#064E3B]/40">
-                <input
-                  type="text"
-                  placeholder="Filter simulation scenarios..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-[#163826] border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 text-xs text-[#10251A] dark:text-[#ECFDF3] placeholder:text-[#52665A] focus:outline-none focus:ring-1 focus:ring-[#10B981]"
-                  autoFocus
-                />
-              </div>
-            )}
-
             <div className="max-h-72 overflow-y-auto divide-y divide-[#BBF7D0]/40 dark:divide-[#86EFAC]/15">
-              {filteredScenarios.length > 0 ? (
-                filteredScenarios.map((s) => {
+              {scenarios.length > 0 ? (
+                scenarios.map((s) => {
                   const isSelected = s.id === activePresetKey
 
                   return (
@@ -168,7 +143,6 @@ export const ScenarioPresetSelector: React.FC<ScenarioPresetSelectorProps> = ({
                       onClick={() => {
                         onSelectPreset(s.id)
                         setIsOpen(false)
-                        setSearchQuery('')
                       }}
                       className={`w-full p-3 text-left transition-colors flex items-start gap-3 cursor-pointer ${
                         isSelected

@@ -1287,31 +1287,6 @@ export const Network3D: React.FC<Network3DProps> = ({
         </button>
       </div>
 
-      {/* Navigation & Interaction Help Badge */}
-      <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 bg-slate-900/80 text-slate-300 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-mono border border-slate-700/60 pointer-events-none select-none shadow-sm">
-        {readOnly ? (
-          <>
-            <span>Click node to inspect</span>
-            <span>•</span>
-            <span>Left-click: Rotate</span>
-            <span>•</span>
-            <span>Scroll: Zoom</span>
-            <span>•</span>
-            <span>Right-click: Pan</span>
-          </>
-        ) : (
-          <>
-            <span className="text-sky-400 font-bold">Drag node: Reposition & Move Wires</span>
-            <span>•</span>
-            <span>Left-click: Rotate</span>
-            <span>•</span>
-            <span>Scroll: Zoom</span>
-            <span>•</span>
-            <span>Right-click: Pan</span>
-          </>
-        )}
-      </div>
-
       {/* Fullscreen Simulation Button (Bottom-Right in highlighted position) */}
       <div className="absolute bottom-3 right-3 z-20">
         <button

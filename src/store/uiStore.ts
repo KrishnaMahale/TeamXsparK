@@ -3,27 +3,15 @@ import { create } from 'zustand'
 export type ThemeMode = 'light' | 'dark'
 
 const getInitialTheme = (): ThemeMode => {
-  if (typeof window === 'undefined') return 'light'
-  try {
-    const stored = localStorage.getItem('teamxspark-theme')
-    if (stored === 'dark' || stored === 'light') return stored
-  } catch {
-    // fallback
-  }
   return 'light'
 }
 
-const applyThemeToDocument = (theme: ThemeMode) => {
+const applyThemeToDocument = (theme: ThemeMode = 'light') => {
   if (typeof document === 'undefined') return
-  if (theme === 'dark') {
-    document.documentElement.classList.add('dark')
-    document.documentElement.setAttribute('data-theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    document.documentElement.setAttribute('data-theme', 'light')
-  }
+  document.documentElement.classList.remove('dark')
+  document.documentElement.setAttribute('data-theme', 'light')
   try {
-    localStorage.setItem('teamxspark-theme', theme)
+    localStorage.setItem('teamxspark-theme', 'light')
   } catch {
     // ignore
   }

@@ -315,6 +315,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const result = await simulationService.runSimulation(currentInput)
 
       const allActs = mergeActionsWithHybrid(result.availableActions, result.hybridPlan)
+      result.availableActions = allActs
 
       set((state) => ({
         currentProgressIndex: 5,
@@ -353,9 +354,10 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     // If we already ran a full simulation that matches the active grid, preserve its computed actions and outcomes
     const existing = get().fullResult
     if (existing && existing.availableActions?.length > 0 && (!existing.input?.gridId || existing.input.gridId === activeGridId)) {
-      const recommended = existing.availableActions.find((a) => a.id === existing.recommendedActionId) || existing.availableActions[0]
+      const allActs = mergeActionsWithHybrid(existing.availableActions, existing.hybridPlan)
+      const recommended = allActs.find((a) => a.id === existing.recommendedActionId) || allActs[0]
       set({
-        availableActions: existing.availableActions,
+        availableActions: allActs,
         selectedAction: get().selectedAction || recommended,
         comparisonData: existing.comparisonData,
         isRunning: false,

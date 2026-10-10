@@ -5,7 +5,6 @@ import { ComponentDetailsPanel } from '../components/dashboard/BusDetails'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
-import { ThemeToggle } from '../components/ui/ThemeToggle'
 import { useGridNetwork } from '../hooks/useGridNetwork'
 import { useGridStore } from '../store/gridStore'
 import { useSimulationStore } from '../store/simulationStore'
@@ -47,7 +46,7 @@ export const NetworkPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Right: Actions Bar & Theme Toggle */}
+          {/* Right: Actions Bar */}
           <div className="relative z-10 flex items-center gap-2 shrink-0 bg-[#F4FAF5]/90 dark:bg-[#0E2419]/90 p-1.5 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-2xs backdrop-blur-sm">
             <Button
               variant="secondary"
@@ -58,7 +57,6 @@ export const NetworkPage: React.FC = () => {
             >
               Simulate Grid
             </Button>
-            <ThemeToggle />
           </div>
         </div>
 

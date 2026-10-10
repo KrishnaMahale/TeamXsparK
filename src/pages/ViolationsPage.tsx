@@ -18,8 +18,6 @@ import {
   MapPin,
 } from 'lucide-react'
 
-import { ThemeToggle } from '../components/ui/ThemeToggle'
-
 export const ViolationsPage: React.FC = () => {
   const {
     violations,
@@ -112,7 +110,6 @@ export const ViolationsPage: React.FC = () => {
             >
               Evaluate Actions
             </Button>
-            <ThemeToggle />
           </div>
         </div>
 

@@ -20,8 +20,6 @@ import {
   Share2,
 } from 'lucide-react'
 
-import { ThemeToggle } from '../components/ui/ThemeToggle'
-
 export const SimulationSetupPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -192,7 +190,6 @@ export const SimulationSetupPage: React.FC = () => {
             >
               Grid Configurator
             </Button>
-            <ThemeToggle />
           </div>
         </div>
         {/* CONTEXT-AWARE CONFIGURATION SECTION */}
