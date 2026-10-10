@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Bell,
   Home,
   LayoutDashboard,
   SlidersHorizontal,
@@ -15,10 +14,8 @@ import {
   AlertTriangle,
   Wrench,
   FileText,
-  ChevronDown,
 } from 'lucide-react'
 import { useTimeSimulation } from '../../hooks/useTimeSimulation'
-import { useGridStore } from '../../store/gridStore'
 import { ThemeToggle } from '../ui/ThemeToggle'
 
 export const Header: React.FC = () => {
@@ -32,10 +29,6 @@ export const Header: React.FC = () => {
     stepForward,
     stepBackward,
   } = useTimeSimulation()
-  const { violationSummary } = useGridStore()
-
-  const hasCritical = violationSummary.critical > 0
-  const hasWarning = violationSummary.warning > 0
 
   // Resolve active page header title and icon
   const getPageInfo = () => {
@@ -69,8 +62,7 @@ export const Header: React.FC = () => {
 
   const pageInfo = getPageInfo()
   const PageIcon = pageInfo.icon
-  const isSimulationPage =
-    location.pathname.startsWith('/simulation') && location.pathname !== '/simulation/results'
+  const showSimulationController = location.pathname.startsWith('/actions')
 
   return (
     <header className="h-16 px-4 sm:px-6 bg-white/70 dark:bg-[#0E2419]/70 backdrop-blur-md border-b border-[#105037]/10 dark:border-[#86EFAC]/15 flex items-center justify-between gap-3 shrink-0 z-20 select-none transition-colors duration-200">
@@ -84,8 +76,8 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Time Simulation Controls (preserved for simulation page) */}
-      {isSimulationPage && (
+      {/* Center: Time Simulation Controls (for simulation & actions pages) */}
+      {showSimulationController && (
         <div className="flex items-center gap-2 sm:gap-3 bg-[#F4FAF5] dark:bg-[#132F21] px-3 py-1 rounded-xl border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-xs">
           <div className="flex items-center gap-1">
             <button
@@ -152,7 +144,7 @@ export const Header: React.FC = () => {
         </div>
       )}
 
-      {/* Right: Search Input, Theme Toggle, Notification Bell with Badge, User Avatar (Matching Reference) */}
+      {/* Right: Search Input & Theme Toggle */}
       <div className="flex items-center gap-2.5 sm:gap-3">
         {/* Search Bar */}
         <div className="relative hidden md:block">
@@ -166,36 +158,6 @@ export const Header: React.FC = () => {
 
         {/* Theme Toggle Button */}
         <ThemeToggle />
-
-        {/* Notification Bell */}
-        <button
-          className="w-9 h-9 rounded-full bg-[#F4FAF5] dark:bg-[#11261B] flex items-center justify-center border border-[#BBF7D0]/60 dark:border-[#86EFAC]/25 hover:bg-[#ECFDF3] dark:hover:bg-[#163826] relative transition-colors shadow-2xs cursor-pointer"
-          aria-label="Notifications"
-          title="Notifications"
-        >
-          <Bell className="w-4 h-4 text-[#425B4C] dark:text-[#A7F3D0]" />
-          {(hasCritical || hasWarning || true) && (
-            <span className="w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center absolute -top-0.5 -right-0.5 ring-2 ring-white dark:ring-[#0E2419] shadow-xs">
-              1
-            </span>
-          )}
-        </button>
-
-        {/* User Profile Avatar with Chevron */}
-        <div className="flex items-center gap-1 pl-1 cursor-pointer group">
-          <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#86EFAC]/80 dark:border-[#86EFAC]/40 shadow-xs group-hover:ring-2 group-hover:ring-[#047857]/40 transition-all">
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-              alt="User Profile"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback avatar
-                e.currentTarget.src = 'https://i.pravatar.cc/100?img=1'
-              }}
-            />
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-[#6B8274] dark:text-[#A7F3D0] group-hover:text-[#10251A] transition-colors" />
-        </div>
       </div>
     </header>
   )

@@ -19,6 +19,7 @@ export const Sidebar: React.FC = () => {
   const location = useLocation()
   const { network, violationSummary } = useGridStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
@@ -44,9 +45,13 @@ export const Sidebar: React.FC = () => {
     { name: 'Reports', path: '/reports', icon: FileText },
   ]
 
-  const sidebarContent = (
-    <div className="relative flex flex-col h-full w-full justify-between overflow-hidden p-4 select-none">
-      {/* Background Subtle Luminous Energy Waves (Matching Reference Image) */}
+  const renderSidebarContent = (isExpanded: boolean) => (
+    <div
+      className={`relative flex flex-col h-full w-full justify-between overflow-hidden select-none transition-all duration-300 ${
+        isExpanded ? 'p-4' : 'p-2.5 items-center'
+      }`}
+    >
+      {/* Background Subtle Luminous Energy Waves */}
       <div className="absolute inset-0 pointer-events-none opacity-35 overflow-hidden">
         <svg
           className="absolute -right-12 top-0 h-full w-48 text-[#86EFAC]/40"
@@ -72,7 +77,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Top Branding Section */}
-      <div className="relative z-10">
+      <div className="relative z-10 w-full">
         <div
           onClick={() => window.location.reload()}
           role="button"
@@ -84,12 +89,18 @@ export const Sidebar: React.FC = () => {
             }
           }}
           title="TeamXsparK — Click to reload current page"
-          className="flex items-center gap-3 px-2 py-3 cursor-pointer group transition-transform active:scale-95"
+          className={`flex items-center px-1.5 py-2.5 cursor-pointer group transition-transform active:scale-95 ${
+            isExpanded ? 'justify-start gap-3' : 'justify-center'
+          }`}
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#86EFAC] to-[#34D399] flex items-center justify-center shrink-0 shadow-[0_0_18px_rgba(134,239,172,0.45)] group-hover:shadow-[0_0_24px_rgba(134,239,172,0.65)] transition-shadow">
             <Zap className="w-5 h-5 text-[#064E3B] fill-current" />
           </div>
-          <div className="min-w-0">
+          <div
+            className={`transition-all duration-300 overflow-hidden whitespace-nowrap min-w-0 ${
+              isExpanded ? 'opacity-100 max-w-[160px]' : 'opacity-0 max-w-0 pointer-events-none'
+            }`}
+          >
             <div className="text-[15px] font-extrabold text-white tracking-tight truncate leading-tight">
               TeamXsparK
             </div>
@@ -100,7 +111,7 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="mt-5 space-y-1.5">
+        <nav className="mt-5 space-y-1.5 w-full">
           {navItems.map((item) => {
             const Icon = item.icon
             const isHome = item.path === '/home'
@@ -115,73 +126,104 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setMobileOpen(false)}
                 title={item.name}
                 aria-label={item.name}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] tracking-wide transition-all duration-200 relative ${
+                className={`flex items-center rounded-xl text-[13px] tracking-wide transition-all duration-200 relative ${
+                  isExpanded
+                    ? 'justify-between px-3.5 py-2.5'
+                    : 'justify-center px-2 py-2.5 w-full'
+                } ${
                   isCurrentActive
-                    ? 'mint-active-pill font-bold'
+                    ? 'mint-active-pill font-bold shadow-md'
                     : 'text-white/85 hover:text-white hover:bg-white/10 font-medium'
                 }`}
               >
-                <div className="flex items-center gap-3 truncate">
-                  <Icon className="w-4.5 h-4.5 shrink-0" />
-                  <span className="truncate">{item.name}</span>
+                <div className={`flex items-center truncate ${isExpanded ? 'gap-3' : 'justify-center'}`}>
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span
+                    className={`transition-all duration-300 overflow-hidden whitespace-nowrap truncate ${
+                      isExpanded ? 'opacity-100 max-w-[130px]' : 'opacity-0 max-w-0 pointer-events-none'
+                    }`}
+                  >
+                    {item.name}
+                  </span>
                 </div>
 
                 {/* Right side indicators */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {item.badge !== undefined && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-xs ${item.badgeColor}`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                  {isCurrentActive && (
-                    <ChevronRight className="w-4 h-4 text-[#064E3B] shrink-0 stroke-[2.5]" />
-                  )}
-                </div>
+                {isExpanded ? (
+                  <div className="flex items-center gap-1.5 shrink-0 transition-opacity duration-200">
+                    {item.badge !== undefined && (
+                      <span
+                        className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold shadow-xs ${item.badgeColor}`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                    {isCurrentActive && (
+                      <ChevronRight className="w-4 h-4 text-[#064E3B] shrink-0 stroke-[2.5]" />
+                    )}
+                  </div>
+                ) : (
+                  item.badge !== undefined && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 border border-white" />
+                  )
+                )}
               </NavLink>
             )
           })}
         </nav>
       </div>
 
-      {/* Bottom: Active Grid Card (Matching Reference Image) */}
-      <div className="relative z-10 pt-4">
-        <div className="p-3.5 rounded-2xl bg-[#022318]/70 backdrop-blur-md border border-[#86EFAC]/35 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] space-y-2">
-          <div className="flex items-center justify-between text-[10px] text-[#86EFAC] uppercase font-bold tracking-wider">
-            <span>ACTIVE GRID</span>
-            <span
-              className={`w-2 h-2 rounded-full shadow-[0_0_8px_#4ADE80] ${
-                network.gridConnectionStatus === 'islanded'
-                  ? 'bg-amber-400 shadow-[0_0_8px_#FBBF24]'
-                  : 'bg-[#4ADE80]'
-              }`}
-              title={`Status: ${network.gridConnectionStatus || 'connected'}`}
-            />
-          </div>
+      {/* Bottom: Active Grid Card */}
+      <div className="relative z-10 pt-4 w-full">
+        {isExpanded ? (
+          <div className="p-3.5 rounded-2xl bg-[#022318]/70 backdrop-blur-md border border-[#86EFAC]/35 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] space-y-2 transition-all duration-300 animate-in fade-in">
+            <div className="flex items-center justify-between text-[10px] text-[#86EFAC] uppercase font-bold tracking-wider">
+              <span>ACTIVE GRID</span>
+              <span
+                className={`w-2 h-2 rounded-full shadow-[0_0_8px_#4ADE80] ${
+                  network.gridConnectionStatus === 'islanded'
+                    ? 'bg-amber-400 shadow-[0_0_8px_#FBBF24]'
+                    : 'bg-[#4ADE80]'
+                }`}
+                title={`Status: ${network.gridConnectionStatus || 'connected'}`}
+              />
+            </div>
 
-          <div
-            className="text-xs font-bold text-white truncate flex items-center gap-1.5"
-            title={network.name}
-          >
-            <Zap className="w-3.5 h-3.5 text-[#86EFAC] shrink-0 fill-current" />
-            <span className="truncate">{network.name || 'Default 4-Bus Feeder'}</span>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-white/75 pt-0.5">
-            <span className="truncate">
-              {network.buses?.length ?? 4} Buses • {network.feeders?.length ?? 5} Feeders
-            </span>
-            <NavLink
-              to="/network"
-              onClick={() => setMobileOpen(false)}
-              className="text-[#86EFAC] hover:text-white hover:underline font-bold text-[11px] shrink-0 transition-colors ml-1"
-              title="Manage grid in Grid Configurator"
+            <div
+              className="text-xs font-bold text-white truncate flex items-center gap-1.5"
+              title={network.name}
             >
-              Configure
-            </NavLink>
+              <Zap className="w-3.5 h-3.5 text-[#86EFAC] shrink-0 fill-current" />
+              <span className="truncate">{network.name || 'Default 4-Bus Feeder'}</span>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-white/75 pt-0.5">
+              <span className="truncate">
+                {network.buses?.length ?? 4} Buses • {network.feeders?.length ?? 5} Feeders
+              </span>
+              <NavLink
+                to="/network"
+                onClick={() => setMobileOpen(false)}
+                className="text-[#86EFAC] hover:text-white hover:underline font-bold text-[11px] shrink-0 transition-colors ml-1"
+                title="Manage grid in Grid Configurator"
+              >
+                Configure
+              </NavLink>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div
+            className="flex flex-col items-center justify-center p-2 rounded-xl bg-[#022318]/70 border border-[#86EFAC]/30 cursor-pointer"
+            title={`Active Grid: ${network.name || 'Default 4-Bus Feeder'}`}
+            onClick={() => setIsHovered(true)}
+          >
+            <span
+              className={`w-2 h-2 rounded-full mb-1 shadow-[0_0_6px_#4ADE80] ${
+                network.gridConnectionStatus === 'islanded' ? 'bg-amber-400' : 'bg-[#4ADE80]'
+              }`}
+            />
+            <Zap className="w-4 h-4 text-[#86EFAC] fill-current" />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -211,12 +253,18 @@ export const Sidebar: React.FC = () => {
           mobileOpen ? 'translate-x-0' : '-translate-x-[110%]'
         }`}
       >
-        {sidebarContent}
+        {renderSidebarContent(true)}
       </aside>
 
-      {/* Desktop Floating Glass Sidebar (Strictly Matching Reference) */}
-      <aside className="hidden lg:flex w-60 xl:w-64 glass-sidebar-panel shrink-0 select-none h-full transition-all duration-300">
-        {sidebarContent}
+      {/* Desktop Floating Dynamic Glass Sidebar (Expands smoothly on hover, collapses otherwise) */}
+      <aside
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`hidden lg:flex glass-sidebar-panel shrink-0 select-none h-full transition-all duration-300 ease-in-out ${
+          isHovered ? 'w-60 xl:w-64 shadow-[0_20px_50px_rgba(4,78,59,0.35)]' : 'w-20'
+        }`}
+      >
+        {renderSidebarContent(isHovered)}
       </aside>
     </>
   )
