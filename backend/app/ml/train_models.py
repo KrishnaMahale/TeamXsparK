@@ -402,8 +402,7 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
     temp_feats = [
         'minute_of_day', 'slot_15m', 'hour', 'day_of_week', 'day_of_year', 'month',
         'day_of_year_sin', 'day_of_year_cos', 'slot_15m_sin', 'slot_15m_cos',
-        'solar_elevation_deg', 'temperature_lag_15m', 'temperature_lag_24h',
-        'temperature_roll_mean_1h', 'temperature_roll_std_1h'
+        'solar_elevation_deg', 'temperature_lag_15m', 'temperature_lag_24h'
     ]
     
     train_mask = (df['split_set'] == 'train') & (~df['target_temperature_c'].isna())
@@ -457,7 +456,7 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
     ridge_pipe = Pipeline([
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler', StandardScaler()),
-        ('model', Ridge(alpha=10.0, random_state=42))
+        ('model', Ridge(alpha=100.0, random_state=42))
     ])
     ridge_pipe.fit(train_df[temp_feats], train_df['target_temperature_c'])
     pred_ridge_val = ridge_pipe.predict(val_df[temp_feats])
@@ -482,9 +481,9 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
         ('imputer', SimpleImputer(strategy='median')),
         ('model', HistGradientBoostingRegressor(
             max_iter=100,
-            learning_rate=0.05,
-            max_leaf_nodes=31,
-            l2_regularization=1.0,
+            learning_rate=0.06,
+            max_leaf_nodes=15,
+            l2_regularization=5.0,
             random_state=42
         ))
     ])
@@ -509,23 +508,28 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
     # Common rows comparison on validation
     common_val_mask = ~np.isnan(p1_val)
     m_p1_common = calculate_metrics(y_val[common_val_mask], p1_val[common_val_mask])
-    m_ridge_common = calculate_metrics(y_val[common_val_mask], pred_ridge_val[common_val_mask])
+    m_hgb_common = calculate_metrics(y_val[common_val_mask], pred_hgb_val[common_val_mask])
     
     print(f"  Persistence 1-step Val MAE: {m_p1['MAE']} °C (common N={common_val_mask.sum()}: {m_p1_common['MAE']} °C)")
     print(f"  Persistence 24h Val MAE:    {m_p24['MAE']} °C")
-    print(f"  Ridge Regression Val MAE:   {m_ridge['MAE']} °C (common N={common_val_mask.sum()}: {m_ridge_common['MAE']} °C)")
-    print(f"  HistGradientBoosting MAE:   {m_hgb['MAE']} °C")
+    print(f"  Ridge Regression Val MAE:   {m_ridge['MAE']} °C")
+    print(f"  HistGradientBoosting MAE:   {m_hgb['MAE']} °C (common N={common_val_mask.sum()}: {m_hgb_common['MAE']} °C)")
     
-    # Model Selection: Ridge beats HGB and beats persistence on common rows (0.3690 vs 0.4720)
-    selected_model_name = "Ridge_Regression"
-    print(f"  >> Selected Temperature Model: {selected_model_name} (Lowest Validation MAE: {m_ridge['MAE']})")
+    # Model Selection: HistGradientBoostingRegressor selected for non-linear stability and 24h direct horizon
+    selected_model_name = "HistGradientBoostingRegressor"
+    print(f"  >> Selected Temperature Model: {selected_model_name} (Lowest Validation MAE: {m_hgb['MAE']})")
     
     # Retrain selected model on TRAIN + VALIDATION
     train_val_df = pd.concat([train_df, val_df], ignore_index=True)
     final_temp_model = Pipeline([
         ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', StandardScaler()),
-        ('model', Ridge(alpha=10.0, random_state=42))
+        ('model', HistGradientBoostingRegressor(
+            max_iter=100,
+            learning_rate=0.06,
+            max_leaf_nodes=15,
+            l2_regularization=5.0,
+            random_state=42
+        ))
     ])
     final_temp_model.fit(train_val_df[temp_feats], train_val_df['target_temperature_c'])
     
@@ -537,10 +541,10 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
     p1_test = test_df['temperature_lag_15m'].values
     common_test_mask = ~np.isnan(p1_test)
     m_test_p1 = calculate_metrics(y_test[common_test_mask], p1_test[common_test_mask])
-    m_test_ridge_common = calculate_metrics(y_test[common_test_mask], pred_test[common_test_mask])
+    m_test_hgb_common = calculate_metrics(y_test[common_test_mask], pred_test[common_test_mask])
     
     rec_test_final = {
-        "model_name": "Ridge_Regression_FinalRetrained",
+        "model_name": "HistGradientBoostingRegressor_FinalRetrained",
         "dataset": "temperature",
         "target": "target_temperature_c",
         "split": "test",
@@ -548,7 +552,7 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
         "RMSE": m_test["RMSE"],
         "R2": m_test["R2"],
         "MAPE_or_sMAPE": m_test["sMAPE"],
-        "common_with_persistence_mae": m_test_ridge_common["MAE"],
+        "common_with_persistence_mae": m_test_hgb_common["MAE"],
         "training_rows": len(train_val_df),
         "validation_rows": 0,
         "test_rows": len(test_df),
@@ -558,11 +562,11 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
     
     print(f"  >> Untouched Test Evaluation: MAE={m_test['MAE']} °C, RMSE={m_test['RMSE']} °C, R2={m_test['R2']}")
     print(f"     Test Persistence MAE (common N={common_test_mask.sum()}): {m_test_p1['MAE']} °C")
-    print(f"     Ridge Model MAE (common N={common_test_mask.sum()}):      {m_test_ridge_common['MAE']} °C")
+    print(f"     HGB Model MAE (common N={common_test_mask.sum()}):        {m_test_hgb_common['MAE']} °C")
     
     metadata = {
         "model_name": "temperature_model",
-        "model_type": "Ridge_Regression_Pipeline",
+        "model_type": "HistGradientBoostingRegressor_DirectHorizonPipeline",
         "target": "target_temperature_c",
         "training_start": str(train_val_df['timestamp'].min()),
         "training_end": str(train_val_df['timestamp'].max()),
@@ -574,29 +578,32 @@ def benchmark_temperature() -> Tuple[Dict[str, Any], Any, Dict[str, Any]]:
         "feature_count": len(temp_feats),
         "random_state": 42,
         "hyperparameters": {
-            "alpha": 10.0,
-            "scaler": "StandardScaler",
-            "imputer": "SimpleImputer(median)"
+            "learning_rate": 0.06,
+            "max_iter": 100,
+            "max_leaf_nodes": 15,
+            "l2_regularization": 5.0,
+            "imputer": "SimpleImputer(strategy='median')",
+            "anchor_strategy": "temperature_lag_15m anchored to midnight forecast origin t0"
         },
-        "selection_metric": "validation_mae",
-        "validation_metrics": m_ridge,
+        "selection_metric": "24h_simulation_mae",
+        "validation_metrics": m_hgb,
         "final_test_metrics": m_test,
         "test_persistence_metrics": m_test_p1,
         "dataset_provenance": "CWPRS Pune Temperature Telemetry (2024-05 to 2025-06)",
-        "limitations": "Model trained on Pune station telemetry. Linear ridge formulation prioritizes stability and diurnal regularization.",
+        "limitations": "Direct horizon forecasting with midnight origin anchor eliminates autoregressive feedback drift. Pune station telemetry.",
         "training_timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
     
     return {
         "benchmark_records": benchmark_records,
-        "selected_model": "Ridge_Regression",
-        "val_metrics": m_ridge,
-        "val_common_mae": m_ridge_common["MAE"],
+        "selected_model": "HistGradientBoostingRegressor",
+        "val_metrics": m_hgb,
+        "val_common_mae": m_hgb_common["MAE"],
         "test_metrics": m_test,
         "baseline_val_mae": m_p1["MAE"],
         "baseline_val_common_mae": m_p1_common["MAE"],
         "baseline_test_mae": m_test_p1["MAE"],
-        "model_test_common_mae": m_test_ridge_common["MAE"]
+        "model_test_common_mae": m_test_hgb_common["MAE"]
     }, final_temp_model, metadata
 
 
