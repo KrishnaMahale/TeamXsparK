@@ -630,6 +630,7 @@ class SequentialController:
             horizonSteps=horizon_steps,
             stepDurationHours=self.step_duration_hours,
             batterySocs=dict(current_state.battery_socs),
+            initialTopology=current_state.topology_state,
             forecastData=updated_forecast,
             recedingHorizonMode=True,
         )

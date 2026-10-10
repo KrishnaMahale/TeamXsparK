@@ -210,6 +210,28 @@ class SequentialControlService:
         if not grid:
             raise ResourceNotFoundException("Grid", grid_id)
 
+        # Validate observed battery SOCs
+        if current_state.battery_socs:
+            for b_id, soc in current_state.battery_socs.items():
+                if math.isnan(soc) or math.isinf(soc) or soc < 0.0 or soc > 100.0:
+                    raise ValidationException(
+                        f"Observed SOC for battery '{b_id}' ({soc}%) is invalid. Must be between 0 and 100."
+                    )
+
+        # Validate observed topology state
+        if current_state.topology_state not in ("standard", "alternative"):
+            raise ValidationException(
+                f"Observed topology state '{current_state.topology_state}' is invalid. Must be 'standard' or 'alternative'."
+            )
+
+        supports_alternative = any(
+            getattr(f, "isReconfigurableAlternate", False) for f in grid.feeders
+        )
+        if current_state.topology_state == "alternative" and not supports_alternative:
+            raise ValidationException(
+                f"Grid '{grid.id}' does not support alternative topology reconfiguration."
+            )
+
         self.validate_forecast_points(
             updated_forecast,
             start_time=current_state.time,
