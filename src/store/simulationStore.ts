@@ -17,6 +17,12 @@ import { mockCorrectiveActions } from '../mocks/actionMock'
 import { useGridStore } from './gridStore'
 
 import { actionService } from '../services/api/actionService'
+import {
+  controlService,
+  SequentialControlResponse,
+  SequentialControlRequest,
+  SequentialForecastPoint,
+} from '../services/api/controlService'
 
 const initialSteps: SimulationProgressStep[] = [
   { id: '1', title: 'Initializing Digital Twin', subtitle: 'Loading distribution network model & topology', status: 'waiting' },
@@ -42,6 +48,13 @@ interface SimulationState {
   comparisonData: BeforeAfterComparisonData
   error: string | null
 
+  // Sequential MPC Trajectory State
+  sequentialPlan: SequentialControlResponse | null
+  isPlanningSequential: boolean
+  sequentialPlanError: string | null
+  planGridId: string | null
+  planDate: string | null
+
   // Input mutation actions
   setInput: (input: SimulationInput) => void
   updateInput: (updates: Partial<SimulationInput>) => void
@@ -64,6 +77,10 @@ interface SimulationState {
   selectAction: (action: CorrectiveAction) => void
   executeSelectedAction: (actionId?: string) => Promise<ActionExecutionResult | null>
   resetSimulation: () => void
+
+  // Sequential MPC Planning actions
+  fetchSequentialPlan: (gridId?: string, startTimestep?: string, horizonSteps?: number) => Promise<SequentialControlResponse | null>
+  clearSequentialPlan: () => void
 }
 
 export const mergeActionsWithHybrid = (baseActions: CorrectiveAction[], hybridPlan?: CorrectiveAction | null): CorrectiveAction[] => {
@@ -88,16 +105,47 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   currentProgressIndex: 0,
   fullResult: null,
 
+  // Sequential MPC trajectory state
+  sequentialPlan: null,
+  isPlanningSequential: false,
+  sequentialPlanError: null,
+  planGridId: null,
+  planDate: null,
+
   availableActions: mockCorrectiveActions,
   selectedAction: mockCorrectiveActions[1], // Feeder Reconfiguration default
   executionResult: null,
   comparisonData: defaultComparisonData,
   error: null,
 
-  setInput: (input) => set({ input }),
+  setInput: (input) =>
+    set({
+      input,
+      sequentialPlan: null,
+      sequentialPlanError: null,
+      planGridId: null,
+      planDate: null,
+    }),
 
   updateInput: (updates) => {
-    set((state) => ({ input: { ...state.input, ...updates } }))
+    set((state) => {
+      const shouldInvalidatePlan =
+        updates.gridId !== undefined ||
+        updates.simulationDate !== undefined ||
+        updates.solarTimeSeries !== undefined ||
+        updates.loadTimeSeries !== undefined
+      return {
+        input: { ...state.input, ...updates },
+        ...(shouldInvalidatePlan
+          ? {
+              sequentialPlan: null,
+              sequentialPlanError: null,
+              planGridId: null,
+              planDate: null,
+            }
+          : {}),
+      }
+    })
   },
 
   loadPreset: (presetKey) => {
@@ -109,6 +157,10 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
     set({
       input: newInput,
       activePresetKey: presetKey,
+      sequentialPlan: null,
+      sequentialPlanError: null,
+      planGridId: null,
+      planDate: null,
     })
     const gridStore = useGridStore.getState()
     const targetTime = presetKey === 'NORMAL_DAY' ? '10:00' : (presetKey === 'EVENING_PEAK' ? '19:30' : (presetKey === 'HIGH_SOLAR_LOW_LOAD' ? '12:30' : (presetKey === 'EXTREME_INFEASIBLE' ? '14:00' : '13:15')))
@@ -438,9 +490,93 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       activePresetKey: 'HIGH_SOLAR_LOW_LOAD',
       executionResult: null,
       fullResult: null,
+      sequentialPlan: null,
+      sequentialPlanError: null,
+      planGridId: null,
+      planDate: null,
     })
     const gridStore = useGridStore.getState()
     gridStore.fetchNetwork()
     get().fetchActions()
+  },
+
+  fetchSequentialPlan: async (gridId?: string, startTimestep?: string, horizonSteps?: number) => {
+    const activeGridId = gridId || get().input.gridId || useGridStore.getState().network.id || 'default-grid'
+    const simDate = get().input.simulationDate || new Date().toISOString().split('T')[0]
+    set({ isPlanningSequential: true, sequentialPlanError: null })
+
+    try {
+      const { solarTimeSeries, loadTimeSeries } = get().input
+      let forecastPoints: SequentialForecastPoint[] | undefined = undefined
+
+      if (solarTimeSeries && solarTimeSeries.length >= 8 && loadTimeSeries && loadTimeSeries.length >= 8) {
+        const loadMap = new Map(loadTimeSeries.map((lp) => [lp.time, lp.loadKw]))
+        forecastPoints = solarTimeSeries
+          .filter((sp) => loadMap.has(sp.time))
+          .map((sp) => ({
+            time: sp.time,
+            solarKw: sp.solarKw,
+            loadKw: loadMap.get(sp.time) || 0,
+          }))
+      }
+
+      // Read current battery SOC from network state if available
+      const network = useGridStore.getState().network
+      const batteryMap: Record<string, number> = {}
+      if (network && network.batteries) {
+        network.batteries.forEach((b) => {
+          if (b.socPercent !== undefined) {
+            batteryMap[b.id] = b.socPercent
+          }
+        })
+      }
+
+      const req: SequentialControlRequest = {
+        gridId: activeGridId,
+        startTimestep: startTimestep || '12:00',
+        horizonSteps: horizonSteps || 8,
+        stepDurationHours: 0.25,
+        recedingHorizonMode: true,
+      }
+
+      if (Object.keys(batteryMap).length > 0) {
+        req.batterySocs = batteryMap
+      }
+
+      if (forecastPoints && forecastPoints.length >= (horizonSteps || 8)) {
+        req.forecastData = forecastPoints
+      }
+
+      const plan = await controlService.planSequentialControl(req)
+      set({
+        sequentialPlan: plan,
+        planGridId: activeGridId,
+        planDate: simDate,
+        isPlanningSequential: false,
+        sequentialPlanError: null,
+      })
+      return plan
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.detail?.error?.message ||
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Failed to compute sequential MPC plan.'
+      set({
+        isPlanningSequential: false,
+        sequentialPlanError: typeof msg === 'string' ? msg : JSON.stringify(msg),
+      })
+      return null
+    }
+  },
+
+  clearSequentialPlan: () => {
+    set({
+      sequentialPlan: null,
+      sequentialPlanError: null,
+      planGridId: null,
+      planDate: null,
+    })
   },
 }))

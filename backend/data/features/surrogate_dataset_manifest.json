@@ -1,0 +1,184 @@
+{
+  "generated_at": "2026-10-10T12:33:23.794032",
+  "seed": 42,
+  "is_pilot": false,
+  "grids": {
+    "default-grid": {
+      "csv_file": "surrogate_dataset_default_grid.csv",
+      "total_samples": 4000,
+      "splits": {
+        "train": 2513,
+        "test": 804,
+        "validation": 683
+      },
+      "safe_states": 2411,
+      "unsafe_states": 1589,
+      "near_limit_states": 397,
+      "scenarios": {
+        "diurnal_normal_weekday": 967,
+        "solar_overvoltage_moderate": 504,
+        "diurnal_normal_weekend": 421,
+        "evening_peak_demand": 331,
+        "solar_overvoltage_severe": 310,
+        "bess_absorption_charging": 239,
+        "bess_injection_discharging": 233,
+        "solar_curtailment_active": 212,
+        "nighttime_low_load": 207,
+        "reconfiguration_alternate": 179,
+        "near_limit_overvoltage": 111,
+        "near_limit_feeder_overload": 88,
+        "extreme_stress_holdout": 84,
+        "near_limit_undervoltage": 65,
+        "near_limit_tx_overload": 49
+      },
+      "feature_columns": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_voltage_columns": [
+        "voltage_B1",
+        "voltage_B2",
+        "voltage_B3",
+        "voltage_B4"
+      ],
+      "target_loading_columns": [
+        "loading_F_01",
+        "loading_F_LINE_12",
+        "loading_F_02",
+        "loading_F_03",
+        "loading_F_04"
+      ]
+    },
+    "medium-test-grid": {
+      "csv_file": "surrogate_dataset_medium_test_grid.csv",
+      "total_samples": 3000,
+      "splits": {
+        "train": 1878,
+        "test": 632,
+        "validation": 490
+      },
+      "safe_states": 2033,
+      "unsafe_states": 967,
+      "near_limit_states": 296,
+      "scenarios": {
+        "diurnal_normal_weekday": 719,
+        "solar_overvoltage_moderate": 363,
+        "diurnal_normal_weekend": 313,
+        "evening_peak_demand": 261,
+        "solar_overvoltage_severe": 234,
+        "bess_injection_discharging": 180,
+        "bess_absorption_charging": 177,
+        "nighttime_low_load": 164,
+        "solar_curtailment_active": 147,
+        "reconfiguration_alternate": 146,
+        "near_limit_overvoltage": 78,
+        "extreme_stress_holdout": 68,
+        "near_limit_feeder_overload": 67,
+        "near_limit_undervoltage": 48,
+        "near_limit_tx_overload": 35
+      },
+      "feature_columns": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_voltage_columns": [
+        "voltage_MB-01",
+        "voltage_MB-02",
+        "voltage_MB-03",
+        "voltage_MB-04",
+        "voltage_MB-05"
+      ],
+      "target_loading_columns": [
+        "loading_F_MED_MAIN",
+        "loading_F_MED_N1",
+        "loading_F_MED_N2",
+        "loading_F_MED_S1",
+        "loading_F_MED_S2",
+        "loading_F_MED_TIE"
+      ]
+    },
+    "large-test-grid": {
+      "csv_file": "surrogate_dataset_large_test_grid.csv",
+      "total_samples": 3000,
+      "splits": {
+        "train": 1878,
+        "test": 632,
+        "validation": 490
+      },
+      "safe_states": 1098,
+      "unsafe_states": 1902,
+      "near_limit_states": 296,
+      "scenarios": {
+        "diurnal_normal_weekday": 719,
+        "solar_overvoltage_moderate": 363,
+        "diurnal_normal_weekend": 313,
+        "evening_peak_demand": 261,
+        "solar_overvoltage_severe": 234,
+        "bess_injection_discharging": 180,
+        "bess_absorption_charging": 177,
+        "nighttime_low_load": 164,
+        "solar_curtailment_active": 147,
+        "reconfiguration_alternate": 146,
+        "near_limit_overvoltage": 78,
+        "extreme_stress_holdout": 68,
+        "near_limit_feeder_overload": 67,
+        "near_limit_undervoltage": 48,
+        "near_limit_tx_overload": 35
+      },
+      "feature_columns": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_voltage_columns": [
+        "voltage_LB-01",
+        "voltage_LB-02",
+        "voltage_LB-03",
+        "voltage_LB-04",
+        "voltage_LB-05",
+        "voltage_LB-06",
+        "voltage_LB-07",
+        "voltage_LB-08",
+        "voltage_LB-09",
+        "voltage_LB-10"
+      ],
+      "target_loading_columns": [
+        "loading_F_LRG_MAIN",
+        "loading_F_LRG_N1",
+        "loading_F_LRG_N2",
+        "loading_F_LRG_N3",
+        "loading_F_LRG_C1",
+        "loading_F_LRG_C2",
+        "loading_F_LRG_C3",
+        "loading_F_LRG_S1",
+        "loading_F_LRG_S2",
+        "loading_F_LRG_S3",
+        "loading_F_LRG_TIE_NC",
+        "loading_F_LRG_TIE_CS"
+      ]
+    }
+  }
+}

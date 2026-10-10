@@ -10,7 +10,7 @@
       "ratingKva": 500.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 35.4,
+      "loadingPercent": 68.4,
       "temperatureC": 38.5,
       "status": "normal",
       "position": {
@@ -289,7 +289,7 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-10T11:35:17.760811"
+    "lastUpdated": "2026-10-10T16:03:21.578861"
   },
   "large-test-grid": {
     "id": "large-test-grid",
@@ -302,20 +302,20 @@
       "ratingKva": 800.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 14.1,
+      "loadingPercent": 64.0,
       "temperatureC": 38.0,
       "status": "normal",
       "position": {
-        "x": 0.07641343361726705,
+        "x": 0.0,
         "y": 0.6,
-        "z": -15.504053187973451
+        "z": -15.0
       }
     },
     "buses": [
       {
         "id": "LB-01",
         "name": "Main Substation Incomer Bus",
-        "voltage": 1.043,
+        "voltage": 1.02,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 0.0,
@@ -343,14 +343,14 @@
       {
         "id": "LB-02",
         "name": "Feeder 1 North Hub (Residential)",
-        "voltage": 1.053,
+        "voltage": 1.018,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 65.0,
         "solarKw": 35.0,
         "lineLoadingPercent": 70.0,
         "temperatureC": 33.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-N1",
           "F-LRG-N2"
@@ -369,14 +369,14 @@
       {
         "id": "LB-03",
         "name": "Feeder 1 North Branch (Apartments & EV)",
-        "voltage": 1.063,
+        "voltage": 1.014,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 80.0,
         "solarKw": 50.0,
         "lineLoadingPercent": 76.0,
         "temperatureC": 34.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-N2",
           "F-LRG-N3"
@@ -395,14 +395,14 @@
       {
         "id": "LB-04",
         "name": "Feeder 1 North End (Community Hub)",
-        "voltage": 1.069,
+        "voltage": 1.022,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 55.0,
         "solarKw": 40.0,
         "lineLoadingPercent": 68.0,
         "temperatureC": 33.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-N3",
           "F-LRG-TIE-NC"
@@ -421,7 +421,7 @@
       {
         "id": "LB-05",
         "name": "Feeder 2 Central Hub (Hospital & Medical)",
-        "voltage": 1.036,
+        "voltage": 1.016,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 80.0,
@@ -447,7 +447,7 @@
       {
         "id": "LB-06",
         "name": "Feeder 2 Central Branch (Shopping Mall)",
-        "voltage": 1.023,
+        "voltage": 1.028,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 90.0,
@@ -473,10 +473,10 @@
       {
         "id": "LB-07",
         "name": "Feeder 2 Central End (Office Towers)",
-        "voltage": 0.999,
+        "voltage": 1.032,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
-        "loadKw": 859.0,
+        "loadKw": 75.0,
         "solarKw": 50.0,
         "lineLoadingPercent": 78.0,
         "temperatureC": 35.0,
@@ -500,14 +500,14 @@
       {
         "id": "LB-08",
         "name": "Feeder 3 South Hub (Light Industrial)",
-        "voltage": 1.061,
+        "voltage": 1.012,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 75.0,
         "solarKw": 65.0,
         "lineLoadingPercent": 75.0,
         "temperatureC": 35.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-S1",
           "F-LRG-S2"
@@ -526,14 +526,14 @@
       {
         "id": "LB-09",
         "name": "Feeder 3 South Branch (Logistics & Depot)",
-        "voltage": 1.079,
+        "voltage": 1.025,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 60.0,
         "solarKw": 50.0,
         "lineLoadingPercent": 72.0,
         "temperatureC": 34.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-S2",
           "F-LRG-S3"
@@ -552,14 +552,14 @@
       {
         "id": "LB-10",
         "name": "Feeder 3 South End (CleanTech Park)",
-        "voltage": 1.091,
+        "voltage": 1.045,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 50.0,
         "solarKw": 100.0,
         "lineLoadingPercent": 88.0,
         "temperatureC": 38.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-LRG-S3",
           "F-LRG-TIE-CS"
@@ -582,7 +582,7 @@
         "name": "Primary Substation Trunk",
         "fromBus": "TX-LRG",
         "toBus": "LB-01",
-        "loadingPercent": 13.5,
+        "loadingPercent": 64.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 800.0,
         "activePowerKw": 512.0,
@@ -596,7 +596,7 @@
         "name": "North Residential Trunk",
         "fromBus": "LB-01",
         "toBus": "LB-02",
-        "loadingPercent": 15.2,
+        "loadingPercent": 70.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 350.0,
         "activePowerKw": 245.0,
@@ -610,7 +610,7 @@
         "name": "North Urban Distribution Line",
         "fromBus": "LB-02",
         "toBus": "LB-03",
-        "loadingPercent": 15.3,
+        "loadingPercent": 76.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 190.0,
@@ -624,7 +624,7 @@
         "name": "North Community Line",
         "fromBus": "LB-03",
         "toBus": "LB-04",
-        "loadingPercent": 8.6,
+        "loadingPercent": 68.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 200.0,
         "activePowerKw": 136.0,
@@ -638,7 +638,7 @@
         "name": "Central Commercial Trunk",
         "fromBus": "LB-01",
         "toBus": "LB-05",
-        "loadingPercent": 10.2,
+        "loadingPercent": 72.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 400.0,
         "activePowerKw": 288.0,
@@ -652,7 +652,7 @@
         "name": "Central Retail Distribution Line",
         "fromBus": "LB-05",
         "toBus": "LB-06",
-        "loadingPercent": 19.9,
+        "loadingPercent": 82.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 300.0,
         "activePowerKw": 246.0,
@@ -666,7 +666,7 @@
         "name": "Central Corporate Line",
         "fromBus": "LB-06",
         "toBus": "LB-07",
-        "loadingPercent": 37.1,
+        "loadingPercent": 78.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 195.0,
@@ -680,7 +680,7 @@
         "name": "South Industrial Trunk",
         "fromBus": "LB-01",
         "toBus": "LB-08",
-        "loadingPercent": 27.5,
+        "loadingPercent": 75.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 350.0,
         "activePowerKw": 262.0,
@@ -694,7 +694,7 @@
         "name": "South Logistics Line",
         "fromBus": "LB-08",
         "toBus": "LB-09",
-        "loadingPercent": 27.2,
+        "loadingPercent": 72.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 180.0,
@@ -708,7 +708,7 @@
         "name": "South CleanTech Park Line",
         "fromBus": "LB-09",
         "toBus": "LB-10",
-        "loadingPercent": 18.4,
+        "loadingPercent": 88.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 220.0,
@@ -751,7 +751,7 @@
         "id": "S-LRG-01",
         "name": "Residential Rooftop PV East",
         "busId": "LB-02",
-        "generationKw": 17.0,
+        "generationKw": 30.0,
         "capacityKw": 35.0,
         "irradianceWm2": 860.0,
         "curtailedKw": 0.0,
@@ -766,7 +766,7 @@
         "id": "S-LRG-02",
         "name": "Apartment Rooftop Solar Array",
         "busId": "LB-03",
-        "generationKw": 24.0,
+        "generationKw": 42.0,
         "capacityKw": 50.0,
         "irradianceWm2": 855.0,
         "curtailedKw": 0.0,
@@ -781,10 +781,10 @@
         "id": "S-LRG-03",
         "name": "School & Muni Solar Canopy",
         "busId": "LB-04",
-        "generationKw": 19.0,
+        "generationKw": 34.0,
         "capacityKw": 40.0,
         "irradianceWm2": 850.0,
-        "curtailedKw": 30.0,
+        "curtailedKw": 0.0,
         "status": "normal",
         "position": {
           "x": -15.0,
@@ -796,7 +796,7 @@
         "id": "S-LRG-04",
         "name": "Hospital Emergency Solar Facility",
         "busId": "LB-05",
-        "generationKw": 22.0,
+        "generationKw": 38.0,
         "capacityKw": 45.0,
         "irradianceWm2": 865.0,
         "curtailedKw": 0.0,
@@ -811,7 +811,7 @@
         "id": "S-LRG-05",
         "name": "Mall Rooftop Solar Megawatt-Fraction",
         "busId": "LB-06",
-        "generationKw": 36.0,
+        "generationKw": 65.0,
         "capacityKw": 75.0,
         "irradianceWm2": 870.0,
         "curtailedKw": 0.0,
@@ -826,7 +826,7 @@
         "id": "S-LRG-06",
         "name": "Commercial High-Rise BIPV Facade",
         "busId": "LB-07",
-        "generationKw": 24.0,
+        "generationKw": 42.0,
         "capacityKw": 50.0,
         "irradianceWm2": 850.0,
         "curtailedKw": 0.0,
@@ -841,7 +841,7 @@
         "id": "S-LRG-07",
         "name": "Industrial Rooftop Solar Array",
         "busId": "LB-08",
-        "generationKw": 31.0,
+        "generationKw": 55.0,
         "capacityKw": 65.0,
         "irradianceWm2": 860.0,
         "curtailedKw": 0.0,
@@ -856,7 +856,7 @@
         "id": "S-LRG-08",
         "name": "Logistics Center Solar Roof",
         "busId": "LB-09",
-        "generationKw": 24.0,
+        "generationKw": 42.0,
         "capacityKw": 50.0,
         "irradianceWm2": 855.0,
         "curtailedKw": 0.0,
@@ -871,7 +871,7 @@
         "id": "S-LRG-09",
         "name": "CleanTech Solar Farm Extension",
         "busId": "LB-10",
-        "generationKw": 48.0,
+        "generationKw": 88.0,
         "capacityKw": 100.0,
         "irradianceWm2": 885.0,
         "curtailedKw": 0.0,
@@ -888,10 +888,10 @@
         "id": "BAT-LRG-01",
         "name": "North Sub-district BESS",
         "busId": "LB-03",
-        "powerKw": -40.0,
+        "powerKw": 35.0,
         "maxDischargeKw": 50.0,
         "maxChargeKw": 50.0,
-        "socPercent": 62.0,
+        "socPercent": 60.0,
         "capacityKwh": 120.0,
         "status": "normal",
         "cycleCount": 100,
@@ -908,7 +908,7 @@
         "powerKw": 40.0,
         "maxDischargeKw": 60.0,
         "maxChargeKw": 60.0,
-        "socPercent": 62.0,
+        "socPercent": 70.0,
         "capacityKwh": 130.0,
         "status": "normal",
         "cycleCount": 100,
@@ -925,14 +925,14 @@
         "powerKw": 35.0,
         "maxDischargeKw": 50.0,
         "maxChargeKw": 50.0,
-        "socPercent": 62.0,
+        "socPercent": 55.0,
         "capacityKwh": 100.0,
         "status": "normal",
         "cycleCount": 100,
         "position": {
-          "x": 14.738622069050328,
+          "x": 15.0,
           "y": 0.0,
-          "z": 10.49456256799941
+          "z": 10.0
         }
       }
     ],
@@ -941,7 +941,7 @@
         "id": "L-LRG-01",
         "name": "Residential Subdivision West",
         "busId": "LB-02",
-        "powerKw": 1.0,
+        "powerKw": 35.0,
         "powerFactor": 0.93,
         "status": "normal",
         "position": {
@@ -954,7 +954,7 @@
         "id": "L-LRG-02",
         "name": "Residential Subdivision East",
         "busId": "LB-02",
-        "powerKw": 1.0,
+        "powerKw": 30.0,
         "powerFactor": 0.92,
         "status": "normal",
         "position": {
@@ -967,7 +967,7 @@
         "id": "L-LRG-03",
         "name": "High-Density Apartment Complex",
         "busId": "LB-03",
-        "powerKw": 2.0,
+        "powerKw": 45.0,
         "powerFactor": 0.94,
         "status": "normal",
         "position": {
@@ -980,7 +980,7 @@
         "id": "L-LRG-04",
         "name": "EV Fast Charging Hub North",
         "busId": "LB-03",
-        "powerKw": 1.0,
+        "powerKw": 35.0,
         "powerFactor": 0.98,
         "status": "normal",
         "position": {
@@ -993,7 +993,7 @@
         "id": "L-LRG-05",
         "name": "Municipal Recreation Center",
         "busId": "LB-04",
-        "powerKw": 1.0,
+        "powerKw": 25.0,
         "powerFactor": 0.91,
         "status": "normal",
         "position": {
@@ -1006,7 +1006,7 @@
         "id": "L-LRG-06",
         "name": "Elementary & Middle School",
         "busId": "LB-04",
-        "powerKw": 1.0,
+        "powerKw": 30.0,
         "powerFactor": 0.93,
         "status": "normal",
         "position": {
@@ -1019,7 +1019,7 @@
         "id": "L-LRG-07",
         "name": "General Hospital & Medical Center",
         "busId": "LB-05",
-        "powerKw": 2.0,
+        "powerKw": 55.0,
         "powerFactor": 0.96,
         "status": "normal",
         "position": {
@@ -1032,7 +1032,7 @@
         "id": "L-LRG-08",
         "name": "Medical Plaza & Diagnostics",
         "busId": "LB-05",
-        "powerKw": 1.0,
+        "powerKw": 25.0,
         "powerFactor": 0.94,
         "status": "normal",
         "position": {
@@ -1045,7 +1045,7 @@
         "id": "L-LRG-09",
         "name": "Regional Shopping Mall",
         "busId": "LB-06",
-        "powerKw": 2.0,
+        "powerKw": 60.0,
         "powerFactor": 0.92,
         "status": "normal",
         "position": {
@@ -1058,7 +1058,7 @@
         "id": "L-LRG-10",
         "name": "Cinema & Dining Complex",
         "busId": "LB-06",
-        "powerKw": 1.0,
+        "powerKw": 30.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
@@ -1071,7 +1071,7 @@
         "id": "L-LRG-11",
         "name": "Corporate Office Tower A",
         "busId": "LB-07",
-        "powerKw": 1.0,
+        "powerKw": 40.0,
         "powerFactor": 0.95,
         "status": "normal",
         "position": {
@@ -1084,20 +1084,20 @@
         "id": "L-LRG-12",
         "name": "Corporate Office Tower B",
         "busId": "LB-07",
-        "powerKw": 116.0,
+        "powerKw": 35.0,
         "powerFactor": 0.94,
         "status": "normal",
         "position": {
-          "x": 2.7139226582878617,
+          "x": 3.0,
           "y": 0.0,
-          "z": 10.417215077441547
+          "z": 10.0
         }
       },
       {
         "id": "L-LRG-13",
         "name": "Light Manufacturing Plant A",
         "busId": "LB-08",
-        "powerKw": 2.0,
+        "powerKw": 45.0,
         "powerFactor": 0.88,
         "status": "normal",
         "position": {
@@ -1110,7 +1110,7 @@
         "id": "L-LRG-14",
         "name": "Textile & Fabrication Workshop",
         "busId": "LB-08",
-        "powerKw": 1.0,
+        "powerKw": 30.0,
         "powerFactor": 0.89,
         "status": "normal",
         "position": {
@@ -1123,7 +1123,7 @@
         "id": "L-LRG-15",
         "name": "Automated Distribution Warehouse",
         "busId": "LB-09",
-        "powerKw": 1.0,
+        "powerKw": 35.0,
         "powerFactor": 0.91,
         "status": "normal",
         "position": {
@@ -1136,7 +1136,7 @@
         "id": "L-LRG-16",
         "name": "Cold Storage Logistics Depot",
         "busId": "LB-09",
-        "powerKw": 1.0,
+        "powerKw": 25.0,
         "powerFactor": 0.87,
         "status": "normal",
         "position": {
@@ -1149,7 +1149,7 @@
         "id": "L-LRG-17",
         "name": "Clean Technology Research Park",
         "busId": "LB-10",
-        "powerKw": 1.0,
+        "powerKw": 30.0,
         "powerFactor": 0.95,
         "status": "normal",
         "position": {
@@ -1162,17 +1162,17 @@
         "id": "L-LRG-18",
         "name": "Fleet Depot & EV Yard",
         "busId": "LB-10",
-        "powerKw": 1.0,
+        "powerKw": 20.0,
         "powerFactor": 0.97,
         "status": "normal",
         "position": {
-          "x": 8.866614878981686,
+          "x": 9.0,
           "y": 0.0,
-          "z": 10.738633511522599
+          "z": 10.0
         }
       }
     ],
-    "lastUpdated": "2026-10-09T21:43:13.442437"
+    "lastUpdated": "2026-10-10T16:03:18.970927"
   },
   "medium-test-grid": {
     "id": "medium-test-grid",
@@ -1185,7 +1185,7 @@
       "ratingKva": 350.0,
       "primaryVoltageKv": 33.0,
       "secondaryVoltageKv": 11.0,
-      "loadingPercent": 32.0,
+      "loadingPercent": 58.0,
       "temperatureC": 36.0,
       "status": "normal",
       "position": {
@@ -1198,7 +1198,7 @@
       {
         "id": "MB-01",
         "name": "Substation Main Bus",
-        "voltage": 1.043,
+        "voltage": 1.02,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 0.0,
@@ -1225,14 +1225,14 @@
       {
         "id": "MB-02",
         "name": "North Residential Bus",
-        "voltage": 1.06,
+        "voltage": 1.015,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 52.0,
         "solarKw": 35.0,
         "lineLoadingPercent": 68.0,
         "temperatureC": 34.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-MED-N1",
           "F-MED-N2"
@@ -1251,14 +1251,14 @@
       {
         "id": "MB-03",
         "name": "North Commercial Bus",
-        "voltage": 1.072,
+        "voltage": 1.025,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 58.0,
         "solarKw": 45.0,
         "lineLoadingPercent": 74.0,
         "temperatureC": 35.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-MED-N2",
           "F-MED-TIE"
@@ -1277,14 +1277,14 @@
       {
         "id": "MB-04",
         "name": "South Community Bus",
-        "voltage": 1.054,
+        "voltage": 1.012,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 40.0,
         "solarKw": 25.0,
         "lineLoadingPercent": 62.0,
         "temperatureC": 33.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-MED-S1",
           "F-MED-S2"
@@ -1303,14 +1303,14 @@
       {
         "id": "MB-05",
         "name": "South Civic & School Bus",
-        "voltage": 1.063,
+        "voltage": 1.018,
         "voltageLimitMin": 0.95,
         "voltageLimitMax": 1.05,
         "loadKw": 50.0,
         "solarKw": 35.0,
         "lineLoadingPercent": 66.0,
         "temperatureC": 34.0,
-        "status": "critical",
+        "status": "normal",
         "connectedFeeders": [
           "F-MED-S2",
           "F-MED-TIE"
@@ -1333,7 +1333,7 @@
         "name": "Substation Incomer Feeder",
         "fromBus": "TX-MED",
         "toBus": "MB-01",
-        "loadingPercent": 27.1,
+        "loadingPercent": 58.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 400.0,
         "activePowerKw": 232.0,
@@ -1347,7 +1347,7 @@
         "name": "North Feeder Segment 1",
         "fromBus": "MB-01",
         "toBus": "MB-02",
-        "loadingPercent": 25.8,
+        "loadingPercent": 68.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 170.0,
@@ -1361,7 +1361,7 @@
         "name": "North Feeder Segment 2",
         "fromBus": "MB-02",
         "toBus": "MB-03",
-        "loadingPercent": 19.2,
+        "loadingPercent": 74.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 200.0,
         "activePowerKw": 148.0,
@@ -1375,7 +1375,7 @@
         "name": "South Feeder Segment 1",
         "fromBus": "MB-01",
         "toBus": "MB-04",
-        "loadingPercent": 17.5,
+        "loadingPercent": 62.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 250.0,
         "activePowerKw": 155.0,
@@ -1389,7 +1389,7 @@
         "name": "South Feeder Segment 2",
         "fromBus": "MB-04",
         "toBus": "MB-05",
-        "loadingPercent": 13.6,
+        "loadingPercent": 66.0,
         "loadingLimitPercent": 100.0,
         "capacityKw": 200.0,
         "activePowerKw": 132.0,
@@ -1418,37 +1418,37 @@
         "id": "S-MED-01",
         "name": "Rooftop Solar Cluster North",
         "busId": "MB-02",
-        "generationKw": 61.0,
+        "generationKw": 28.0,
         "capacityKw": 35.0,
         "irradianceWm2": 850.0,
         "curtailedKw": 0.0,
         "status": "normal",
         "position": {
-          "x": -9.424066828216889,
+          "x": -9.0,
           "y": 0.0,
-          "z": -2.3618824991125926
+          "z": 0.0
         }
       },
       {
         "id": "S-MED-02",
         "name": "Commercial Plaza PV Canopy",
         "busId": "MB-03",
-        "generationKw": 79.0,
+        "generationKw": 38.0,
         "capacityKw": 45.0,
         "irradianceWm2": 860.0,
         "curtailedKw": 0.0,
         "status": "normal",
         "position": {
-          "x": -9.40521353274332,
+          "x": -9.0,
           "y": 0.0,
-          "z": 4.634140419926528
+          "z": 6.0
         }
       },
       {
         "id": "S-MED-03",
         "name": "Community Solar Carport",
         "busId": "MB-04",
-        "generationKw": 44.0,
+        "generationKw": 20.0,
         "capacityKw": 25.0,
         "irradianceWm2": 840.0,
         "curtailedKw": 0.0,
@@ -1463,7 +1463,7 @@
         "id": "S-MED-04",
         "name": "School Rooftop Solar Array",
         "busId": "MB-05",
-        "generationKw": 61.0,
+        "generationKw": 30.0,
         "capacityKw": 35.0,
         "irradianceWm2": 855.0,
         "curtailedKw": 0.0,
@@ -1483,14 +1483,14 @@
         "powerKw": 25.0,
         "maxDischargeKw": 40.0,
         "maxChargeKw": 40.0,
-        "socPercent": 62.0,
+        "socPercent": 65.0,
         "capacityKwh": 100.0,
         "status": "normal",
         "cycleCount": 100,
         "position": {
-          "x": -10.601156509168648,
+          "x": -9.0,
           "y": 0.0,
-          "z": 8.124198813529606
+          "z": 8.0
         }
       }
     ],
@@ -1499,7 +1499,7 @@
         "id": "L-MED-01",
         "name": "Residential Cluster North A",
         "busId": "MB-02",
-        "powerKw": 16.0,
+        "powerKw": 24.0,
         "powerFactor": 0.93,
         "status": "normal",
         "position": {
@@ -1512,20 +1512,20 @@
         "id": "L-MED-02",
         "name": "Apartment Block North",
         "busId": "MB-02",
-        "powerKw": 19.0,
+        "powerKw": 28.0,
         "powerFactor": 0.92,
         "status": "normal",
         "position": {
-          "x": -9.35340543247421,
+          "x": -8.0,
           "y": 0.0,
-          "z": 0.8287175868851677
+          "z": 2.0
         }
       },
       {
         "id": "L-MED-03",
         "name": "Small Commercial Strip",
         "busId": "MB-03",
-        "powerKw": 22.0,
+        "powerKw": 32.0,
         "powerFactor": 0.94,
         "status": "normal",
         "position": {
@@ -1538,20 +1538,20 @@
         "id": "L-MED-04",
         "name": "Retail Complex & Bakery",
         "busId": "MB-03",
-        "powerKw": 18.0,
+        "powerKw": 26.0,
         "powerFactor": 0.91,
         "status": "normal",
         "position": {
-          "x": -6.66617377314468,
+          "x": -8.0,
           "y": 0.0,
-          "z": 10.994617465784092
+          "z": 8.0
         }
       },
       {
         "id": "L-MED-05",
         "name": "Residential Cluster South",
         "busId": "MB-04",
-        "powerKw": 15.0,
+        "powerKw": 22.0,
         "powerFactor": 0.93,
         "status": "normal",
         "position": {
@@ -1564,7 +1564,7 @@
         "id": "L-MED-06",
         "name": "Community Sports Facility",
         "busId": "MB-04",
-        "powerKw": 12.0,
+        "powerKw": 18.0,
         "powerFactor": 0.9,
         "status": "normal",
         "position": {
@@ -1577,7 +1577,7 @@
         "id": "L-MED-07",
         "name": "Public High School",
         "busId": "MB-05",
-        "powerKw": 20.0,
+        "powerKw": 30.0,
         "powerFactor": 0.95,
         "status": "normal",
         "position": {
@@ -1590,7 +1590,7 @@
         "id": "L-MED-08",
         "name": "Local Municipal Office",
         "busId": "MB-05",
-        "powerKw": 14.0,
+        "powerKw": 20.0,
         "powerFactor": 0.92,
         "status": "normal",
         "position": {
@@ -1600,6 +1600,6 @@
         }
       }
     ],
-    "lastUpdated": "2026-10-09T21:14:58.764101"
+    "lastUpdated": "2026-10-10T16:03:18.950684"
   }
 }

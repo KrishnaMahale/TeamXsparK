@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { PageContainer } from '../components/layout/PageContainer'
 import { Card, CardHeader, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { NetworkDigitalTwin } from '../components/network/NetworkDigitalTwin'
+import { SequentialTrajectoryView } from '../components/actions/SequentialTrajectoryView'
 import { useCorrectiveActions } from '../hooks/useCorrectiveActions'
 import { useGridStore } from '../store/gridStore'
+import { useSimulationStore } from '../store/simulationStore'
 import {
   Wrench,
   RotateCcw,
@@ -19,6 +21,8 @@ import {
 } from 'lucide-react'
 
 export const ActionsPage: React.FC = () => {
+  const [viewMode, setViewMode] = React.useState<'snapshot' | 'sequential'>('snapshot')
+
   const {
     actions,
     selectedAction,
@@ -32,7 +36,8 @@ export const ActionsPage: React.FC = () => {
 
   const [hoveredActionId, setHoveredActionId] = React.useState<string | null>(null)
 
-  const { network } = useGridStore()
+  const { network, currentTime } = useGridStore()
+  const { input } = useSimulationStore()
   const monitoredBusName =
     comparisonData.monitoredBusName ||
     comparisonData.monitoredBusId ||
@@ -98,15 +103,58 @@ export const ActionsPage: React.FC = () => {
           />
         </div>
 
-        {/* 2. Action Cards Workspace (Interactive Solution Tabs with Dynamic Grid & Expanding Hover) */}
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] tracking-tight">
-                Available Constraint Resolution Interventions
-              </h2>
-            </div>
+        {/* View Mode Toggle: Single Snapshot vs Sequential Trajectory Plan (MPC) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-2xl bg-white/80 dark:bg-[#122C1F]/80 backdrop-blur-md border border-[#BBF7D0]/60 dark:border-[#86EFAC]/20 shadow-xs">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#F0FDF4] dark:bg-[#064E3B]/40 border border-[#BBF7D0]/50 dark:border-[#86EFAC]/20">
+            <button
+              onClick={() => setViewMode('snapshot')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'snapshot'
+                  ? 'bg-[#047857] text-white shadow-xs'
+                  : 'text-[#52665A] dark:text-[#A7F3D0] hover:text-[#10251A] dark:hover:text-white'
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Single-Snapshot Dispatch</span>
+            </button>
+            <button
+              onClick={() => setViewMode('sequential')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'sequential'
+                  ? 'bg-[#047857] text-white shadow-xs'
+                  : 'text-[#52665A] dark:text-[#A7F3D0] hover:text-[#10251A] dark:hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Sequential MPC Trajectory (8+ Steps)</span>
+            </button>
           </div>
+
+          <div className="flex items-center gap-2 text-xs text-[#52665A] dark:text-[#A7F3D0]">
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-[#F0FDF4] dark:bg-[#064E3B]/40 border border-[#BBF7D0]/40">
+              Active Strategy: {viewMode === 'snapshot' ? 'Instantaneous Corrective Dispatch' : 'Multi-Step Receding-Horizon Plan'}
+            </span>
+          </div>
+        </div>
+
+        {viewMode === 'sequential' ? (
+          <SequentialTrajectoryView
+            gridId={network.id}
+            gridName={targetGridName}
+            simulationDate={input.simulationDate}
+            currentTime={currentTime}
+          />
+        ) : (
+          <>
+            {/* 2. Action Cards Workspace (Interactive Solution Tabs with Dynamic Grid & Expanding Hover) */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-bold text-[#10251A] dark:text-[#ECFDF3] tracking-tight">
+                    Available Constraint Resolution Interventions
+                  </h2>
+                </div>
+              </div>
 
           {/* Cards Grid: Dynamically fits candidate cards with consistent responsive grid */}
           <div
@@ -636,8 +684,10 @@ export const ActionsPage: React.FC = () => {
             </table>
           </CardContent>
         </Card>
-      </div>
-    </PageContainer>
+      </>
+    )}
+  </div>
+</PageContainer>
   )
 }
 

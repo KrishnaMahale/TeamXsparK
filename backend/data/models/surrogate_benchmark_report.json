@@ -1,0 +1,581 @@
+{
+  "evaluation_timestamp": "2026-10-10T12:43:12.906677",
+  "grids": {
+    "default-grid": {
+      "grid_id": "default-grid",
+      "test_sample_count": 804,
+      "near_limit_sample_count": 239,
+      "regression_metrics": {
+        "voltage": {
+          "mae_pu_mean": 0.000727,
+          "rmse_pu_mean": 0.001656,
+          "max_abs_error_pu": 0.028591,
+          "per_bus": {
+            "voltage_B1": {
+              "mae": 0.0,
+              "rmse": 0.0,
+              "max_abs_error": 0.0
+            },
+            "voltage_B2": {
+              "mae": 0.000149,
+              "rmse": 0.000382,
+              "max_abs_error": 0.003812
+            },
+            "voltage_B3": {
+              "mae": 0.002671,
+              "rmse": 0.00596,
+              "max_abs_error": 0.028591
+            },
+            "voltage_B4": {
+              "mae": 8.8e-05,
+              "rmse": 0.000281,
+              "max_abs_error": 0.002761
+            }
+          }
+        },
+        "feeder_loading": {
+          "mae_percent_mean": 0.4399,
+          "rmse_percent_mean": 1.0035,
+          "max_abs_error_percent": 14.7799,
+          "per_feeder": {
+            "loading_F_01": {
+              "mae": 0.376291,
+              "rmse": 0.890194,
+              "max_abs_error": 8.2643
+            },
+            "loading_F_LINE_12": {
+              "mae": 0.717226,
+              "rmse": 1.392449,
+              "max_abs_error": 8.571708
+            },
+            "loading_F_02": {
+              "mae": 0.911357,
+              "rmse": 2.122181,
+              "max_abs_error": 14.779886
+            },
+            "loading_F_03": {
+              "mae": 1.3e-05,
+              "rmse": 3e-05,
+              "max_abs_error": 0.000163
+            },
+            "loading_F_04": {
+              "mae": 0.19467,
+              "rmse": 0.612746,
+              "max_abs_error": 6.281342
+            }
+          }
+        },
+        "transformer_loading": {
+          "mae_percent": 0.322117,
+          "rmse_percent": 0.819939,
+          "max_abs_error_percent": 8.377407
+        },
+        "total_losses_kw": {
+          "mae_kw": 0.031514,
+          "rmse_kw": 0.084885,
+          "max_abs_error_kw": 0.726478
+        }
+      },
+      "unscreened_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.95,
+            1.05
+          ],
+          "feeder_max_percent": 100.0,
+          "tx_max_percent": 100.0
+        },
+        "total_test_samples": 804,
+        "physically_safe_count": 413,
+        "physically_unsafe_count": 391,
+        "screened_safe_count": 386,
+        "screened_risky_count": 418,
+        "false_safe_count": 16,
+        "false_safe_denominator": 391,
+        "false_safe_rate": 0.040921,
+        "unnecessary_rejections_count": 43,
+        "unnecessary_rejection_rate": 0.104116,
+        "safe_precision": 0.958549,
+        "safe_recall": 0.895884
+      },
+      "conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 804,
+        "physically_safe_count": 413,
+        "physically_unsafe_count": 391,
+        "screened_safe_count": 261,
+        "screened_risky_count": 543,
+        "false_safe_count": 0,
+        "false_safe_denominator": 391,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 152,
+        "unnecessary_rejection_rate": 0.368039,
+        "safe_precision": 1.0,
+        "safe_recall": 0.631961
+      },
+      "near_limit_conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 239,
+        "physically_safe_count": 64,
+        "physically_unsafe_count": 175,
+        "screened_safe_count": 5,
+        "screened_risky_count": 234,
+        "false_safe_count": 0,
+        "false_safe_denominator": 175,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 59,
+        "unnecessary_rejection_rate": 0.921875,
+        "safe_precision": 1.0,
+        "safe_recall": 0.078125
+      },
+      "latencies": {
+        "repetitions": 100,
+        "physical_solver_ms": {
+          "median": 0.2657,
+          "p95": 0.2919,
+          "p99": 0.2979,
+          "mean": 0.2463
+        },
+        "surrogate_inference_ms": {
+          "median": 15.6906,
+          "p95": 17.7432,
+          "p99": 24.399,
+          "mean": 15.893
+        },
+        "surrogate_plus_screening_ms": {
+          "median": 16.0487,
+          "p95": 17.8077,
+          "p99": 18.1203,
+          "mean": 15.9082
+        },
+        "speedup_ratio_median": 0.02
+      }
+    },
+    "medium-test-grid": {
+      "grid_id": "medium-test-grid",
+      "test_sample_count": 632,
+      "near_limit_sample_count": 188,
+      "regression_metrics": {
+        "voltage": {
+          "mae_pu_mean": 0.000591,
+          "rmse_pu_mean": 0.001051,
+          "max_abs_error_pu": 0.010607,
+          "per_bus": {
+            "voltage_MB-01": {
+              "mae": 0.000263,
+              "rmse": 0.00061,
+              "max_abs_error": 0.004735
+            },
+            "voltage_MB-02": {
+              "mae": 0.000584,
+              "rmse": 0.001052,
+              "max_abs_error": 0.008641
+            },
+            "voltage_MB-03": {
+              "mae": 0.00087,
+              "rmse": 0.001465,
+              "max_abs_error": 0.010607
+            },
+            "voltage_MB-04": {
+              "mae": 0.000519,
+              "rmse": 0.000931,
+              "max_abs_error": 0.006989
+            },
+            "voltage_MB-05": {
+              "mae": 0.000717,
+              "rmse": 0.001198,
+              "max_abs_error": 0.008404
+            }
+          }
+        },
+        "feeder_loading": {
+          "mae_percent_mean": 0.2769,
+          "rmse_percent_mean": 0.5091,
+          "max_abs_error_percent": 5.7721,
+          "per_feeder": {
+            "loading_F_MED_MAIN": {
+              "mae": 0.252013,
+              "rmse": 0.632947,
+              "max_abs_error": 5.772109
+            },
+            "loading_F_MED_N1": {
+              "mae": 0.394911,
+              "rmse": 0.705107,
+              "max_abs_error": 5.691929
+            },
+            "loading_F_MED_N2": {
+              "mae": 0.451754,
+              "rmse": 0.704713,
+              "max_abs_error": 3.954849
+            },
+            "loading_F_MED_S1": {
+              "mae": 0.327868,
+              "rmse": 0.591182,
+              "max_abs_error": 4.214517
+            },
+            "loading_F_MED_S2": {
+              "mae": 0.234751,
+              "rmse": 0.420615,
+              "max_abs_error": 2.91494
+            },
+            "loading_F_MED_TIE": {
+              "mae": 0.0,
+              "rmse": 0.0,
+              "max_abs_error": 0.0
+            }
+          }
+        },
+        "transformer_loading": {
+          "mae_percent": 0.291677,
+          "rmse_percent": 0.741491,
+          "max_abs_error_percent": 6.847328
+        },
+        "total_losses_kw": {
+          "mae_kw": 0.0251,
+          "rmse_kw": 0.054443,
+          "max_abs_error_kw": 0.447465
+        }
+      },
+      "unscreened_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.95,
+            1.05
+          ],
+          "feeder_max_percent": 100.0,
+          "tx_max_percent": 100.0
+        },
+        "total_test_samples": 632,
+        "physically_safe_count": 349,
+        "physically_unsafe_count": 283,
+        "screened_safe_count": 347,
+        "screened_risky_count": 285,
+        "false_safe_count": 1,
+        "false_safe_denominator": 283,
+        "false_safe_rate": 0.003534,
+        "unnecessary_rejections_count": 3,
+        "unnecessary_rejection_rate": 0.008596,
+        "safe_precision": 0.997118,
+        "safe_recall": 0.991404
+      },
+      "conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 632,
+        "physically_safe_count": 349,
+        "physically_unsafe_count": 283,
+        "screened_safe_count": 274,
+        "screened_risky_count": 358,
+        "false_safe_count": 0,
+        "false_safe_denominator": 283,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 75,
+        "unnecessary_rejection_rate": 0.2149,
+        "safe_precision": 1.0,
+        "safe_recall": 0.7851
+      },
+      "near_limit_conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 188,
+        "physically_safe_count": 31,
+        "physically_unsafe_count": 157,
+        "screened_safe_count": 7,
+        "screened_risky_count": 181,
+        "false_safe_count": 0,
+        "false_safe_denominator": 157,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 24,
+        "unnecessary_rejection_rate": 0.774194,
+        "safe_precision": 1.0,
+        "safe_recall": 0.225806
+      },
+      "latencies": {
+        "repetitions": 100,
+        "physical_solver_ms": {
+          "median": 0.3545,
+          "p95": 0.427,
+          "p99": 0.5102,
+          "mean": 0.3397
+        },
+        "surrogate_inference_ms": {
+          "median": 19.4679,
+          "p95": 21.2041,
+          "p99": 21.4447,
+          "mean": 19.2979
+        },
+        "surrogate_plus_screening_ms": {
+          "median": 20.0818,
+          "p95": 22.031,
+          "p99": 23.0979,
+          "mean": 20.0157
+        },
+        "speedup_ratio_median": 0.02
+      }
+    },
+    "large-test-grid": {
+      "grid_id": "large-test-grid",
+      "test_sample_count": 632,
+      "near_limit_sample_count": 188,
+      "regression_metrics": {
+        "voltage": {
+          "mae_pu_mean": 0.001041,
+          "rmse_pu_mean": 0.002098,
+          "max_abs_error_pu": 0.025011,
+          "per_bus": {
+            "voltage_LB-01": {
+              "mae": 0.000605,
+              "rmse": 0.001394,
+              "max_abs_error": 0.012585
+            },
+            "voltage_LB-02": {
+              "mae": 0.000851,
+              "rmse": 0.001728,
+              "max_abs_error": 0.01484
+            },
+            "voltage_LB-03": {
+              "mae": 0.001109,
+              "rmse": 0.002134,
+              "max_abs_error": 0.018118
+            },
+            "voltage_LB-04": {
+              "mae": 0.001152,
+              "rmse": 0.002278,
+              "max_abs_error": 0.019113
+            },
+            "voltage_LB-05": {
+              "mae": 0.000844,
+              "rmse": 0.001802,
+              "max_abs_error": 0.015671
+            },
+            "voltage_LB-06": {
+              "mae": 0.001073,
+              "rmse": 0.002215,
+              "max_abs_error": 0.019173
+            },
+            "voltage_LB-07": {
+              "mae": 0.001221,
+              "rmse": 0.00242,
+              "max_abs_error": 0.020231
+            },
+            "voltage_LB-08": {
+              "mae": 0.000875,
+              "rmse": 0.001887,
+              "max_abs_error": 0.017493
+            },
+            "voltage_LB-09": {
+              "mae": 0.001191,
+              "rmse": 0.002372,
+              "max_abs_error": 0.021829
+            },
+            "voltage_LB-10": {
+              "mae": 0.001487,
+              "rmse": 0.00275,
+              "max_abs_error": 0.025011
+            }
+          }
+        },
+        "feeder_loading": {
+          "mae_percent_mean": 0.2886,
+          "rmse_percent_mean": 0.5324,
+          "max_abs_error_percent": 7.3463,
+          "per_feeder": {
+            "loading_F_LRG_MAIN": {
+              "mae": 0.314362,
+              "rmse": 0.787608,
+              "max_abs_error": 7.34626
+            },
+            "loading_F_LRG_N1": {
+              "mae": 0.293995,
+              "rmse": 0.567555,
+              "max_abs_error": 4.2687
+            },
+            "loading_F_LRG_N2": {
+              "mae": 0.382187,
+              "rmse": 0.664301,
+              "max_abs_error": 4.304384
+            },
+            "loading_F_LRG_N3": {
+              "mae": 0.212213,
+              "rmse": 0.353109,
+              "max_abs_error": 2.414065
+            },
+            "loading_F_LRG_C1": {
+              "mae": 0.27694,
+              "rmse": 0.580184,
+              "max_abs_error": 4.860287
+            },
+            "loading_F_LRG_C2": {
+              "mae": 0.434041,
+              "rmse": 0.742441,
+              "max_abs_error": 4.961684
+            },
+            "loading_F_LRG_C3": {
+              "mae": 0.22489,
+              "rmse": 0.376536,
+              "max_abs_error": 2.470223
+            },
+            "loading_F_LRG_S1": {
+              "mae": 0.394409,
+              "rmse": 0.777899,
+              "max_abs_error": 6.920264
+            },
+            "loading_F_LRG_S2": {
+              "mae": 0.480458,
+              "rmse": 0.820386,
+              "max_abs_error": 6.629514
+            },
+            "loading_F_LRG_S3": {
+              "mae": 0.449459,
+              "rmse": 0.718584,
+              "max_abs_error": 4.400796
+            },
+            "loading_F_LRG_TIE_NC": {
+              "mae": 0.0,
+              "rmse": 0.0,
+              "max_abs_error": 0.0
+            },
+            "loading_F_LRG_TIE_CS": {
+              "mae": 0.0,
+              "rmse": 0.0,
+              "max_abs_error": 0.0
+            }
+          }
+        },
+        "transformer_loading": {
+          "mae_percent": 0.323581,
+          "rmse_percent": 0.803034,
+          "max_abs_error_percent": 7.422201
+        },
+        "total_losses_kw": {
+          "mae_kw": 0.054384,
+          "rmse_kw": 0.116006,
+          "max_abs_error_kw": 1.042824
+        }
+      },
+      "unscreened_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.95,
+            1.05
+          ],
+          "feeder_max_percent": 100.0,
+          "tx_max_percent": 100.0
+        },
+        "total_test_samples": 632,
+        "physically_safe_count": 180,
+        "physically_unsafe_count": 452,
+        "screened_safe_count": 178,
+        "screened_risky_count": 454,
+        "false_safe_count": 2,
+        "false_safe_denominator": 452,
+        "false_safe_rate": 0.004425,
+        "unnecessary_rejections_count": 4,
+        "unnecessary_rejection_rate": 0.022222,
+        "safe_precision": 0.988764,
+        "safe_recall": 0.977778
+      },
+      "conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 632,
+        "physically_safe_count": 180,
+        "physically_unsafe_count": 452,
+        "screened_safe_count": 143,
+        "screened_risky_count": 489,
+        "false_safe_count": 0,
+        "false_safe_denominator": 452,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 37,
+        "unnecessary_rejection_rate": 0.205556,
+        "safe_precision": 1.0,
+        "safe_recall": 0.794444
+      },
+      "near_limit_conservative_safety": {
+        "thresholds_applied": {
+          "voltage_range_pu": [
+            0.958,
+            1.042
+          ],
+          "feeder_max_percent": 95.0,
+          "tx_max_percent": 95.0
+        },
+        "total_test_samples": 188,
+        "physically_safe_count": 0,
+        "physically_unsafe_count": 188,
+        "screened_safe_count": 0,
+        "screened_risky_count": 188,
+        "false_safe_count": 0,
+        "false_safe_denominator": 188,
+        "false_safe_rate": 0.0,
+        "unnecessary_rejections_count": 0,
+        "unnecessary_rejection_rate": 0.0,
+        "safe_precision": 0.0,
+        "safe_recall": 0.0
+      },
+      "latencies": {
+        "repetitions": 100,
+        "physical_solver_ms": {
+          "median": 0.5855,
+          "p95": 0.8763,
+          "p99": 0.9021,
+          "mean": 0.6423
+        },
+        "surrogate_inference_ms": {
+          "median": 37.2192,
+          "p95": 40.0708,
+          "p99": 44.3041,
+          "mean": 37.3347
+        },
+        "surrogate_plus_screening_ms": {
+          "median": 37.7355,
+          "p95": 40.1715,
+          "p99": 40.8668,
+          "mean": 37.4866
+        },
+        "speedup_ratio_median": 0.02
+      }
+    }
+  },
+  "overall_summary": {
+    "total_test_samples": 2068,
+    "total_physically_unsafe_samples": 1126,
+    "unscreened_false_safe_count": 19,
+    "unscreened_false_safe_rate": 0.016874,
+    "conservative_false_safe_count": 0,
+    "conservative_false_safe_rate": 0.0,
+    "policy_protection_benefit": "Reduced false-safe cases from 19 (1.69%) to 0 (0.00%)"
+  }
+}

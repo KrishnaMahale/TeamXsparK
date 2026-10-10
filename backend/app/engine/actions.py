@@ -1192,3 +1192,132 @@ class ActionEngine:
             )
 
         return pf, buses, feeders
+
+    @classmethod
+    def screen_candidate_actions_batch(
+        cls,
+        candidates: List[CorrectiveAction],
+        grid: GridNetwork,
+        peak_solar_kw: float,
+        peak_load_kw: float,
+        installed_capacity_kw: float = 250.0,
+        battery_soc_percent: float = 50.0,
+        batch_routing_threshold: Optional[int] = None,
+        v_min: float = 0.958,
+        v_max: float = 1.042,
+        feeder_max: float = 95.0,
+        tx_max: float = 95.0,
+        allow_pruning: bool = False,
+    ) -> Tuple[List[CorrectiveAction], Any]:
+        """
+        Screens a batch of candidate corrective actions using the ML surrogate model.
+        When candidate pool size N >= batch_routing_threshold, evaluates candidate risks
+        under audited conservative screening bounds (V in [0.958, 1.042], Load <= 95%).
+        
+        Rules:
+        1. When batch_routing_threshold is None or N < threshold, routes to direct physical solver.
+        2. If surrogate screens out all candidates, falls back to physical solver to avoid false alarms.
+        3. In mixed batches: under allow_pruning=False (default), retains screened-risky candidates
+           for physical verification rather than permanently discarding them, avoiding silent loss
+           of physically feasible actions due to screening false alarms.
+        4. Every action accepted by surrogate screening MUST still undergo physical solver verification
+           before being presented as feasible or safe.
+        5. Surrogate predictions are never represented as physically verified.
+        """
+        from app.engine.surrogate_screening import (
+            SurrogateScreeningEngine,
+            BatchScreeningResult,
+            ScreeningStatus,
+        )
+
+        if not candidates:
+            empty_res = BatchScreeningResult(
+                grid_id=grid.id,
+                total_candidates=0,
+                screened_candidates_count=0,
+                screened_risky_count=0,
+                fallback_count=0,
+                routing_decision="direct_physical_solver",
+                items=[],
+            )
+            return [], empty_res
+
+        screening_engine = SurrogateScreeningEngine.get_instance()
+
+        cand_dicts = []
+        cand_map = {}
+        for c in candidates:
+            cid = c.id
+            cand_map[cid] = c
+            cand_dict = {
+                "id": cid,
+                "dispatch_kw": c.dispatchKw or 0.0,
+                "curtailment_kw": c.curtailmentKw or 0.0,
+                "targetTopology": c.targetTopology,
+                "battery_soc_percent": c.batterySocPercent if c.batterySocPercent is not None else battery_soc_percent,
+            }
+            if hasattr(c, "is_alternative_topology"):
+                cand_dict["is_alternative_topology"] = getattr(c, "is_alternative_topology")
+            if hasattr(c, "feederReconfigurations"):
+                cand_dict["feederReconfigurations"] = getattr(c, "feederReconfigurations")
+            cand_dicts.append(cand_dict)
+
+        screening_result = screening_engine.screen_candidates(
+            grid=grid,
+            candidates_data=cand_dicts,
+            base_solar_kw=peak_solar_kw,
+            base_load_kw=peak_load_kw,
+            installed_capacity_kw=installed_capacity_kw,
+            v_min=v_min,
+            v_max=v_max,
+            feeder_max=feeder_max,
+            tx_max=tx_max,
+            batch_routing_threshold=batch_routing_threshold,
+        )
+
+        if screening_result.routing_decision == "direct_physical_solver":
+            return candidates, screening_result
+
+        screened_safe_ids = [
+            item.candidate_id
+            for item in screening_result.items
+            if item.status == ScreeningStatus.SCREENED_CANDIDATE
+        ]
+        risky_ids = [
+            item.candidate_id
+            for item in screening_result.items
+            if item.status == ScreeningStatus.SCREENED_RISKY
+        ]
+        fallback_ids = [
+            item.candidate_id
+            for item in screening_result.items
+            if item.status == ScreeningStatus.FALLBACK_REQUIRED
+        ]
+
+        # Case 1: All candidates screened risky -> automatic all-risky fallback
+        if not screened_safe_ids and not fallback_ids:
+            screening_result.fallback_reason = (
+                "All candidates screened risky under conservative margins; "
+                "falling back to physical solver to prevent false-alarm gridlock."
+            )
+            return candidates, screening_result
+
+        # Case 2: Mixed-batch false-alarm protection
+        if not allow_pruning:
+            # Conservative safety policy (allow_pruning=False):
+            # Pruning unproven for mixed batches; retain all candidates for physical verification,
+            # prioritizing screened safe candidates first, followed by fallback and risky candidates.
+            ordered_ids = screened_safe_ids + fallback_ids + risky_ids
+            ordered_candidates = [cand_map[cid] for cid in ordered_ids if cid in cand_map]
+            screening_result.fallback_reason = (
+                "Conservative policy (allow_pruning=False): Pruning disabled to prevent "
+                "false-alarm loss of feasible actions. All candidates retained for physical "
+                "verification with screened safe actions prioritized."
+            )
+            return ordered_candidates, screening_result
+        else:
+            # Pruning explicitly permitted by caller
+            surviving_ids = screened_safe_ids + fallback_ids
+            surviving_candidates = [cand_map[cid] for cid in surviving_ids if cid in cand_map]
+            return surviving_candidates, screening_result
+

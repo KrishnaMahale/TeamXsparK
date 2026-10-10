@@ -1,0 +1,1135 @@
+{
+  "pipeline_version": "1.0.0",
+  "created_at": "2026-10-10T12:41:13.592700",
+  "python_version": "3.11.9",
+  "sklearn_version": "1.9.1",
+  "dataset_seed": 42,
+  "dataset_generated_at": "2026-10-10T12:33:23.794032",
+  "grids": {
+    "default-grid": {
+      "grid_id": "default-grid",
+      "artifact_file": "power_flow_surrogate_default.joblib",
+      "model_type": "MultiOutputRegressor(HistGradientBoostingRegressor)",
+      "hyperparameters": {
+        "max_iter": 150,
+        "learning_rate": 0.08,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 20,
+        "l2_regularization": 0.1,
+        "random_state": 42
+      },
+      "feature_names": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_names": [
+        "voltage_B1",
+        "voltage_B2",
+        "voltage_B3",
+        "voltage_B4",
+        "loading_F_01",
+        "loading_F_LINE_12",
+        "loading_F_02",
+        "loading_F_03",
+        "loading_F_04",
+        "tx_loading_percent",
+        "total_loss_kw"
+      ],
+      "voltage_targets": [
+        "voltage_B1",
+        "voltage_B2",
+        "voltage_B3",
+        "voltage_B4"
+      ],
+      "loading_targets": [
+        "loading_F_01",
+        "loading_F_LINE_12",
+        "loading_F_02",
+        "loading_F_03",
+        "loading_F_04"
+      ],
+      "transformer_target": "tx_loading_percent",
+      "losses_target": "total_loss_kw",
+      "sample_counts": {
+        "total": 4000,
+        "train": 2513,
+        "validation": 683,
+        "test": 804,
+        "test_near_limit": 239
+      },
+      "training_time_seconds": 2.989,
+      "validation_metrics": {
+        "voltage_B1": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "voltage_B2": {
+          "mae": 8.1e-05,
+          "rmse": 0.000243,
+          "max_abs_error": 0.002559,
+          "r2": 0.998766
+        },
+        "voltage_B3": {
+          "mae": 0.001089,
+          "rmse": 0.001833,
+          "max_abs_error": 0.019629,
+          "r2": 0.997517
+        },
+        "voltage_B4": {
+          "mae": 8.6e-05,
+          "rmse": 0.000225,
+          "max_abs_error": 0.002821,
+          "r2": 0.998975
+        },
+        "loading_F_01": {
+          "mae": 0.291664,
+          "rmse": 0.637139,
+          "max_abs_error": 7.9543,
+          "r2": 0.997747
+        },
+        "loading_F_LINE_12": {
+          "mae": 0.528972,
+          "rmse": 0.972352,
+          "max_abs_error": 7.86936,
+          "r2": 0.989975
+        },
+        "loading_F_02": {
+          "mae": 0.455864,
+          "rmse": 0.928569,
+          "max_abs_error": 13.532444,
+          "r2": 0.997784
+        },
+        "loading_F_03": {
+          "mae": 1.5e-05,
+          "rmse": 3.5e-05,
+          "max_abs_error": 0.000163,
+          "r2": 1.0
+        },
+        "loading_F_04": {
+          "mae": 0.122194,
+          "rmse": 0.356938,
+          "max_abs_error": 5.462209,
+          "r2": 0.999524
+        },
+        "tx_loading_percent": {
+          "mae": 0.18029,
+          "rmse": 0.307883,
+          "max_abs_error": 2.574345,
+          "r2": 0.999679
+        },
+        "total_loss_kw": {
+          "mae": 0.018065,
+          "rmse": 0.06235,
+          "max_abs_error": 0.641154,
+          "r2": 0.998377
+        }
+      },
+      "test_metrics": {
+        "voltage_B1": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "voltage_B2": {
+          "mae": 0.000149,
+          "rmse": 0.000382,
+          "max_abs_error": 0.003812,
+          "r2": 0.997371
+        },
+        "voltage_B3": {
+          "mae": 0.002671,
+          "rmse": 0.00596,
+          "max_abs_error": 0.028591,
+          "r2": 0.975613
+        },
+        "voltage_B4": {
+          "mae": 8.8e-05,
+          "rmse": 0.000281,
+          "max_abs_error": 0.002761,
+          "r2": 0.998474
+        },
+        "loading_F_01": {
+          "mae": 0.376291,
+          "rmse": 0.890194,
+          "max_abs_error": 8.2643,
+          "r2": 0.995633
+        },
+        "loading_F_LINE_12": {
+          "mae": 0.717226,
+          "rmse": 1.392449,
+          "max_abs_error": 8.571708,
+          "r2": 0.981556
+        },
+        "loading_F_02": {
+          "mae": 0.911357,
+          "rmse": 2.122181,
+          "max_abs_error": 14.779886,
+          "r2": 0.989635
+        },
+        "loading_F_03": {
+          "mae": 1.3e-05,
+          "rmse": 3e-05,
+          "max_abs_error": 0.000163,
+          "r2": 1.0
+        },
+        "loading_F_04": {
+          "mae": 0.19467,
+          "rmse": 0.612746,
+          "max_abs_error": 6.281342,
+          "r2": 0.99867
+        },
+        "tx_loading_percent": {
+          "mae": 0.322117,
+          "rmse": 0.819939,
+          "max_abs_error": 8.377407,
+          "r2": 0.998006
+        },
+        "total_loss_kw": {
+          "mae": 0.031514,
+          "rmse": 0.084885,
+          "max_abs_error": 0.726478,
+          "r2": 0.997419
+        }
+      },
+      "near_limit_test_metrics": {
+        "voltage_B1": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "voltage_B2": {
+          "mae": 0.000366,
+          "rmse": 0.000661,
+          "max_abs_error": 0.003812,
+          "r2": 0.993285
+        },
+        "voltage_B3": {
+          "mae": 0.006464,
+          "rmse": 0.010433,
+          "max_abs_error": 0.028591,
+          "r2": 0.930333
+        },
+        "voltage_B4": {
+          "mae": 0.00016,
+          "rmse": 0.000475,
+          "max_abs_error": 0.002761,
+          "r2": 0.997056
+        },
+        "loading_F_01": {
+          "mae": 0.795584,
+          "rmse": 1.573102,
+          "max_abs_error": 8.2643,
+          "r2": 0.988941
+        },
+        "loading_F_LINE_12": {
+          "mae": 1.508269,
+          "rmse": 2.391943,
+          "max_abs_error": 8.571708,
+          "r2": 0.71661
+        },
+        "loading_F_02": {
+          "mae": 2.136527,
+          "rmse": 3.575358,
+          "max_abs_error": 14.779886,
+          "r2": 0.963372
+        },
+        "loading_F_03": {
+          "mae": 8e-06,
+          "rmse": 8e-06,
+          "max_abs_error": 8e-06,
+          "r2": 1.0
+        },
+        "loading_F_04": {
+          "mae": 0.463725,
+          "rmse": 1.102317,
+          "max_abs_error": 6.281342,
+          "r2": 0.997117
+        },
+        "tx_loading_percent": {
+          "mae": 0.734179,
+          "rmse": 1.463553,
+          "max_abs_error": 8.377407,
+          "r2": 0.986192
+        },
+        "total_loss_kw": {
+          "mae": 0.083799,
+          "rmse": 0.152524,
+          "max_abs_error": 0.726478,
+          "r2": 0.992946
+        }
+      },
+      "aggregate_test_summary": {
+        "voltage_mae_pu_mean": 0.000727,
+        "voltage_max_abs_error_pu": 0.028591,
+        "feeder_loading_mae_percent_mean": 0.4399,
+        "feeder_loading_max_abs_error_percent": 14.7799,
+        "tx_loading_mae_percent": 0.322117,
+        "tx_loading_max_abs_error_percent": 8.377407
+      }
+    },
+    "medium-test-grid": {
+      "grid_id": "medium-test-grid",
+      "artifact_file": "power_flow_surrogate_medium.joblib",
+      "model_type": "MultiOutputRegressor(HistGradientBoostingRegressor)",
+      "hyperparameters": {
+        "max_iter": 150,
+        "learning_rate": 0.08,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 20,
+        "l2_regularization": 0.1,
+        "random_state": 42
+      },
+      "feature_names": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_names": [
+        "voltage_MB-01",
+        "voltage_MB-02",
+        "voltage_MB-03",
+        "voltage_MB-04",
+        "voltage_MB-05",
+        "loading_F_MED_MAIN",
+        "loading_F_MED_N1",
+        "loading_F_MED_N2",
+        "loading_F_MED_S1",
+        "loading_F_MED_S2",
+        "loading_F_MED_TIE",
+        "tx_loading_percent",
+        "total_loss_kw"
+      ],
+      "voltage_targets": [
+        "voltage_MB-01",
+        "voltage_MB-02",
+        "voltage_MB-03",
+        "voltage_MB-04",
+        "voltage_MB-05"
+      ],
+      "loading_targets": [
+        "loading_F_MED_MAIN",
+        "loading_F_MED_N1",
+        "loading_F_MED_N2",
+        "loading_F_MED_S1",
+        "loading_F_MED_S2",
+        "loading_F_MED_TIE"
+      ],
+      "transformer_target": "tx_loading_percent",
+      "losses_target": "total_loss_kw",
+      "sample_counts": {
+        "total": 3000,
+        "train": 1878,
+        "validation": 490,
+        "test": 632,
+        "test_near_limit": 188
+      },
+      "training_time_seconds": 0.341,
+      "validation_metrics": {
+        "voltage_MB-01": {
+          "mae": 0.000188,
+          "rmse": 0.000349,
+          "max_abs_error": 0.002686,
+          "r2": 0.999716
+        },
+        "voltage_MB-02": {
+          "mae": 0.000459,
+          "rmse": 0.000636,
+          "max_abs_error": 0.00305,
+          "r2": 0.999658
+        },
+        "voltage_MB-03": {
+          "mae": 0.000739,
+          "rmse": 0.001025,
+          "max_abs_error": 0.007464,
+          "r2": 0.999438
+        },
+        "voltage_MB-04": {
+          "mae": 0.000439,
+          "rmse": 0.00065,
+          "max_abs_error": 0.00371,
+          "r2": 0.999594
+        },
+        "voltage_MB-05": {
+          "mae": 0.000575,
+          "rmse": 0.000853,
+          "max_abs_error": 0.004084,
+          "r2": 0.999555
+        },
+        "loading_F_MED_MAIN": {
+          "mae": 0.163805,
+          "rmse": 0.30687,
+          "max_abs_error": 2.236296,
+          "r2": 0.999586
+        },
+        "loading_F_MED_N1": {
+          "mae": 0.319958,
+          "rmse": 0.474444,
+          "max_abs_error": 3.451502,
+          "r2": 0.9987
+        },
+        "loading_F_MED_N2": {
+          "mae": 0.456853,
+          "rmse": 0.743857,
+          "max_abs_error": 8.111197,
+          "r2": 0.992533
+        },
+        "loading_F_MED_S1": {
+          "mae": 0.308716,
+          "rmse": 0.521457,
+          "max_abs_error": 3.960786,
+          "r2": 0.997783
+        },
+        "loading_F_MED_S2": {
+          "mae": 0.213996,
+          "rmse": 0.358151,
+          "max_abs_error": 2.901497,
+          "r2": 0.997837
+        },
+        "loading_F_MED_TIE": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.190473,
+          "rmse": 0.352801,
+          "max_abs_error": 2.545449,
+          "r2": 0.999597
+        },
+        "total_loss_kw": {
+          "mae": 0.019329,
+          "rmse": 0.035306,
+          "max_abs_error": 0.247465,
+          "r2": 0.997469
+        }
+      },
+      "test_metrics": {
+        "voltage_MB-01": {
+          "mae": 0.000263,
+          "rmse": 0.00061,
+          "max_abs_error": 0.004735,
+          "r2": 0.999227
+        },
+        "voltage_MB-02": {
+          "mae": 0.000584,
+          "rmse": 0.001052,
+          "max_abs_error": 0.008641,
+          "r2": 0.999172
+        },
+        "voltage_MB-03": {
+          "mae": 0.00087,
+          "rmse": 0.001465,
+          "max_abs_error": 0.010607,
+          "r2": 0.998993
+        },
+        "voltage_MB-04": {
+          "mae": 0.000519,
+          "rmse": 0.000931,
+          "max_abs_error": 0.006989,
+          "r2": 0.999252
+        },
+        "voltage_MB-05": {
+          "mae": 0.000717,
+          "rmse": 0.001198,
+          "max_abs_error": 0.008404,
+          "r2": 0.999209
+        },
+        "loading_F_MED_MAIN": {
+          "mae": 0.252013,
+          "rmse": 0.632947,
+          "max_abs_error": 5.772109,
+          "r2": 0.998256
+        },
+        "loading_F_MED_N1": {
+          "mae": 0.394911,
+          "rmse": 0.705107,
+          "max_abs_error": 5.691929,
+          "r2": 0.997199
+        },
+        "loading_F_MED_N2": {
+          "mae": 0.451754,
+          "rmse": 0.704713,
+          "max_abs_error": 3.954849,
+          "r2": 0.993646
+        },
+        "loading_F_MED_S1": {
+          "mae": 0.327868,
+          "rmse": 0.591182,
+          "max_abs_error": 4.214517,
+          "r2": 0.997128
+        },
+        "loading_F_MED_S2": {
+          "mae": 0.234751,
+          "rmse": 0.420615,
+          "max_abs_error": 2.91494,
+          "r2": 0.997023
+        },
+        "loading_F_MED_TIE": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.291677,
+          "rmse": 0.741491,
+          "max_abs_error": 6.847328,
+          "r2": 0.998239
+        },
+        "total_loss_kw": {
+          "mae": 0.0251,
+          "rmse": 0.054443,
+          "max_abs_error": 0.447465,
+          "r2": 0.993692
+        }
+      },
+      "near_limit_test_metrics": {
+        "voltage_MB-01": {
+          "mae": 0.00056,
+          "rmse": 0.001044,
+          "max_abs_error": 0.004735,
+          "r2": 0.998571
+        },
+        "voltage_MB-02": {
+          "mae": 0.00102,
+          "rmse": 0.001743,
+          "max_abs_error": 0.008641,
+          "r2": 0.998586
+        },
+        "voltage_MB-03": {
+          "mae": 0.001381,
+          "rmse": 0.002289,
+          "max_abs_error": 0.010607,
+          "r2": 0.998495
+        },
+        "voltage_MB-04": {
+          "mae": 0.000923,
+          "rmse": 0.001548,
+          "max_abs_error": 0.006989,
+          "r2": 0.99867
+        },
+        "voltage_MB-05": {
+          "mae": 0.00122,
+          "rmse": 0.001943,
+          "max_abs_error": 0.008404,
+          "r2": 0.998653
+        },
+        "loading_F_MED_MAIN": {
+          "mae": 0.565467,
+          "rmse": 1.120748,
+          "max_abs_error": 5.772109,
+          "r2": 0.992724
+        },
+        "loading_F_MED_N1": {
+          "mae": 0.628165,
+          "rmse": 1.121076,
+          "max_abs_error": 5.691929,
+          "r2": 0.990199
+        },
+        "loading_F_MED_N2": {
+          "mae": 0.628349,
+          "rmse": 0.948201,
+          "max_abs_error": 3.954849,
+          "r2": 0.982902
+        },
+        "loading_F_MED_S1": {
+          "mae": 0.563893,
+          "rmse": 0.931433,
+          "max_abs_error": 4.214517,
+          "r2": 0.990841
+        },
+        "loading_F_MED_S2": {
+          "mae": 0.395944,
+          "rmse": 0.653399,
+          "max_abs_error": 2.91494,
+          "r2": 0.990077
+        },
+        "loading_F_MED_TIE": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.652194,
+          "rmse": 1.312767,
+          "max_abs_error": 6.847328,
+          "r2": 0.992652
+        },
+        "total_loss_kw": {
+          "mae": 0.04915,
+          "rmse": 0.090672,
+          "max_abs_error": 0.447465,
+          "r2": 0.985112
+        }
+      },
+      "aggregate_test_summary": {
+        "voltage_mae_pu_mean": 0.000591,
+        "voltage_max_abs_error_pu": 0.010607,
+        "feeder_loading_mae_percent_mean": 0.2769,
+        "feeder_loading_max_abs_error_percent": 5.7721,
+        "tx_loading_mae_percent": 0.291677,
+        "tx_loading_max_abs_error_percent": 6.847328
+      }
+    },
+    "large-test-grid": {
+      "grid_id": "large-test-grid",
+      "artifact_file": "power_flow_surrogate_large.joblib",
+      "model_type": "MultiOutputRegressor(HistGradientBoostingRegressor)",
+      "hyperparameters": {
+        "max_iter": 150,
+        "learning_rate": 0.08,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 20,
+        "l2_regularization": 0.1,
+        "random_state": 42
+      },
+      "feature_names": [
+        "solar_kw",
+        "load_kw",
+        "battery_power_kw",
+        "solar_curtailment_kw",
+        "net_solar_kw",
+        "net_imbalance_kw",
+        "is_alternative_topology",
+        "battery_soc_percent",
+        "installed_solar_capacity_kw",
+        "transformer_rating_kva"
+      ],
+      "target_names": [
+        "voltage_LB-01",
+        "voltage_LB-02",
+        "voltage_LB-03",
+        "voltage_LB-04",
+        "voltage_LB-05",
+        "voltage_LB-06",
+        "voltage_LB-07",
+        "voltage_LB-08",
+        "voltage_LB-09",
+        "voltage_LB-10",
+        "loading_F_LRG_MAIN",
+        "loading_F_LRG_N1",
+        "loading_F_LRG_N2",
+        "loading_F_LRG_N3",
+        "loading_F_LRG_C1",
+        "loading_F_LRG_C2",
+        "loading_F_LRG_C3",
+        "loading_F_LRG_S1",
+        "loading_F_LRG_S2",
+        "loading_F_LRG_S3",
+        "loading_F_LRG_TIE_NC",
+        "loading_F_LRG_TIE_CS",
+        "tx_loading_percent",
+        "total_loss_kw"
+      ],
+      "voltage_targets": [
+        "voltage_LB-01",
+        "voltage_LB-02",
+        "voltage_LB-03",
+        "voltage_LB-04",
+        "voltage_LB-05",
+        "voltage_LB-06",
+        "voltage_LB-07",
+        "voltage_LB-08",
+        "voltage_LB-09",
+        "voltage_LB-10"
+      ],
+      "loading_targets": [
+        "loading_F_LRG_MAIN",
+        "loading_F_LRG_N1",
+        "loading_F_LRG_N2",
+        "loading_F_LRG_N3",
+        "loading_F_LRG_C1",
+        "loading_F_LRG_C2",
+        "loading_F_LRG_C3",
+        "loading_F_LRG_S1",
+        "loading_F_LRG_S2",
+        "loading_F_LRG_S3",
+        "loading_F_LRG_TIE_NC",
+        "loading_F_LRG_TIE_CS"
+      ],
+      "transformer_target": "tx_loading_percent",
+      "losses_target": "total_loss_kw",
+      "sample_counts": {
+        "total": 3000,
+        "train": 1878,
+        "validation": 490,
+        "test": 632,
+        "test_near_limit": 188
+      },
+      "training_time_seconds": 0.625,
+      "validation_metrics": {
+        "voltage_LB-01": {
+          "mae": 0.000387,
+          "rmse": 0.000647,
+          "max_abs_error": 0.004114,
+          "r2": 0.999844
+        },
+        "voltage_LB-02": {
+          "mae": 0.000598,
+          "rmse": 0.00089,
+          "max_abs_error": 0.005735,
+          "r2": 0.99981
+        },
+        "voltage_LB-03": {
+          "mae": 0.000847,
+          "rmse": 0.001206,
+          "max_abs_error": 0.007385,
+          "r2": 0.999752
+        },
+        "voltage_LB-04": {
+          "mae": 0.000833,
+          "rmse": 0.001221,
+          "max_abs_error": 0.007618,
+          "r2": 0.999785
+        },
+        "voltage_LB-05": {
+          "mae": 0.000581,
+          "rmse": 0.000895,
+          "max_abs_error": 0.005308,
+          "r2": 0.999817
+        },
+        "voltage_LB-06": {
+          "mae": 0.000813,
+          "rmse": 0.00116,
+          "max_abs_error": 0.006691,
+          "r2": 0.99979
+        },
+        "voltage_LB-07": {
+          "mae": 0.000935,
+          "rmse": 0.001312,
+          "max_abs_error": 0.007413,
+          "r2": 0.999773
+        },
+        "voltage_LB-08": {
+          "mae": 0.000622,
+          "rmse": 0.000895,
+          "max_abs_error": 0.005543,
+          "r2": 0.999824
+        },
+        "voltage_LB-09": {
+          "mae": 0.000883,
+          "rmse": 0.001274,
+          "max_abs_error": 0.006825,
+          "r2": 0.999756
+        },
+        "voltage_LB-10": {
+          "mae": 0.001114,
+          "rmse": 0.001588,
+          "max_abs_error": 0.007941,
+          "r2": 0.999684
+        },
+        "loading_F_LRG_MAIN": {
+          "mae": 0.19832,
+          "rmse": 0.363674,
+          "max_abs_error": 2.49129,
+          "r2": 0.999627
+        },
+        "loading_F_LRG_N1": {
+          "mae": 0.255354,
+          "rmse": 0.365062,
+          "max_abs_error": 2.163266,
+          "r2": 0.999276
+        },
+        "loading_F_LRG_N2": {
+          "mae": 0.362809,
+          "rmse": 0.545475,
+          "max_abs_error": 3.514668,
+          "r2": 0.998125
+        },
+        "loading_F_LRG_N3": {
+          "mae": 0.213365,
+          "rmse": 0.335417,
+          "max_abs_error": 2.868085,
+          "r2": 0.997519
+        },
+        "loading_F_LRG_C1": {
+          "mae": 0.196015,
+          "rmse": 0.294181,
+          "max_abs_error": 2.01661,
+          "r2": 0.999591
+        },
+        "loading_F_LRG_C2": {
+          "mae": 0.430309,
+          "rmse": 0.708609,
+          "max_abs_error": 5.617792,
+          "r2": 0.997227
+        },
+        "loading_F_LRG_C3": {
+          "mae": 0.224546,
+          "rmse": 0.355709,
+          "max_abs_error": 2.627637,
+          "r2": 0.997674
+        },
+        "loading_F_LRG_S1": {
+          "mae": 0.309356,
+          "rmse": 0.526604,
+          "max_abs_error": 3.414639,
+          "r2": 0.998457
+        },
+        "loading_F_LRG_S2": {
+          "mae": 0.384705,
+          "rmse": 0.620058,
+          "max_abs_error": 4.235779,
+          "r2": 0.997232
+        },
+        "loading_F_LRG_S3": {
+          "mae": 0.407133,
+          "rmse": 0.641527,
+          "max_abs_error": 3.750153,
+          "r2": 0.992103
+        },
+        "loading_F_LRG_TIE_NC": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "loading_F_LRG_TIE_CS": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.207797,
+          "rmse": 0.376536,
+          "max_abs_error": 2.649578,
+          "r2": 0.999616
+        },
+        "total_loss_kw": {
+          "mae": 0.038468,
+          "rmse": 0.065438,
+          "max_abs_error": 0.480318,
+          "r2": 0.998264
+        }
+      },
+      "test_metrics": {
+        "voltage_LB-01": {
+          "mae": 0.000605,
+          "rmse": 0.001394,
+          "max_abs_error": 0.012585,
+          "r2": 0.999358
+        },
+        "voltage_LB-02": {
+          "mae": 0.000851,
+          "rmse": 0.001728,
+          "max_abs_error": 0.01484,
+          "r2": 0.999364
+        },
+        "voltage_LB-03": {
+          "mae": 0.001109,
+          "rmse": 0.002134,
+          "max_abs_error": 0.018118,
+          "r2": 0.999313
+        },
+        "voltage_LB-04": {
+          "mae": 0.001152,
+          "rmse": 0.002278,
+          "max_abs_error": 0.019113,
+          "r2": 0.999338
+        },
+        "voltage_LB-05": {
+          "mae": 0.000844,
+          "rmse": 0.001802,
+          "max_abs_error": 0.015671,
+          "r2": 0.99934
+        },
+        "voltage_LB-06": {
+          "mae": 0.001073,
+          "rmse": 0.002215,
+          "max_abs_error": 0.019173,
+          "r2": 0.999317
+        },
+        "voltage_LB-07": {
+          "mae": 0.001221,
+          "rmse": 0.00242,
+          "max_abs_error": 0.020231,
+          "r2": 0.999313
+        },
+        "voltage_LB-08": {
+          "mae": 0.000875,
+          "rmse": 0.001887,
+          "max_abs_error": 0.017493,
+          "r2": 0.999309
+        },
+        "voltage_LB-09": {
+          "mae": 0.001191,
+          "rmse": 0.002372,
+          "max_abs_error": 0.021829,
+          "r2": 0.999254
+        },
+        "voltage_LB-10": {
+          "mae": 0.001487,
+          "rmse": 0.00275,
+          "max_abs_error": 0.025011,
+          "r2": 0.999169
+        },
+        "loading_F_LRG_MAIN": {
+          "mae": 0.314362,
+          "rmse": 0.787608,
+          "max_abs_error": 7.34626,
+          "r2": 0.998273
+        },
+        "loading_F_LRG_N1": {
+          "mae": 0.293995,
+          "rmse": 0.567555,
+          "max_abs_error": 4.2687,
+          "r2": 0.998084
+        },
+        "loading_F_LRG_N2": {
+          "mae": 0.382187,
+          "rmse": 0.664301,
+          "max_abs_error": 4.304384,
+          "r2": 0.996993
+        },
+        "loading_F_LRG_N3": {
+          "mae": 0.212213,
+          "rmse": 0.353109,
+          "max_abs_error": 2.414065,
+          "r2": 0.99719
+        },
+        "loading_F_LRG_C1": {
+          "mae": 0.27694,
+          "rmse": 0.580184,
+          "max_abs_error": 4.860287,
+          "r2": 0.998327
+        },
+        "loading_F_LRG_C2": {
+          "mae": 0.434041,
+          "rmse": 0.742441,
+          "max_abs_error": 4.961684,
+          "r2": 0.996925
+        },
+        "loading_F_LRG_C3": {
+          "mae": 0.22489,
+          "rmse": 0.376536,
+          "max_abs_error": 2.470223,
+          "r2": 0.997259
+        },
+        "loading_F_LRG_S1": {
+          "mae": 0.394409,
+          "rmse": 0.777899,
+          "max_abs_error": 6.920264,
+          "r2": 0.997059
+        },
+        "loading_F_LRG_S2": {
+          "mae": 0.480458,
+          "rmse": 0.820386,
+          "max_abs_error": 6.629514,
+          "r2": 0.996029
+        },
+        "loading_F_LRG_S3": {
+          "mae": 0.449459,
+          "rmse": 0.718584,
+          "max_abs_error": 4.400796,
+          "r2": 0.992716
+        },
+        "loading_F_LRG_TIE_NC": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "loading_F_LRG_TIE_CS": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.323581,
+          "rmse": 0.803034,
+          "max_abs_error": 7.422201,
+          "r2": 0.998274
+        },
+        "total_loss_kw": {
+          "mae": 0.054384,
+          "rmse": 0.116006,
+          "max_abs_error": 1.042824,
+          "r2": 0.994517
+        }
+      },
+      "near_limit_test_metrics": {
+        "voltage_LB-01": {
+          "mae": 0.001233,
+          "rmse": 0.002427,
+          "max_abs_error": 0.012585,
+          "r2": 0.998773
+        },
+        "voltage_LB-02": {
+          "mae": 0.001609,
+          "rmse": 0.00296,
+          "max_abs_error": 0.01484,
+          "r2": 0.998828
+        },
+        "voltage_LB-03": {
+          "mae": 0.002006,
+          "rmse": 0.003601,
+          "max_abs_error": 0.018118,
+          "r2": 0.99878
+        },
+        "voltage_LB-04": {
+          "mae": 0.002098,
+          "rmse": 0.003871,
+          "max_abs_error": 0.019113,
+          "r2": 0.998803
+        },
+        "voltage_LB-05": {
+          "mae": 0.001615,
+          "rmse": 0.003115,
+          "max_abs_error": 0.015671,
+          "r2": 0.998761
+        },
+        "voltage_LB-06": {
+          "mae": 0.002001,
+          "rmse": 0.003804,
+          "max_abs_error": 0.019173,
+          "r2": 0.998722
+        },
+        "voltage_LB-07": {
+          "mae": 0.002156,
+          "rmse": 0.00411,
+          "max_abs_error": 0.020231,
+          "r2": 0.998738
+        },
+        "voltage_LB-08": {
+          "mae": 0.001731,
+          "rmse": 0.003275,
+          "max_abs_error": 0.017493,
+          "r2": 0.998681
+        },
+        "voltage_LB-09": {
+          "mae": 0.002256,
+          "rmse": 0.004086,
+          "max_abs_error": 0.021829,
+          "r2": 0.998597
+        },
+        "voltage_LB-10": {
+          "mae": 0.00272,
+          "rmse": 0.004639,
+          "max_abs_error": 0.025011,
+          "r2": 0.998503
+        },
+        "loading_F_LRG_MAIN": {
+          "mae": 0.699753,
+          "rmse": 1.394365,
+          "max_abs_error": 7.34626,
+          "r2": 0.992605
+        },
+        "loading_F_LRG_N1": {
+          "mae": 0.519395,
+          "rmse": 0.938714,
+          "max_abs_error": 4.2687,
+          "r2": 0.99532
+        },
+        "loading_F_LRG_N2": {
+          "mae": 0.594635,
+          "rmse": 1.003344,
+          "max_abs_error": 4.304384,
+          "r2": 0.993584
+        },
+        "loading_F_LRG_N3": {
+          "mae": 0.338772,
+          "rmse": 0.540598,
+          "max_abs_error": 2.414065,
+          "r2": 0.991999
+        },
+        "loading_F_LRG_C1": {
+          "mae": 0.521619,
+          "rmse": 0.999152,
+          "max_abs_error": 4.860287,
+          "r2": 0.994797
+        },
+        "loading_F_LRG_C2": {
+          "mae": 0.709878,
+          "rmse": 1.136511,
+          "max_abs_error": 4.961684,
+          "r2": 0.990696
+        },
+        "loading_F_LRG_C3": {
+          "mae": 0.359423,
+          "rmse": 0.582058,
+          "max_abs_error": 2.470223,
+          "r2": 0.99297
+        },
+        "loading_F_LRG_S1": {
+          "mae": 0.829072,
+          "rmse": 1.354271,
+          "max_abs_error": 6.920264,
+          "r2": 0.979371
+        },
+        "loading_F_LRG_S2": {
+          "mae": 0.900595,
+          "rmse": 1.361547,
+          "max_abs_error": 6.629514,
+          "r2": 0.974117
+        },
+        "loading_F_LRG_S3": {
+          "mae": 0.730814,
+          "rmse": 1.034966,
+          "max_abs_error": 4.400796,
+          "r2": 0.974892
+        },
+        "loading_F_LRG_TIE_NC": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "loading_F_LRG_TIE_CS": {
+          "mae": 0.0,
+          "rmse": 0.0,
+          "max_abs_error": 0.0,
+          "r2": 1.0
+        },
+        "tx_loading_percent": {
+          "mae": 0.720086,
+          "rmse": 1.421483,
+          "max_abs_error": 7.422201,
+          "r2": 0.99261
+        },
+        "total_loss_kw": {
+          "mae": 0.113716,
+          "rmse": 0.20289,
+          "max_abs_error": 1.042824,
+          "r2": 0.984362
+        }
+      },
+      "aggregate_test_summary": {
+        "voltage_mae_pu_mean": 0.001041,
+        "voltage_max_abs_error_pu": 0.025011,
+        "feeder_loading_mae_percent_mean": 0.2886,
+        "feeder_loading_max_abs_error_percent": 7.3463,
+        "tx_loading_mae_percent": 0.323581,
+        "tx_loading_max_abs_error_percent": 7.422201
+      }
+    }
+  },
+  "known_limitations": [
+    "Surrogate provides instantaneous electrical estimates, not sequential battery degradation.",
+    "Surrogate is restricted to supported single/alternative radial topologies evaluated during training.",
+    "Surrogate cannot guarantee 100% false-safe screening without physical solver verification on borderline candidates.",
+    "Uncalibrated or foreign feeder topologies outside default, medium, and large test definitions must fall back to PowerFlowEngine.solve()."
+  ]
+}

@@ -8,6 +8,7 @@ from app.api.routes import (
     actions,
     reports,
     domestic,
+    control,
 )
 
 api_router = APIRouter()
@@ -20,3 +21,4 @@ api_router.include_router(network.router)
 api_router.include_router(actions.router)
 api_router.include_router(reports.router)
 api_router.include_router(domestic.router)
+api_router.include_router(control.router)

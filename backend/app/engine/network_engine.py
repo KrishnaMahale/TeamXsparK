@@ -151,19 +151,25 @@ class NetworkEngine:
             # If excess solar (s_kw > l_kw), battery charges up to 95% SOC
             # If high evening demand (t_hours >= 17 and l_kw > s_kw), battery discharges down to 20% SOC
             net_p = s_kw - l_kw
-            if net_p > 10.0 and current_soc < 95.0:
-                chg_power = min(b_max_chg, net_p * 0.5)
-                delta_soc = ((chg_power * dt * 0.92) / b_cap) * 100.0
-                current_soc = min(98.0, round(current_soc + delta_soc, 1))
-            elif net_p < -10.0 and t_hours >= 17.0 and current_soc > 20.0:
-                dischg_power = min(b_max_dischg, abs(net_p) * 0.4)
-                delta_soc = ((dischg_power * dt / 0.92) / b_cap) * 100.0
-                current_soc = max(15.0, round(current_soc - delta_soc, 1))
+            step_bat_pwr = 0.0
+            has_batteries = bool(grid.batteries and len(grid.batteries) > 0)
+            if has_batteries:
+                if net_p > 10.0 and current_soc < 95.0:
+                    chg_power = min(b_max_chg, net_p * 0.5)
+                    delta_soc = ((chg_power * dt * 0.92) / b_cap) * 100.0
+                    current_soc = min(98.0, round(current_soc + delta_soc, 1))
+                    step_bat_pwr = -chg_power  # charging = negative power (additional demand)
+                elif net_p < -10.0 and t_hours >= 17.0 and current_soc > 20.0:
+                    dischg_power = min(b_max_dischg, abs(net_p) * 0.4)
+                    delta_soc = ((dischg_power * dt / 0.92) / b_cap) * 100.0
+                    current_soc = max(15.0, round(current_soc - delta_soc, 1))
+                    step_bat_pwr = dischg_power  # discharging = positive power (grid injection)
 
             buses, feeders, losses, tx_loading = pf_engine.solve(
                 grid=grid,
                 solar_kw=s_kw,
                 load_kw=l_kw,
+                battery_power_kw=step_bat_pwr,
                 installed_solar_capacity_kw=input_data.installedSolarCapacityKw,
             )
 
