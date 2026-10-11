@@ -48,10 +48,14 @@ export const ReportsPage: React.FC = () => {
     ? network.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)
     : (fullResult?.summary.solarKw ?? input.currentSolarKw)
 
+  const rooftopLoadSum = network.solarUnits.reduce(
+    (acc, s) => acc + (s.isSolarRooftop || (s.loadKw && s.loadKw > 0) ? (s.loadKw || 0) : 0),
+    0
+  )
   const currentLoadKw = isDomestic
     ? domesticNetwork.totalLoadKw
-    : network.loads.length > 0
-    ? network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
+    : (network.loads.length > 0 || rooftopLoadSum > 0)
+    ? network.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0) + rooftopLoadSum
     : (fullResult?.summary.loadKw ?? input.currentLoadKw)
 
   const peakSolarKw = isDomestic

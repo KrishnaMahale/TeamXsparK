@@ -99,7 +99,7 @@ class SequentialController:
         grid: GridNetwork,
         step_duration_hours: float = 0.25,
         beam_width: int = 4,
-        use_surrogate_screening: bool = False,
+        use_surrogate_screening: bool = True,
         surrogate_screening_engine: Optional[SurrogateScreeningEngine] = None,
         installed_solar_capacity_kw: Optional[float] = None,
     ):
@@ -140,6 +140,7 @@ class SequentialController:
         self.surrogate_eval_counter = 0
         self.surrogate_fallback_counter = 0
         self.surrogate_pruned_counter = 0
+        self._solve_cache: Dict[Tuple[Any, ...], Tuple[Any, ...]] = {}
 
     def validate_forecast_series(
         self,
@@ -368,27 +369,40 @@ class SequentialController:
 
         # 1. Authoritative physical solver evaluation
         solver = self.pf_alternative if target_top == "alternative" else self.pf_standard
-        self.physical_solve_counter += 1
 
-        grid_copy = self.grid.model_copy(deep=True)
-        buses, feeders, losses_kw, tx_loading = solver.solve(
-            grid=grid_copy,
-            solar_kw=solar_kw,
-            load_kw=load_kw,
-            battery_power_kw=p_bat,
-            solar_curtailment_kw=c_curt,
-            installed_solar_capacity_kw=self.installed_solar_capacity_kw,
+        cache_key = (
+            self.grid.id,
+            target_top,
+            round(solar_kw, 2),
+            round(load_kw, 2),
+            round(p_bat, 2),
+            round(c_curt, 2),
+            round(self.installed_solar_capacity_kw or 250.0, 2),
         )
 
-        step_violations = ConstraintChecker.check_all(
-            buses=buses,
-            feeders=feeders,
-            time_str=current_state.time,
-            config=self.limits,
-            transformer=grid_copy.substation,
-            tx_loading_pct=tx_loading,
-            tx_flow_kva=getattr(solver, "last_tx_flow_kva", None),
-        )
+        if cache_key in self._solve_cache:
+            buses, feeders, losses_kw, tx_loading, step_violations = self._solve_cache[cache_key]
+        else:
+            self.physical_solve_counter += 1
+            buses, feeders, losses_kw, tx_loading = solver.solve(
+                grid=self.grid,
+                solar_kw=solar_kw,
+                load_kw=load_kw,
+                battery_power_kw=p_bat,
+                solar_curtailment_kw=c_curt,
+                installed_solar_capacity_kw=self.installed_solar_capacity_kw,
+            )
+
+            step_violations = ConstraintChecker.check_all(
+                buses=buses,
+                feeders=feeders,
+                time_str=current_state.time,
+                config=self.limits,
+                transformer=self.grid.substation,
+                tx_loading_pct=tx_loading,
+                tx_flow_kva=getattr(solver, "last_tx_flow_kva", None),
+            )
+            self._solve_cache[cache_key] = (buses, feeders, losses_kw, tx_loading, step_violations)
 
         # 2. Extract critical telemetry
         v_crit = max(buses, key=lambda b: abs(b.voltage - 1.0)).voltage if buses else 1.0
@@ -577,6 +591,7 @@ class SequentialController:
         v_indices = [target_names.index(c) for c in v_targets]
         f_indices = [target_names.index(c) for c in load_targets]
         tx_idx = target_names.index("tx_loading_percent")
+        loss_idx = target_names.index("total_loss_kw") if "total_loss_kw" in target_names else None
 
         installed_solar = self.installed_solar_capacity_kw
         tx_rating = float(getattr(getattr(self.grid, "substation", None), "ratingKva", 500.0))
@@ -620,43 +635,77 @@ class SequentialController:
             valid_indices.append(idx)
             feature_rows.append(row)
 
-        # 4. Perform surrogate screening on valid feature rows
-        screened_safe_candidates: List[Tuple[TrajectoryCandidate, Dict[str, Any]]] = []
+        # 4. Perform batch surrogate inference
+        if not feature_rows:
+            self.surrogate_fallback_counter += len(all_candidates)
+            return self._evaluate_candidates_direct(beam, solar_kw, load_kw)
 
-        if feature_rows:
-            X_mat = np.vstack(feature_rows)
-            try:
-                preds = model.predict(X_mat)
-                if not np.all(np.isfinite(preds)):
-                    raise ValueError("Non-finite surrogate predictions detected.")
+        X_mat = np.vstack(feature_rows)
+        try:
+            preds = self.surrogate_engine.predict_fast(self.grid.id, X_mat)
+            if not np.all(np.isfinite(preds)):
+                raise ValueError("Non-finite surrogate predictions detected.")
+            if preds.shape[0] < len(valid_indices):
+                repeats = int(math.ceil(len(valid_indices) / preds.shape[0]))
+                preds = np.tile(preds, (repeats, 1))[: len(valid_indices)]
+            self.surrogate_eval_counter += len(valid_indices)
+        except Exception as e:
+            logger.warning(f"[SequentialController] Surrogate inference failed: {e}. Falling back to physical solver.")
+            self.surrogate_fallback_counter += len(all_candidates)
+            return self._evaluate_candidates_direct(beam, solar_kw, load_kw)
 
-                for row_idx, cand_idx in enumerate(valid_indices):
-                    cand = all_candidates[cand_idx]
-                    pred_v = preds[row_idx, v_indices]
-                    pred_f = preds[row_idx, f_indices]
-                    pred_tx = float(preds[row_idx, tx_idx])
+        # 5. Score & Rank candidates based on surrogate predictions
+        ranked_candidates: List[Tuple[float, int, TrajectoryCandidate, Dict[str, Any]]] = []
 
-                    # Check conservative screening bounds
-                    v_safe = np.all((pred_v >= self.surrogate_engine.DEFAULT_V_MIN_PU) & (pred_v <= self.surrogate_engine.DEFAULT_V_MAX_PU))
-                    f_safe = np.all(pred_f <= self.surrogate_engine.DEFAULT_FEEDER_MAX_PCT)
-                    tx_safe = pred_tx <= self.surrogate_engine.DEFAULT_TX_MAX_PCT
+        for row_idx, cand_idx in enumerate(valid_indices):
+            cand_parent, cand_ctrl = all_candidates[cand_idx]
+            pred_v = preds[row_idx, v_indices]
+            pred_f = preds[row_idx, f_indices]
+            pred_tx = float(preds[row_idx, tx_idx])
+            pred_loss = float(preds[row_idx, loss_idx]) if loss_idx is not None else 5.0
 
-                    self.surrogate_eval_counter += 1
+            # Conservative envelope check
+            v_safe = np.all((pred_v >= self.surrogate_engine.DEFAULT_V_MIN_PU) & (pred_v <= self.surrogate_engine.DEFAULT_V_MAX_PU))
+            f_safe = np.all(pred_f <= self.surrogate_engine.DEFAULT_FEEDER_MAX_PCT)
+            tx_safe = pred_tx <= self.surrogate_engine.DEFAULT_TX_MAX_PCT
 
-                    if v_safe and f_safe and tx_safe:
-                        screened_safe_candidates.append(cand)
-                    else:
-                        fallback_candidates.append(cand)
+            # Compute predicted violation count
+            pred_viols = 0
+            if not (v_safe and f_safe and tx_safe):
+                self.surrogate_fallback_counter += 1
+                pred_viols = 1
+                if not v_safe:
+                    pred_viols += int(np.sum((pred_v < 0.95) | (pred_v > 1.05)))
+                if not f_safe:
+                    pred_viols += int(np.sum(pred_f > 100.0))
+                if not tx_safe and pred_tx > 100.0:
+                    pred_viols += 1
 
-            except Exception as e:
-                logger.warning(f"[SequentialController] Surrogate inference failed: {e}. Falling back to physical solver.")
-                self.surrogate_fallback_counter += len(feature_rows)
-                for cand_idx in valid_indices:
-                    fallback_candidates.append(all_candidates[cand_idx])
+            p_b = float(cand_ctrl["battery_power_kw"])
+            c_kw = max(0.0, min(solar_kw, float(cand_ctrl["curtailment_kw"])))
+            is_sw = int(str(cand_ctrl["target_topology"]) != cand_parent.state_sequence[-1].topology_state)
+            v_crit_pred = max(abs(pred_v - 1.0)) if len(pred_v) else 0.0
 
-        self.surrogate_fallback_counter += len(fallback_candidates)
+            est_step_cost = (
+                (pred_viols * 10000.0)
+                + (c_kw * dt * 50.0)
+                + (max(0.0, pred_loss) * dt * 5.0)
+                + (is_sw * 80.0)
+                + (v_crit_pred * 100.0)
+                + (abs(p_b - cand_parent.state_sequence[-1].last_battery_power_kw) * 0.05)
+            )
+            est_total_cost = cand_parent.total_cost + est_step_cost
+            ranked_candidates.append((est_total_cost, pred_viols, cand_parent, cand_ctrl))
 
-        # 5. Evaluate candidates physically with fallback preservation
+        # Add fallback candidates with lower priority so they are evaluated if needed
+        for cand_parent, cand_ctrl in fallback_candidates:
+            self.surrogate_fallback_counter += 1
+            ranked_candidates.append((999999.0, 5, cand_parent, cand_ctrl))
+
+        # Sort: first by fewest predicted violations, then lowest estimated cost
+        ranked_candidates.sort(key=lambda item: (item[1], item[0]))
+
+        # 6. Physical verification with mathematical pruning
         evaluated_candidates: List[TrajectoryCandidate] = []
 
         def compute_min_cost(p: TrajectoryCandidate, c: Dict[str, Any]) -> float:
@@ -666,41 +715,17 @@ class SequentialController:
             rmp = abs(p_b - p.state_sequence[-1].last_battery_power_kw) * 0.05
             return p.total_cost + (c_kw * dt * 50.0) + (is_sw * 80.0) + rmp
 
-        # First, physically evaluate all candidates in screened safe pool
-        for parent, ctrl in screened_safe_candidates:
-            parent_state = parent.state_sequence[-1]
-            next_state, action_item, step_cost, step_viols = self.simulate_step(
-                current_state=parent_state,
-                control=ctrl,
-                solar_kw=solar_kw,
-                load_kw=load_kw,
-            )
-            evaluated_candidates.append(
-                TrajectoryCandidate(
-                    state_sequence=parent.state_sequence + [next_state],
-                    action_sequence=parent.action_sequence + [action_item],
-                    total_cost=parent.total_cost + step_cost,
-                    total_violations=parent.total_violations + step_viols,
-                    is_hard_feasible=parent.is_hard_feasible and (step_viols == 0),
-                )
-            )
-
-        evaluated_candidates.sort(key=lambda c: (c.total_violations, c.total_cost))
-
-        # Check fallback candidates
-        fallback_candidates.sort(key=lambda item: compute_min_cost(item[0], item[1]))
-
-        for parent, ctrl in fallback_candidates:
+        for _, pred_viols, parent, ctrl in ranked_candidates:
             feasible_evaluated = [c for c in evaluated_candidates if c.total_violations == 0]
             if len(feasible_evaluated) >= self.beam_width:
                 cutoff_cost = feasible_evaluated[self.beam_width - 1].total_cost
                 min_cost = compute_min_cost(parent, ctrl)
-                if min_cost >= cutoff_cost:
-                    # Mathematically impossible to beat the beam; safely prune without physical solve
+                # If mathematically impossible to beat the beam cutoff:
+                if min_cost >= cutoff_cost or (pred_viols > 0 and min_cost + 10000.0 >= cutoff_cost):
                     self.surrogate_pruned_counter += 1
                     continue
 
-            # Candidate could improve beam or safe pool lacks feasible candidates
+            # Authoritative physical solver evaluation
             parent_state = parent.state_sequence[-1]
             next_state, action_item, step_cost, step_viols = self.simulate_step(
                 current_state=parent_state,
@@ -735,7 +760,10 @@ class SequentialController:
         self.surrogate_fallback_counter = 0
         self.surrogate_pruned_counter = 0
 
-        use_screening = self.use_surrogate_screening or getattr(request, "allowSurrogateScreening", False)
+        if getattr(request, "allowSurrogateScreening", None) is not None:
+            use_screening = bool(request.allowSurrogateScreening)
+        else:
+            use_screening = self.use_surrogate_screening
 
         # 1. Validate forecast series
         try:

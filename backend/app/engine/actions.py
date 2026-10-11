@@ -336,6 +336,7 @@ class ActionEngine:
         )
         s_name = target_solar.name if target_solar else "Solar Farm"
         s_bus = target_solar.busId if target_solar else crit_bus_id
+        c_max = 0.0
 
         is_pure_undervoltage = has_undervoltage and not (has_overvoltage or has_feeder_overload or has_tx_overload)
 
@@ -379,39 +380,54 @@ class ActionEngine:
                 )
                 return len(viols), buses, feeders, pf
 
-            c_max = peak_solar_kw
-            viols_boundary_c, _, _, _ = eval_curtail_step(c_max)
+            # Constrain curtailment to targeted unit's available generation and installed capacity
+            tot_solar_cap = sum(s.capacityKw for s in grid.solarUnits) or 1.0
+            unit_cap = float(target_solar.capacityKw) if target_solar else peak_solar_kw
+            p_avail_unit = peak_solar_kw * (unit_cap / tot_solar_cap) if tot_solar_cap > 0 else peak_solar_kw
+            c_max = max(0.0, min(peak_solar_kw, unit_cap, p_avail_unit))
 
-            if viols_boundary_c < base_violations:
-                low_c = 0.0
-                high_c = c_max
-                best_c = c_max
-                iter_c = 0
-                while (high_c - low_c > 1.0) and iter_c < 12:
-                    iter_c += 1
-                    mid_c = (low_c + high_c) / 2.0
-                    v_mid, _, _, _ = eval_curtail_step(mid_c)
-                    if v_mid <= viols_boundary_c:
-                        best_c = mid_c
-                        high_c = mid_c
-                    else:
-                        low_c = mid_c
-                curtail_amount = round(best_c, 1)
+            if c_max < 1.0:
+                can_act3 = False
+                reason_act3 = f"Targeted solar asset {s_name} has insufficient active generation ({c_max:.1f} kW) to curtail on {grid.name}."
+                curtail_amount = 0.0
+                v_crit_3 = base_v_crit
+                f_crit_3 = base_f_crit_load
+                viols_3 = base_violations
+                curtailed_used = peak_solar_kw
+                utilization_3 = 100.0
             else:
-                curtail_amount = min(peak_solar_kw, 50.0)
+                viols_boundary_c, _, _, _ = eval_curtail_step(c_max)
 
-            viols_3, buses_3, feeders_3, _ = eval_curtail_step(curtail_amount)
-            v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), base_v_crit)
-            f_crit_3 = next((f.loadingPercent for f in feeders_3 if f.id == crit_feeder_id), base_f_crit_load)
-            curtailed_used = max(0.0, peak_solar_kw - curtail_amount)
-            utilization_3 = round((curtailed_used / peak_solar_kw) * 100.0, 1) if peak_solar_kw > 0 else 100.0
+                if viols_boundary_c < base_violations:
+                    low_c = 0.0
+                    high_c = c_max
+                    best_c = c_max
+                    iter_c = 0
+                    while (high_c - low_c > 1.0) and iter_c < 12:
+                        iter_c += 1
+                        mid_c = (low_c + high_c) / 2.0
+                        v_mid, _, _, _ = eval_curtail_step(mid_c)
+                        if v_mid <= viols_boundary_c:
+                            best_c = mid_c
+                            high_c = mid_c
+                        else:
+                            low_c = mid_c
+                    curtail_amount = round(best_c, 1)
+                else:
+                    curtail_amount = min(c_max, 50.0)
+
+                viols_3, buses_3, feeders_3, _ = eval_curtail_step(curtail_amount)
+                v_crit_3 = next((b.voltage for b in buses_3 if b.id == crit_bus_id), base_v_crit)
+                f_crit_3 = next((f.loadingPercent for f in feeders_3 if f.id == crit_feeder_id), base_f_crit_load)
+                curtailed_used = max(0.0, peak_solar_kw - curtail_amount)
+                utilization_3 = round((curtailed_used / peak_solar_kw) * 100.0, 1) if peak_solar_kw > 0 else 100.0
 
         actions.append(
             CorrectiveAction(
                 id="ACT-03",
                 type="solar_curtailment",
                 title=f"Solar Curtailment ({s_name})",
-                description=f"Curtail active PV generation by {curtail_amount:.0f} kW at {s_bus} to relieve local constraints on {grid.name}.",
+                description=f"Curtail active PV generation by {curtail_amount:.0f} kW on {s_name} at {s_bus} (max available {c_max:.0f} kW) to relieve local constraints on {grid.name}.",
                 parameterDelta=f"-{curtail_amount:.0f} kW (Curtailed)",
                 durationMinutes=45,
                 isFeasible=can_act3,
@@ -423,7 +439,7 @@ class ActionEngine:
                 resolvedViolationsCount=max(0, base_violations - viols_3) if can_act3 else 0,
                 remainingViolationsCount=viols_3,
                 renewableUtilizationPercent=utilization_3,
-                targetComponentId=s_bus,
+                targetComponentId=target_solar.id if target_solar else s_bus,
                 targetComponentName=s_name,
                 gridId=grid.id,
                 dispatchKw=0.0,

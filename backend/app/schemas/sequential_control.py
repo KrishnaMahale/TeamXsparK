@@ -41,7 +41,7 @@ class SequentialControlRequest(BaseModel):
     forecastData: Optional[List[SequentialForecastPoint]] = Field(default=None, description="Chronological 15-minute forecast series")
     installedSolarCapacityKw: Optional[float] = Field(default=None, ge=1.0, description="Installed PV capacity in kW")
     recedingHorizonMode: bool = Field(default=True, description="True to recommend first action for immediate deployment; False for open-loop trajectory")
-    allowSurrogateScreening: bool = Field(default=False, description="Optional surrogate pre-filtering heuristic for large candidate sets")
+    allowSurrogateScreening: bool = Field(default=True, description="Enable surrogate pre-filtering and candidate screening for validated grids")
 
 
 class PlannedStepAction(BaseModel):

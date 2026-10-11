@@ -115,7 +115,26 @@ class ForecastPipeline:
 
         # 3. Resolve Grid Asset Capacities
         total_solar_capacity_kw = sum(u.capacityKw for u in grid.solarUnits if u.capacityKw)
-        total_load_nominal_kw = sum(l.powerKw for l in grid.loads if l.powerKw)
+        
+        # Rooftop household demand nominal sum and conventional loads
+        raw_conv_by_bus = {b.id: 0.0 for b in grid.buses}
+        for l in grid.loads:
+            if l.powerKw:
+                raw_conv_by_bus[l.busId] = raw_conv_by_bus.get(l.busId, 0.0) + float(l.powerKw)
+
+        rooftop_by_bus = {b.id: 0.0 for b in grid.buses}
+        for s in grid.solarUnits:
+            s_load = getattr(s, "loadKw", 0.0) or 0.0
+            if (getattr(s, "isSolarRooftop", False) or s_load > 0) and s_load > 0:
+                rooftop_by_bus[s.busId] = rooftop_by_bus.get(s.busId, 0.0) + float(s_load)
+
+        nom_by_bus = {}
+        for b in grid.buses:
+            conv = raw_conv_by_bus.get(b.id, 0.0)
+            roof = rooftop_by_bus.get(b.id, 0.0)
+            nom_by_bus[b.id] = max(conv, roof) if (conv > 0 and roof > 0 and conv == roof) else (conv + roof)
+
+        total_load_nominal_kw = sum(nom_by_bus.values()) or sum(l.powerKw for l in grid.loads if l.powerKw) or 1.0
 
         # 4. Extract Historical Context Prior to target_date 00:00 IST
         sf, tf, lf = self._get_feature_data()

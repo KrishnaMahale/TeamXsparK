@@ -1335,7 +1335,7 @@ export const Network2D: React.FC<Network2DProps> = ({
                     fontFamily="monospace"
                     fontWeight="bold"
                   >
-                    🏠 -{s.loadKw ?? 60} kW
+                    🏠 -{s.loadKw !== undefined ? s.loadKw : 0} kW
                   </text>
                 </g>
               )

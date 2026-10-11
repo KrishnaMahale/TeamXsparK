@@ -287,7 +287,11 @@ export const ComponentDetailsPanel: React.FC = () => {
 
       // Also propagate aggregate solar / load into simulationStore so simulation inputs stay synchronized
       const totalSolarSum = updatedNetwork.solarUnits.reduce((acc, s) => acc + (s.generationKw || 0), 0)
-      const totalLoadSum = updatedNetwork.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0)
+      const rooftopLoadSum = updatedNetwork.solarUnits.reduce(
+        (acc, s) => acc + (s.isSolarRooftop || (s.loadKw && s.loadKw > 0) ? (s.loadKw || 0) : 0),
+        0
+      )
+      const totalLoadSum = updatedNetwork.loads.reduce((acc, l) => acc + (l.powerKw || 0), 0) + rooftopLoadSum
       const simStore = useSimulationStore.getState()
       if (simStore && simStore.updateInput) {
         simStore.updateInput({

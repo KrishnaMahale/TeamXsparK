@@ -1005,15 +1005,70 @@ export const Network3D: React.FC<Network3DProps> = ({
       
       if (busId && assetInfo) {
         if (assetInfo.type === 'solar') {
-          const item = updatedGrid.solarUnits.find((s:any) => s.id === assetInfo.id)
-          if (item) item.busId = busId
+          const item = updatedGrid.solarUnits.find((s: any) => s.id === assetInfo.id)
+          if (item) {
+            const oldBusId = item.busId
+            item.busId = busId
+            if (oldBusId) {
+              const oldBus = updatedGrid.buses.find((b: any) => b.id === oldBusId)
+              if (oldBus && oldBus.connectedAssets?.solar === item.id) {
+                oldBus.connectedAssets.solar = undefined
+              }
+            }
+            const newBus = updatedGrid.buses.find((b: any) => b.id === busId)
+            if (newBus) {
+              if (!newBus.connectedAssets) newBus.connectedAssets = {}
+              newBus.connectedAssets.solar = item.id
+            }
+          }
         } else if (assetInfo.type === 'load') {
-          const item = updatedGrid.loads.find((l:any) => l.id === assetInfo.id)
-          if (item) item.busId = busId
+          const item = updatedGrid.loads.find((l: any) => l.id === assetInfo.id)
+          if (item) {
+            const oldBusId = item.busId
+            item.busId = busId
+            if (oldBusId) {
+              const oldBus = updatedGrid.buses.find((b: any) => b.id === oldBusId)
+              if (oldBus && oldBus.connectedAssets?.load === item.id) {
+                oldBus.connectedAssets.load = undefined
+              }
+            }
+            const newBus = updatedGrid.buses.find((b: any) => b.id === busId)
+            if (newBus) {
+              if (!newBus.connectedAssets) newBus.connectedAssets = {}
+              newBus.connectedAssets.load = item.id
+            }
+          }
         } else if (assetInfo.type === 'battery') {
-          const item = updatedGrid.batteries.find((b:any) => b.id === assetInfo.id)
-          if (item) item.busId = busId
+          const item = updatedGrid.batteries.find((b: any) => b.id === assetInfo.id)
+          if (item) {
+            const oldBusId = item.busId
+            item.busId = busId
+            if (oldBusId) {
+              const oldBus = updatedGrid.buses.find((b: any) => b.id === oldBusId)
+              if (oldBus && oldBus.connectedAssets?.battery === item.id) {
+                oldBus.connectedAssets.battery = undefined
+              }
+            }
+            const newBus = updatedGrid.buses.find((b: any) => b.id === busId)
+            if (newBus) {
+              if (!newBus.connectedAssets) newBus.connectedAssets = {}
+              newBus.connectedAssets.battery = item.id
+            }
+          }
         }
+
+        // Recompute bus aggregate solarKw and loadKw reflecting rooftop assets
+        updatedGrid.buses.forEach((b: any) => {
+          const busSolars = updatedGrid.solarUnits.filter((s: any) => s.busId === b.id)
+          const busLoads = updatedGrid.loads.filter((l: any) => l.busId === b.id)
+          b.solarKw = busSolars.reduce((sum: number, s: any) => sum + (s.generationKw || 0), 0)
+          const baseLoad = busLoads.reduce((sum: number, l: any) => sum + (l.powerKw || 0), 0)
+          const solarRooftopLoads = busSolars.reduce(
+            (sum: number, s: any) => sum + (s.isSolarRooftop || (s.loadKw && s.loadKw > 0) ? (s.loadKw || 0) : 0),
+            0
+          )
+          b.loadKw = baseLoad + solarRooftopLoads
+        })
       } else {
         alert("Invalid connection. Connect Bus to Bus / Substation (Feeder) or Asset to Bus.")
         return

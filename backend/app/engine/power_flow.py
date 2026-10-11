@@ -34,18 +34,51 @@ class PowerFlowEngine:
             {f.id for f in grid.feeders} >= {"F-01", "F-LINE-12", "F-02", "F-03", "F-04"}
         )
 
+        effective_solar_kw = max(0.0, solar_kw - solar_curtailment_kw)
+
+        # 1. Solar allocation:
+        # Benchmark default ratios: B2 = 150/250, B3 = 100/250
+        # Dynamically tracks bus connection if solar assets are relocated or custom
+        solar_alloc = {b.id: 0.0 for b in grid.buses}
         if is_default_benchmark:
-            # Calibrated engineering formulas for the standard 4-bus demo scenario
-            solar_b2_ratio = 150.0 / 250.0
-            solar_b3_ratio = 100.0 / 250.0
-            effective_solar_kw = max(0.0, solar_kw - solar_curtailment_kw)
-            solar_b2 = effective_solar_kw * solar_b2_ratio
-            solar_b3 = effective_solar_kw * solar_b3_ratio
+            rooftop_unit = next((s for s in grid.solarUnits if getattr(s, "isSolarRooftop", False)), None)
+            roof_bus = rooftop_unit.busId if rooftop_unit else "B3"
+            if roof_bus == "B3":
+                solar_alloc["B2"] = effective_solar_kw * (150.0 / 250.0)
+                solar_alloc["B3"] = effective_solar_kw * (100.0 / 250.0)
+            else:
+                solar_alloc["B2"] = effective_solar_kw * (150.0 / 250.0)
+                solar_alloc["B3"] = 0.0
+                solar_alloc[roof_bus] = effective_solar_kw * (100.0 / 250.0)
+        else:
+            total_solar_cap = sum(s.capacityKw for s in grid.solarUnits) or 1.0
+            for s in grid.solarUnits:
+                solar_alloc[s.busId] = solar_alloc.get(s.busId, 0.0) + effective_solar_kw * (s.capacityKw / total_solar_cap)
 
-            load_b2 = load_kw * (90.0 / 270.0)
-            load_b3 = load_kw * (60.0 / 270.0)
-            load_b4 = load_kw * (120.0 / 270.0)
+        # 2. Load allocation: conventional loads in grid.loads + rooftop household demand in grid.solarUnits
+        conv_by_bus = {b.id: 0.0 for b in grid.buses}
+        for l in grid.loads:
+            conv_by_bus[l.busId] = conv_by_bus.get(l.busId, 0.0) + (l.powerKw or 0.0)
 
+        rooftop_by_bus = {b.id: 0.0 for b in grid.buses}
+        for s in grid.solarUnits:
+            s_load = getattr(s, "loadKw", 0.0) or 0.0
+            if (getattr(s, "isSolarRooftop", False) or s_load > 0) and s_load > 0:
+                rooftop_by_bus[s.busId] = rooftop_by_bus.get(s.busId, 0.0) + s_load
+
+        # Ensure rooftop demand is incorporated at its connected bus and not counted again through grid.loads:
+        # On benchmark grids where LOAD-02 already represented the household load at B3, max(conv, roof) ensures
+        # demand is not counted twice. On grids with separate or zero loads, conv + roof applies.
+        nom_by_bus = {}
+        for b in grid.buses:
+            conv = conv_by_bus.get(b.id, 0.0)
+            roof = rooftop_by_bus.get(b.id, 0.0)
+            nom_by_bus[b.id] = max(conv, roof) if (conv > 0 and roof > 0 and conv == roof) else (conv + roof)
+
+        total_nom_load = sum(nom_by_bus.values()) or 1.0
+        load_alloc = {b.id: load_kw * (nom_by_bus.get(b.id, 0.0) / total_nom_load) for b in grid.buses}
+
+        if is_default_benchmark:
             solar_penetration_ratio = effective_solar_kw / installed_solar_capacity_kw
 
             v_b1 = 1.020
@@ -57,11 +90,24 @@ class PowerFlowEngine:
             battery_boost = 0.029 * (battery_power_kw / 40.0) if battery_power_kw > 0 else 0.0
             curtailment_suppression = 0.042 * (solar_curtailment_kw / 30.0) if solar_curtailment_kw > 0 else 0.0
 
-            v_b3 = round(
-                1.000 + (voltage_rise_factor * solar_penetration_ratio) - load_suppression - battery_suppression + battery_boost - curtailment_suppression,
-                3
-            )
-            v_b4 = round(1.000 - 0.015 * (load_kw / 180.0), 3)
+            v_b3_base = 1.000 + (voltage_rise_factor * solar_penetration_ratio) - load_suppression - battery_suppression + battery_boost - curtailment_suppression
+
+            # Net injection deviation at B3 from calibrated benchmark baseline:
+            solar_b3_bench = effective_solar_kw * (100.0 / 250.0)
+            load_b3_bench = load_kw * (60.0 / 270.0)
+            delta_solar_b3 = solar_alloc.get("B3", 0.0) - solar_b3_bench
+            delta_load_b3 = load_alloc.get("B3", 0.0) - load_b3_bench
+            delta_p_net_b3 = delta_solar_b3 - delta_load_b3
+
+            # Bus 3 voltage responds to rooftop operating conditions
+            v_b3 = round(v_b3_base + (delta_p_net_b3 / 300.0) * 0.065, 3)
+
+            # Bus 4 voltage responds to net power changes
+            load_b4_bench = load_kw * (120.0 / 270.0)
+            delta_solar_b4 = solar_alloc.get("B4", 0.0)
+            delta_load_b4 = load_alloc.get("B4", 0.0) - load_b4_bench
+            delta_p_net_b4 = delta_solar_b4 - delta_load_b4
+            v_b4 = round(1.000 - 0.015 * (load_kw / 180.0) + (delta_p_net_b4 / 250.0) * 0.065, 3)
 
             f01_load_kw = abs(load_kw - effective_solar_kw - battery_power_kw)
             f01_loading = min(130.0, round(45.0 + 35.0 * (load_kw / 180.0) + 15.0 * solar_penetration_ratio, 1))
@@ -74,6 +120,9 @@ class PowerFlowEngine:
             if solar_curtailment_kw > 0:
                 f02_raw_loading -= 18.0 * (solar_curtailment_kw / 30.0)
 
+            # F-02 loading responds to rooftop net injection deviation
+            f02_raw_loading += (delta_p_net_b3 / 300.0) * 100.0
+
             if self.is_alternative:
                 f02_loading = round(f02_raw_loading * 0.8518, 1)
                 f03_loading = 46.0
@@ -82,7 +131,7 @@ class PowerFlowEngine:
                 f03_loading = 0.0
 
             f_line12_loading = round((f01_loading + f02_loading) / 2.0, 1)
-            f04_loading = round(30.0 + 35.0 * (load_kw / 180.0), 1)
+            f04_loading = round(30.0 + 35.0 * (load_kw / 180.0) - (delta_p_net_b4 / 250.0) * 100.0, 1)
 
             total_loss_kw = round(8.5 + 4.5 * solar_penetration_ratio, 1)
             tx_rating = grid.substation.ratingKva if (grid.substation and grid.substation.ratingKva > 0) else 500.0
@@ -96,8 +145,8 @@ class PowerFlowEngine:
                 grid.substation.loadingPercent = tx_loading
 
             bus_voltages = {"B1": v_b1, "B2": v_b2, "B3": v_b3, "B4": v_b4}
-            bus_loads = {"B1": 0.0, "B2": round(load_b2, 1), "B3": round(load_b3, 1), "B4": round(load_b4, 1)}
-            bus_solars = {"B1": 0.0, "B2": round(solar_b2, 1), "B3": round(solar_b3, 1), "B4": 0.0}
+            bus_loads = {"B1": round(load_alloc.get("B1", 0.0), 1), "B2": round(load_alloc.get("B2", 0.0), 1), "B3": round(load_alloc.get("B3", 0.0), 1), "B4": round(load_alloc.get("B4", 0.0), 1)}
+            bus_solars = {"B1": round(solar_alloc.get("B1", 0.0), 1), "B2": round(solar_alloc.get("B2", 0.0), 1), "B3": round(solar_alloc.get("B3", 0.0), 1), "B4": round(solar_alloc.get("B4", 0.0), 1)}
             bus_line_loadings = {"B1": f01_loading, "B2": f_line12_loading, "B3": f02_loading, "B4": f04_loading}
 
             feeder_loadings = {
@@ -145,22 +194,7 @@ class PowerFlowEngine:
             return buses, feeders, total_loss_kw, tx_loading
 
         # Generic DistFlow Solver for Custom/Dynamically Created Grids
-        # 1. Distribute aggregate solar_kw across all SolarUnits proportionally by capacity
-        total_solar_cap = sum(s.capacityKw for s in grid.solarUnits) or 1.0
-        solar_alloc = {}
-        for s in grid.solarUnits:
-            solar_alloc[s.busId] = solar_alloc.get(s.busId, 0.0) + max(0.0, solar_kw - solar_curtailment_kw) * (s.capacityKw / total_solar_cap)
-
-        # 2. Distribute aggregate load_kw across all Loads and Solarrooftops proportionally by nominal power
-        rooftop_load_nom = sum(getattr(s, "loadKw", 0.0) for s in grid.solarUnits if (getattr(s, "isSolarRooftop", False) or getattr(s, "loadKw", 0.0) > 0))
-        total_load_nom = sum(l.powerKw for l in grid.loads) + rooftop_load_nom or 1.0
-        load_alloc = {}
-        for l in grid.loads:
-            load_alloc[l.busId] = load_alloc.get(l.busId, 0.0) + load_kw * (l.powerKw / total_load_nom)
-        for s in grid.solarUnits:
-            s_load = getattr(s, "loadKw", 0.0)
-            if (getattr(s, "isSolarRooftop", False) or s_load > 0) and s_load > 0:
-                load_alloc[s.busId] = load_alloc.get(s.busId, 0.0) + load_kw * (s_load / total_load_nom)
+        # Uses the unified solar_alloc and load_alloc computed above
             
         # 3. Add battery power
         bat_alloc = {}

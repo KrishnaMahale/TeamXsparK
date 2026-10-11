@@ -4,10 +4,10 @@
     "horizon": 8,
     "direct": {
       "physical_solves": 231,
-      "median_ms": 16.19,
-      "p90_ms": 17.08,
+      "median_ms": 51.28,
+      "p90_ms": 60.01,
       "feasible": true,
-      "terminal_cost": 13.5
+      "terminal_cost": 13.88
     },
     "surrogate_integrated": {
       "surrogate_evaluations": 231,
@@ -15,10 +15,10 @@
       "surrogate_pruned": 0,
       "physical_solves": 231,
       "solve_reduction_pct": 0.0,
-      "median_ms": 154.4,
-      "p90_ms": 186.62,
+      "median_ms": 192.85,
+      "p90_ms": 212.01,
       "feasible": true,
-      "terminal_cost": 13.5
+      "terminal_cost": 13.88
     },
     "trajectory_parity_pct": 100.0,
     "feasible_lost": false
@@ -27,22 +27,22 @@
     "grid_id": "default-grid",
     "horizon": 24,
     "direct": {
-      "physical_solves": 788,
-      "median_ms": 41.61,
-      "p90_ms": 52.43,
+      "physical_solves": 737,
+      "median_ms": 155.99,
+      "p90_ms": 171.49,
       "feasible": true,
-      "terminal_cost": 14.5
+      "terminal_cost": 16.87
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 788,
+      "surrogate_evaluations": 737,
       "surrogate_fallbacks": 120,
       "surrogate_pruned": 0,
-      "physical_solves": 788,
+      "physical_solves": 737,
       "solve_reduction_pct": 0.0,
-      "median_ms": 458.77,
-      "p90_ms": 493.56,
+      "median_ms": 605.7,
+      "p90_ms": 623.5,
       "feasible": true,
-      "terminal_cost": 14.5
+      "terminal_cost": 16.87
     },
     "trajectory_parity_pct": 100.0,
     "feasible_lost": false
@@ -51,20 +51,20 @@
     "grid_id": "default-grid",
     "horizon": 96,
     "direct": {
-      "physical_solves": 2759,
-      "median_ms": 144.24,
-      "p90_ms": 162.11,
+      "physical_solves": 2529,
+      "median_ms": 561.61,
+      "p90_ms": 598.05,
       "feasible": true,
       "terminal_cost": 12.75
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 2759,
+      "surrogate_evaluations": 2529,
       "surrogate_fallbacks": 576,
       "surrogate_pruned": 0,
-      "physical_solves": 2759,
+      "physical_solves": 2529,
       "solve_reduction_pct": 0.0,
-      "median_ms": 1813.34,
-      "p90_ms": 1844.1,
+      "median_ms": 2291.2,
+      "p90_ms": 2297.35,
       "feasible": true,
       "terminal_cost": 12.75
     },
@@ -76,8 +76,8 @@
     "horizon": 8,
     "direct": {
       "physical_solves": 231,
-      "median_ms": 25.16,
-      "p90_ms": 25.73,
+      "median_ms": 74.78,
+      "p90_ms": 83.04,
       "feasible": true,
       "terminal_cost": 1.7
     },
@@ -87,8 +87,8 @@
       "surrogate_pruned": 0,
       "physical_solves": 231,
       "solve_reduction_pct": 0.0,
-      "median_ms": 195.85,
-      "p90_ms": 201.18,
+      "median_ms": 262.19,
+      "p90_ms": 278.66,
       "feasible": true,
       "terminal_cost": 1.7
     },
@@ -99,20 +99,20 @@
     "grid_id": "medium-test-grid",
     "horizon": 24,
     "direct": {
-      "physical_solves": 716,
-      "median_ms": 61.47,
-      "p90_ms": 65.08,
+      "physical_solves": 713,
+      "median_ms": 219.61,
+      "p90_ms": 240.62,
       "feasible": true,
       "terminal_cost": 378.07
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 716,
-      "surrogate_fallbacks": 179,
+      "surrogate_evaluations": 713,
+      "surrogate_fallbacks": 180,
       "surrogate_pruned": 16,
-      "physical_solves": 700,
+      "physical_solves": 697,
       "solve_reduction_pct": 2.2,
-      "median_ms": 650.27,
-      "p90_ms": 692.31,
+      "median_ms": 806.82,
+      "p90_ms": 859.73,
       "feasible": true,
       "terminal_cost": 378.07
     },
@@ -123,20 +123,20 @@
     "grid_id": "medium-test-grid",
     "horizon": 96,
     "direct": {
-      "physical_solves": 2680,
-      "median_ms": 252.3,
-      "p90_ms": 303.84,
+      "physical_solves": 2677,
+      "median_ms": 850.96,
+      "p90_ms": 881.78,
       "feasible": true,
       "terminal_cost": 2.0
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 2680,
-      "surrogate_fallbacks": 1145,
+      "surrogate_evaluations": 2677,
+      "surrogate_fallbacks": 1146,
       "surrogate_pruned": 76,
-      "physical_solves": 2604,
+      "physical_solves": 2601,
       "solve_reduction_pct": 2.8,
-      "median_ms": 2485.4,
-      "p90_ms": 2572.72,
+      "median_ms": 3165.2,
+      "p90_ms": 3222.38,
       "feasible": true,
       "terminal_cost": 2.0
     },
@@ -147,22 +147,22 @@
     "grid_id": "large-test-grid",
     "horizon": 8,
     "direct": {
-      "physical_solves": 231,
-      "median_ms": 30.29,
-      "p90_ms": 44.99,
+      "physical_solves": 201,
+      "median_ms": 126.51,
+      "p90_ms": 169.59,
       "feasible": true,
-      "terminal_cost": 2.0
+      "terminal_cost": 2.75
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 231,
-      "surrogate_fallbacks": 29,
-      "surrogate_pruned": 28,
-      "physical_solves": 203,
-      "solve_reduction_pct": 12.1,
-      "median_ms": 352.23,
-      "p90_ms": 354.75,
+      "surrogate_evaluations": 201,
+      "surrogate_fallbacks": 19,
+      "surrogate_pruned": 19,
+      "physical_solves": 182,
+      "solve_reduction_pct": 9.5,
+      "median_ms": 460.53,
+      "p90_ms": 464.79,
       "feasible": true,
-      "terminal_cost": 2.0
+      "terminal_cost": 2.75
     },
     "trajectory_parity_pct": 100.0,
     "feasible_lost": false
@@ -171,22 +171,22 @@
     "grid_id": "large-test-grid",
     "horizon": 24,
     "direct": {
-      "physical_solves": 791,
-      "median_ms": 112.39,
-      "p90_ms": 125.21,
+      "physical_solves": 642,
+      "median_ms": 438.4,
+      "p90_ms": 457.31,
       "feasible": true,
-      "terminal_cost": 378.27
+      "terminal_cost": 378.57
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 791,
-      "surrogate_fallbacks": 311,
-      "surrogate_pruned": 164,
-      "physical_solves": 627,
-      "solve_reduction_pct": 20.7,
-      "median_ms": 1107.66,
-      "p90_ms": 1110.86,
+      "surrogate_evaluations": 642,
+      "surrogate_fallbacks": 257,
+      "surrogate_pruned": 92,
+      "physical_solves": 550,
+      "solve_reduction_pct": 14.3,
+      "median_ms": 1387.72,
+      "p90_ms": 1417.79,
       "feasible": true,
-      "terminal_cost": 378.27
+      "terminal_cost": 378.57
     },
     "trajectory_parity_pct": 100.0,
     "feasible_lost": false
@@ -195,22 +195,22 @@
     "grid_id": "large-test-grid",
     "horizon": 96,
     "direct": {
-      "physical_solves": 3259,
-      "median_ms": 528.68,
-      "p90_ms": 607.52,
+      "physical_solves": 2368,
+      "median_ms": 1530.09,
+      "p90_ms": 1555.51,
       "feasible": true,
-      "terminal_cost": 2.0
+      "terminal_cost": 2.1
     },
     "surrogate_integrated": {
-      "surrogate_evaluations": 3259,
-      "surrogate_fallbacks": 1735,
-      "surrogate_pruned": 579,
-      "physical_solves": 2680,
-      "solve_reduction_pct": 17.8,
-      "median_ms": 4310.09,
-      "p90_ms": 4527.23,
+      "surrogate_evaluations": 2368,
+      "surrogate_fallbacks": 1396,
+      "surrogate_pruned": 451,
+      "physical_solves": 1917,
+      "solve_reduction_pct": 19.0,
+      "median_ms": 5244.09,
+      "p90_ms": 5317.52,
       "feasible": true,
-      "terminal_cost": 2.0
+      "terminal_cost": 2.1
     },
     "trajectory_parity_pct": 100.0,
     "feasible_lost": false
