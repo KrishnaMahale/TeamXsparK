@@ -410,6 +410,17 @@ export const ActionsPage: React.FC = () => {
                 </div>
               )}
 
+              {/* State Reconciliation Notice Banner */}
+              <div className="p-3 rounded-2xl bg-[#F0FDF4]/90 dark:bg-[#064E3B]/30 border border-[#86EFAC]/70 dark:border-[#86EFAC]/30 flex flex-wrap items-center justify-between gap-2 text-xs shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
+                  <span className="font-bold text-[#10251A] dark:text-white">State Reconciliation:</span>
+                  <span className="text-[#375243] dark:text-[#A7F3D0]">
+                    Before Dispatch displays the Pre-Dispatch Baseline ({beforeViolations} Violations). After Dispatch evaluates the physical outcome of the selected action.
+                  </span>
+                </div>
+              </div>
+
               {/* Side-by-Side BEFORE / AFTER Panels (High-Impact UI) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
                 {/* BEFORE Panel */}
@@ -419,11 +430,11 @@ export const ActionsPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${beforeViolations > 0 ? 'bg-red-500 animate-pulse' : 'bg-[#10B981]'}`} />
                         <h3 className="text-sm sm:text-base font-black text-[#10251A] dark:text-[#ECFDF3] uppercase tracking-wider">
-                          Before Dispatch
+                          Before Dispatch (Baseline)
                         </h3>
                       </div>
                       <Badge variant={beforeViolations > 0 ? 'danger' : 'success'} size="sm" className="font-bold">
-                        {beforeViolations > 0 ? 'Unsafe State' : 'Nominal'}
+                        Pre-Dispatch Baseline
                       </Badge>
                     </div>
 
@@ -459,14 +470,14 @@ export const ActionsPage: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Active Violations */}
+                      {/* Pre-Dispatch Violations */}
                       <div className="p-3 rounded-xl bg-[#F7FCF9] dark:bg-[#064E3B]/40 border border-[#BBF7D0]/50 dark:border-[#86EFAC]/20">
-                        <span className="text-[11px] font-bold text-[#52665A] dark:text-[#A7F3D0] block">Active Violations</span>
+                        <span className="text-[11px] font-bold text-[#52665A] dark:text-[#A7F3D0] block">Pre-Dispatch Violations</span>
                         <div className="text-xl font-black font-mono text-red-600 dark:text-red-400 mt-0.5">
                           {beforeViolations} Active
                         </div>
                         <span className="text-[10px] font-medium text-red-600/80 dark:text-red-400/80 block mt-1">
-                          Critical Operating State
+                          Unmitigated Baseline
                         </span>
                       </div>
 
@@ -512,7 +523,7 @@ export const ActionsPage: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className={`w-3 h-3 rounded-full ${isSafe ? 'bg-[#10B981]' : isPartial ? 'bg-amber-500' : 'bg-red-500'} shadow-xs`} />
                             <h3 className="text-sm sm:text-base font-black text-[#10251A] dark:text-[#ECFDF3] uppercase tracking-wider">
-                              After Dispatch
+                              After Dispatch (Post-Action)
                             </h3>
                             {isExecuted && (
                               <Badge variant="success" size="sm" className="font-bold">
@@ -569,14 +580,14 @@ export const ActionsPage: React.FC = () => {
                             </span>
                           </div>
 
-                          {/* Remaining Violations */}
+                          {/* Post-Dispatch Violations */}
                           <div className="p-3 rounded-xl bg-[#F7FCF9] dark:bg-[#064E3B]/40 border border-[#BBF7D0]/50 dark:border-[#86EFAC]/20">
-                            <span className="text-[11px] font-bold text-[#52665A] dark:text-[#A7F3D0] block">Remaining Violations</span>
-                            <div className={`text-xl font-black font-mono mt-0.5 ${afterViolations === 0 ? 'text-[#047857] dark:text-[#86EFAC]' : 'text-red-600 dark:text-red-400'}`}>
-                              {afterViolations} Breaches
+                            <span className="text-[11px] font-bold text-[#52665A] dark:text-[#A7F3D0] block">Post-Dispatch Violations</span>
+                            <div className={`text-xl font-black font-mono mt-0.5 ${afterViolations === 0 ? 'text-[#047857] dark:text-[#86EFAC]' : isPartial ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {afterViolations} Active
                             </div>
                             <span className={`text-[10px] font-bold block mt-1 ${isSafe ? 'text-[#047857] dark:text-[#86EFAC]' : isPartial ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
-                              {isSafe ? 'All Constraints Cleared ✓' : isPartial ? `${afterViolations} Violations Remain` : 'Violation Persists'}
+                              {isSafe ? 'All Constraints Cleared ✓' : isPartial ? `${beforeViolations - afterViolations} Cleared, ${afterViolations} Remaining` : 'Violation Persists'}
                             </span>
                           </div>
 

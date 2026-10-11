@@ -236,6 +236,8 @@ export const useGridStore = create<GridState>((set, get) => ({
         selectedComponent: null,
         violations: [],
         violationSummary: getViolationSummary([]),
+        activeActionApplied: null,
+        isResolved: false,
         isLoading: false,
       })
       await get().setTime(get().currentTime)
@@ -635,13 +637,7 @@ export const useGridStore = create<GridState>((set, get) => ({
     })
 
     let updatedViolations: GridViolation[] = []
-    if (isFeasible && action.remainingViolationsCount === 0) {
-      updatedViolations = get().violations.map((v) => ({
-        ...v,
-        status: 'resolved' as const,
-        severity: 'resolved' as const,
-      }))
-    } else if (!isFeasible) {
+    if (!isFeasible) {
       updatedViolations = [
         {
           id: `VIO-${targetBusId}-ACTION-FAIL`,
@@ -662,7 +658,50 @@ export const useGridStore = create<GridState>((set, get) => ({
         },
       ]
     } else {
-      updatedViolations = get().violations
+      const baseViols = get().violations.length > 0 ? get().violations : []
+      updatedViolations = baseViols.map((v) => {
+        if (v.componentType === 'bus') {
+          const bus = updatedBuses.find((b) => b.id === v.componentId)
+          const vMax = bus?.voltageLimitMax ?? 1.05
+          const vMin = bus?.voltageLimitMin ?? 0.95
+          if (bus && bus.voltage <= vMax && bus.voltage >= vMin) {
+            return {
+              ...v,
+              value: bus.voltage,
+              formattedValue: `${bus.voltage.toFixed(3)} pu`,
+              status: 'resolved' as const,
+              severity: 'resolved' as const,
+            }
+          } else if (bus) {
+            return {
+              ...v,
+              value: bus.voltage,
+              formattedValue: `${bus.voltage.toFixed(3)} pu`,
+              status: 'active' as const,
+            }
+          }
+        } else if (v.componentType === 'feeder') {
+          const feeder = updatedFeeders.find((f) => f.id === v.componentId)
+          const fMax = feeder?.loadingLimitPercent ?? 100
+          if (feeder && feeder.loadingPercent <= fMax) {
+            return {
+              ...v,
+              value: feeder.loadingPercent,
+              formattedValue: `${feeder.loadingPercent.toFixed(0)}%`,
+              status: 'resolved' as const,
+              severity: 'resolved' as const,
+            }
+          } else if (feeder) {
+            return {
+              ...v,
+              value: feeder.loadingPercent,
+              formattedValue: `${feeder.loadingPercent.toFixed(0)}%`,
+              status: 'active' as const,
+            }
+          }
+        }
+        return v
+      })
     }
 
     const updatedNetwork: GridNetwork = {

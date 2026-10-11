@@ -124,6 +124,68 @@ export const mockActionComparisonRows: ActionComparisonRow[] = [
 ]
 
 export const createExecutionResult = (action: CorrectiveAction): ActionExecutionResult => {
+  const baseViolations = [
+    {
+      id: 'VIO-B3-13:15',
+      time: '13:15',
+      componentType: 'bus' as const,
+      componentId: 'B3',
+      componentName: 'Bus 3',
+      issue: 'Over-voltage',
+      type: 'over_voltage' as const,
+      value: 1.074,
+      unit: 'pu',
+      formattedValue: '1.074 pu',
+      limit: 1.05,
+      formattedLimit: '1.050 pu',
+      severity: 'critical' as const,
+      status: 'active' as const,
+      recommendationHint: 'Execute feeder reconfiguration or battery charging/curtailment',
+    },
+    {
+      id: 'VIO-F02-13:15',
+      time: '13:15',
+      componentType: 'feeder' as const,
+      componentId: 'F-02',
+      componentName: 'Feeder F-02',
+      issue: 'Overloaded',
+      type: 'feeder_overload' as const,
+      value: 108,
+      unit: '%',
+      formattedValue: '108%',
+      limit: 100,
+      formattedLimit: '100%',
+      severity: 'critical' as const,
+      status: 'active' as const,
+      recommendationHint: 'Shift tie-line load to Feeder F-03',
+    },
+  ]
+
+  let afterViolations: typeof baseViolations = []
+  if (!action.isFeasible) {
+    afterViolations = [...baseViolations]
+  } else if (action.remainingViolationsCount === 1) {
+    if (action.expectedVoltagePu > 1.05) {
+      afterViolations = [
+        {
+          ...baseViolations[0],
+          value: action.expectedVoltagePu,
+          formattedValue: `${action.expectedVoltagePu.toFixed(3)} pu`,
+        },
+      ]
+    } else {
+      afterViolations = [
+        {
+          ...baseViolations[1],
+          value: action.expectedFeederLoadPercent,
+          formattedValue: `${action.expectedFeederLoadPercent.toFixed(0)}%`,
+        },
+      ]
+    }
+  } else if (action.remainingViolationsCount === 0) {
+    afterViolations = []
+  }
+
   return {
     actionId: action.id,
     executedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -136,7 +198,8 @@ export const createExecutionResult = (action: CorrectiveAction): ActionExecution
       f02LoadingPercent: 108,
       solarUsedKw: 240,
       batterySocPercent: 62,
-      violationsCount: 2,
+      violationsCount: baseViolations.length,
+      violations: baseViolations,
     },
     afterState: {
       b3Voltage: action.expectedVoltagePu,
@@ -146,6 +209,7 @@ export const createExecutionResult = (action: CorrectiveAction): ActionExecution
       violationsCount: action.remainingViolationsCount,
       renewableUseMaintainedPercent: action.renewableUtilizationPercent,
       isSafe: action.isFeasible && action.remainingViolationsCount === 0,
+      violations: afterViolations,
     },
   }
 }

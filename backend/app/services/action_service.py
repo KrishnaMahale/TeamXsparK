@@ -97,7 +97,27 @@ class ActionService:
         comp = full_res.comparisonData
         crit_bus_v_before = comp.b3Voltage.before
         crit_f_load_before = comp.f02Loading.before
-        base_viols = comp.beforeViolationsCount if comp.beforeViolationsCount is not None else 2
+
+        eval_time = (
+            full_res.summary.simulationTime
+            if (full_res.summary and full_res.summary.simulationTime)
+            else "13:15"
+        )
+        base_violations_list = (
+            full_res.timeStepResults[eval_time].violations
+            if (full_res.timeStepResults and eval_time in full_res.timeStepResults)
+            else []
+        )
+        if not base_violations_list:
+            limits = full_res.input.networkConfig if hasattr(full_res.input, "networkConfig") else NetworkLimitsConfig()
+            base_violations_list = ConstraintChecker.check_all(
+                buses=grid.buses,
+                feeders=grid.feeders,
+                time_str=eval_time,
+                config=limits,
+                transformer=grid.substation,
+            )
+        base_viols = len(base_violations_list)
 
         # Infeasible action rejection
         if not target_action.isFeasible:
@@ -119,6 +139,7 @@ class ActionService:
                     monitoredFeederName=comp.monitoredFeederName,
                     gridId=grid.id,
                     gridName=grid.name,
+                    violations=base_violations_list,
                 ),
                 afterState=ActionAfterStateSnapshot(
                     b3Voltage=crit_bus_v_before,
@@ -134,17 +155,13 @@ class ActionService:
                     monitoredFeederName=comp.monitoredFeederName,
                     gridId=grid.id,
                     gridName=grid.name,
+                    violations=base_violations_list,
                 ),
             )
             await self.repository.save_execution_result(result)
             return result
 
         # Genuine solver recalculation during execution at selected operating condition
-        eval_time = (
-            full_res.summary.simulationTime
-            if (full_res.summary and full_res.summary.simulationTime)
-            else "13:15"
-        )
         eval_solar = full_res.summary.solarKw if (full_res.summary and hasattr(full_res.summary, "solarKw")) else comp.solarUsed.before
         eval_load = full_res.summary.loadKw if (full_res.summary and hasattr(full_res.summary, "loadKw")) else 120.0
         installed_cap = comp.solarUsed.capacity if hasattr(comp.solarUsed, "capacity") else 250.0
@@ -198,6 +215,7 @@ class ActionService:
                 monitoredFeederName=comp.monitoredFeederName,
                 gridId=grid.id,
                 gridName=grid.name,
+                violations=base_violations_list,
             ),
             afterState=ActionAfterStateSnapshot(
                 b3Voltage=v_after_measured,
@@ -213,6 +231,7 @@ class ActionService:
                 monitoredFeederName=comp.monitoredFeederName,
                 gridId=grid.id,
                 gridName=grid.name,
+                violations=measured_violations,
             ),
         )
 

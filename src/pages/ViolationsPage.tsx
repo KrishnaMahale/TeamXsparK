@@ -24,6 +24,10 @@ export const ViolationsPage: React.FC = () => {
     worstTime,
     worstTimestepViolations,
     fullHorizonViolations,
+    operatingStateMode,
+    setOperatingStateMode,
+    hasDispatchedAction,
+    activeActionTitle,
     severityFilter,
     setSeverityFilter,
     statusFilter,
@@ -60,33 +64,61 @@ export const ViolationsPage: React.FC = () => {
               Grid Health & Violations Log
             </h1>
             <p className="text-xs sm:text-sm text-[#375243] dark:text-[#A7F3D0] font-medium mt-1.5 leading-relaxed max-w-xl">
-              {viewScope === 'worst_timestep'
-                ? `Operating violations at peak stress timestep (${worstTime}) for ${network.name} — Identical baseline used by Corrective Actions.`
-                : `Full 24-hour diurnal chronological log of all constraint violations across 96 simulation intervals for ${network.name}.`}
+              {operatingStateMode === 'baseline'
+                ? `Authoritative pre-dispatch baseline violations for ${network.name} (${worstTime}) — Exactly matches Actions Page Before-Dispatch state.`
+                : `Post-dispatch physical operating state following ${activeActionTitle} for ${network.name} — Exactly matches Actions Page After-Dispatch state.`}
             </p>
           </div>
         </div>
 
-        {/* Scope Context Banner */}
-        <div className="p-3.5 rounded-2xl bg-white/95 dark:bg-[#122C1F]/90 border border-[#86EFAC]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] animate-pulse" />
+        {/* Scope & State Context Banner with State Toggle */}
+        <div className="p-3.5 rounded-2xl bg-white/95 dark:bg-[#122C1F]/90 border border-[#86EFAC]/70 dark:border-[#86EFAC]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs backdrop-blur-md">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${operatingStateMode === 'baseline' ? 'bg-red-500 animate-pulse' : 'bg-[#16A34A]'}`} />
             <span className="font-bold text-[#10251A] dark:text-white">
-              {viewScope === 'worst_timestep'
-                ? `Evaluation Scope: Worst Operating Timestep (${worstTime})`
-                : `Evaluation Scope: Full 24-Hour Horizon (96 Timesteps)`}
+              {operatingStateMode === 'baseline'
+                ? `Evaluation State: Pre-Dispatch Baseline (${viewScope === 'worst_timestep' ? `Peak ${worstTime}` : '24h Diurnal'})`
+                : `Evaluation State: Post-Dispatch (${activeActionTitle})`}
             </span>
             <span className="text-[#BBF7D0] dark:text-[#86EFAC]/30">|</span>
             <span className="text-[#425B4C] dark:text-[#A7F3D0] font-medium">
-              {viewScope === 'worst_timestep'
-                ? `Matches Actions Page Before-Dispatch State (${summary.critical} Active Violations)`
-                : `${fullHorizonViolations.length} total constraint breaches detected across full diurnal cycle`}
+              {operatingStateMode === 'baseline'
+                ? `Matches Actions Page Before-Dispatch Panel (${summary.critical + summary.warning} Active Violations)`
+                : `Matches Actions Page After-Dispatch Panel (${summary.critical + summary.warning} Remaining Active, ${summary.resolved} Resolved)`}
             </span>
           </div>
 
-          <span className="font-mono text-[11px] text-[#047857] dark:text-[#86EFAC] font-bold">
-            Grid: {network.name} ({network.id})
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            {hasDispatchedAction && (
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-[#F0FDF4] dark:bg-[#064E3B]/40 border border-[#86EFAC]/60 dark:border-[#86EFAC]/30 font-bold">
+                <button
+                  type="button"
+                  onClick={() => setOperatingStateMode('baseline')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
+                    operatingStateMode === 'baseline'
+                      ? 'bg-[#047857] text-white shadow-2xs'
+                      : 'text-[#425B4C] dark:text-[#A7F3D0] hover:bg-[#ECFDF3] dark:hover:bg-[#064E3B]'
+                  }`}
+                >
+                  Pre-Dispatch ({worstTimestepViolations.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOperatingStateMode('post_dispatch')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
+                    operatingStateMode === 'post_dispatch'
+                      ? 'bg-[#047857] text-white shadow-2xs'
+                      : 'text-[#425B4C] dark:text-[#A7F3D0] hover:bg-[#ECFDF3] dark:hover:bg-[#064E3B]'
+                  }`}
+                >
+                  Post-Dispatch
+                </button>
+              </div>
+            )}
+            <span className="font-mono text-[11px] text-[#047857] dark:text-[#86EFAC] font-bold">
+              Grid: {network.name} ({network.id})
+            </span>
+          </div>
         </div>
 
         {/* 1. Grid Health Summary Row */}
@@ -110,7 +142,9 @@ export const ViolationsPage: React.FC = () => {
                 {summary.critical}
               </div>
               <div className="text-[11px] text-red-600 dark:text-red-400 mt-0.5 font-semibold">
-                {viewScope === 'worst_timestep' ? `Active at ${worstTime} peak` : 'Across diurnal sequence'}
+                {operatingStateMode === 'baseline'
+                  ? `Active at ${worstTime} peak`
+                  : 'Remaining active breaches'}
               </div>
             </div>
             <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
@@ -145,7 +179,9 @@ export const ViolationsPage: React.FC = () => {
               <div className="text-2xl font-black font-mono text-[#10251A] dark:text-white mt-1">
                 {summary.resolved}
               </div>
-              <div className="text-[11px] text-[#047857] dark:text-[#86EFAC] mt-0.5 font-semibold">Cleared by corrective actions</div>
+              <div className="text-[11px] text-[#047857] dark:text-[#86EFAC] mt-0.5 font-semibold">
+                {operatingStateMode === 'baseline' ? 'Pre-intervention baseline reference' : 'Cleared by corrective action'}
+              </div>
             </div>
             <CheckCircle2 className="w-8 h-8 text-[#047857] dark:text-[#86EFAC]" />
           </div>

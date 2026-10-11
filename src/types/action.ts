@@ -1,3 +1,5 @@
+import { GridViolation } from './violation'
+
 export type ActionType =
   | 'battery_discharge'
   | 'feeder_reconfiguration'
@@ -64,6 +66,7 @@ export interface ActionExecutionResult {
     monitoredFeederName?: string
     gridId?: string
     gridName?: string
+    violations?: GridViolation[]
   }
   afterState: {
     b3Voltage: number
@@ -79,5 +82,6 @@ export interface ActionExecutionResult {
     monitoredFeederName?: string
     gridId?: string
     gridName?: string
+    violations?: GridViolation[]
   }
 }

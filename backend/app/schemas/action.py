@@ -1,5 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
+from app.schemas.violation import GridViolation
 
 
 class CorrectiveAction(BaseModel):
@@ -61,6 +62,7 @@ class ActionStateSnapshot(BaseModel):
     monitoredFeederName: Optional[str] = "Feeder F-02"
     gridId: Optional[str] = None
     gridName: Optional[str] = None
+    violations: Optional[List[GridViolation]] = None
 
 
 class ActionAfterStateSnapshot(ActionStateSnapshot):
