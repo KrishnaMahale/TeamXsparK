@@ -34,5 +34,7 @@ wheels/
 .coverage
 htmlcov/
 
-# Logs
+# Logs & temp files
 *.log
+*.tmp
+*.tmp*
