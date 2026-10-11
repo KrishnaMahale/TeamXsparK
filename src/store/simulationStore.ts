@@ -101,6 +101,70 @@ export const mergeActionsWithHybrid = (baseActions: CorrectiveAction[], hybridPl
   return Array.from(map.values())
 }
 
+export const interpolatePowerAtTime = (timeStr: string, inputData: SimulationInput): { solarKw: number; loadKw: number } => {
+  const [hStr, mStr] = timeStr.split(':')
+  const h = parseInt(hStr, 10) || 0
+  const m = parseInt(mStr, 10) || 0
+  const tFloat = h + m / 60.0
+
+  const sExact = inputData.solarTimeSeries?.find((s) => s.time === timeStr)
+  const lExact = inputData.loadTimeSeries?.find((l) => l.time === timeStr)
+  if (sExact !== undefined && lExact !== undefined) {
+    return { solarKw: sExact.solarKw, loadKw: lExact.loadKw }
+  }
+
+  const interpSeries = (points: Array<{ time: string; [key: string]: any }> | undefined, valKey: string): number | null => {
+    if (!points || points.length === 0) return null
+    const parsed: Array<[number, number]> = []
+    for (const p of points) {
+      const parts = p.time.split(':')
+      if (parts.length >= 2) {
+        const t = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60.0
+        const v = Number(p[valKey])
+        if (!isNaN(t) && !isNaN(v)) parsed.push([t, v])
+      }
+    }
+    if (parsed.length === 0) return null
+    parsed.sort((a, b) => a[0] - b[0])
+    if (tFloat <= parsed[0][0]) return parsed[0][1]
+    if (tFloat >= parsed[parsed.length - 1][0]) return parsed[parsed.length - 1][1]
+    for (let i = 0; i < parsed.length - 1; i++) {
+      const [t1, v1] = parsed[i]
+      const [t2, v2] = parsed[i + 1]
+      if (t1 <= tFloat && tFloat <= t2) {
+        if (t2 === t1) return v1
+        const ratio = (tFloat - t1) / (t2 - t1)
+        return v1 + ratio * (v2 - v1)
+      }
+    }
+    return parsed[parsed.length - 1][1]
+  }
+
+  const sVal = sExact !== undefined ? sExact.solarKw : interpSeries(inputData.solarTimeSeries, 'solarKw')
+  const lVal = lExact !== undefined ? lExact.loadKw : interpSeries(inputData.loadTimeSeries, 'loadKw')
+
+  if (sVal !== null && lVal !== null) {
+    return { solarKw: Math.round(sVal * 10) / 10, loadKw: Math.round(lVal * 10) / 10 }
+  }
+
+  const cap = inputData.installedSolarCapacityKw || 250.0
+  const calcSolar =
+    6.0 <= tFloat && tFloat <= 19.0
+      ? Math.max(0, cap * Math.sin(((tFloat - 6.0) / 13.0) * Math.PI))
+      : 0.0
+  const peakL = inputData.peakLoadKw || 180.0
+  const loadFactor =
+    0.35 +
+    0.30 * Math.exp(-Math.pow(tFloat - 10.0, 2) / 8.0) +
+    0.35 * Math.exp(-Math.pow(tFloat - 19.0, 2) / 8.0)
+  const calcLoad = Math.max(30.0, peakL * Math.min(1.0, loadFactor))
+
+  return {
+    solarKw: Math.round((sVal !== null ? sVal : calcSolar) * 10) / 10,
+    loadKw: Math.round((lVal !== null ? lVal : calcLoad) * 10) / 10,
+  }
+}
+
 const defaultInput = createSimulationInputFromPreset('HIGH_SOLAR_LOW_LOAD')
 
 export const useSimulationStore = create<SimulationState>((set, get) => ({
@@ -539,9 +603,12 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const input = get().input
       const network = useGridStore.getState().network
 
-      // 1. Initial Battery State: propagate user-configured initialSocPercent from normal simulation input
+      // 1. Initial Battery State: propagate state from active digital twin simulation at resolvedStartTime if available
+      const simResultAtStart = get().fullResult?.timeStepResults?.[resolvedStartTime]
       const configuredSoc =
-        input.batteryConfig?.initialSocPercent !== undefined
+        simResultAtStart?.batterySocPercent !== undefined
+          ? Math.min(100, Math.max(0, simResultAtStart.batterySocPercent))
+          : input.batteryConfig?.initialSocPercent !== undefined
           ? Math.min(100, Math.max(0, input.batteryConfig.initialSocPercent))
           : 62
 
@@ -552,10 +619,17 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         })
       }
 
-      // 2. Initial Topology: propagate user-selected feeder topology if supported by target grid
+      // 2. Initial Topology: propagate active simulation switch state or user-selected topology
       const supportsAlt = network?.feeders?.some((f) => f.isReconfigurableAlternate) ?? false
+      const simFeeders = simResultAtStart?.feeders
+      const tieLineFeeder = simFeeders?.find((f) => f.isReconfigurableAlternate || f.id === 'F-03')
+      const currentSimTopology = tieLineFeeder?.isSwitchClosed ? 'alternative' : 'standard'
       const requestedTopology =
-        input.networkConfig?.feederTopology === 'alternative' ? 'alternative' : 'standard'
+        simResultAtStart
+          ? currentSimTopology
+          : input.networkConfig?.feederTopology === 'alternative'
+          ? 'alternative'
+          : 'standard'
       const initialTopology =
         requestedTopology === 'alternative' && supportsAlt ? 'alternative' : 'standard'
 
@@ -566,6 +640,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         stepDurationHours: 0.25,
         initialSocPercent: configuredSoc,
         initialTopology,
+        installedSolarCapacityKw: input.installedSolarCapacityKw || 250,
         recedingHorizonMode: true,
       }
 
@@ -636,9 +711,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         req.forecastData = undefined
         effectiveHorizonMode = 'grid_forecast'
         effectiveHorizonLabel = `Grid Day-Ahead Forecast Baseline (${network.name || activeGridId})`
-      } else {
-        // Mode: constant_snapshot (default for normal simulation workflow)
-        // Form an explicit constant-input baseline scenario from configured operating snapshot
+      } else if (horizonMode === 'constant_snapshot') {
         const snapSolar = Math.max(0, input.currentSolarKw ?? 0)
         const snapLoad = Math.max(0, input.currentLoadKw ?? 0)
 
@@ -658,6 +731,23 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
         req.forecastData = constantPoints
         effectiveHorizonMode = 'constant_snapshot'
         effectiveHorizonLabel = `Constant-Input Baseline Scenario (${snapSolar} kW PV / ${snapLoad} kW Demand)`
+      } else {
+        // Mode: auto (operating condition baseline matching the 3D digital twin timeline)
+        const timelinePoints: SequentialForecastPoint[] = []
+        for (let i = 0; i < resolvedHorizonSteps; i++) {
+          const t = add15Minutes(resolvedStartTime, i)
+          const powers = interpolatePowerAtTime(t, input)
+          timelinePoints.push({
+            time: t,
+            solarKw: powers.solarKw,
+            loadKw: powers.loadKw,
+          })
+        }
+
+        req.forecastData = timelinePoints
+        effectiveHorizonMode = 'constant_snapshot'
+        const startPowers = interpolatePowerAtTime(resolvedStartTime, input)
+        effectiveHorizonLabel = `Operating Timeline Baseline (${resolvedHorizonSteps} steps from ${resolvedStartTime}: ${startPowers.solarKw} kW PV / ${startPowers.loadKw} kW Demand)`
       }
 
       const plan = await controlService.planSequentialControl(req)

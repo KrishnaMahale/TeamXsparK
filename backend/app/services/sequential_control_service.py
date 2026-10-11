@@ -131,24 +131,42 @@ class SequentialControlService:
         # 5. Resolve Forecast Data
         effective_forecast = request.forecastData
         if not effective_forecast:
-            # Reuse real day-ahead forecast from ForecastService without fabricating data
-            try:
-                fc_res = await self.forecast_service.get_timeseries_forecast(
-                    grid_id=grid.id,
-                    horizon_hours=24,
-                )
-                effective_forecast = [
-                    SequentialForecastPoint(
-                        time=pt.time,
-                        solarKw=float(getattr(pt, "solarGenerationKw", getattr(pt, "predictedSolarKw", 0.0))),
-                        loadKw=float(getattr(pt, "loadDemandKw", getattr(pt, "predictedLoadKw", 0.0))),
+            from app.services.simulation_service import get_active_simulation, interpolate_power_at_time
+            active_sim = get_active_simulation()
+            if active_sim and (not active_sim.input.gridId or active_sim.input.gridId == grid.id) and active_sim.input.solarTimeSeries:
+                effective_forecast = []
+                h_start, m_start = map(int, request.startTimestep.split(":"))
+                mins_start = h_start * 60 + m_start
+                for step_i in range(request.horizonSteps):
+                    cur_mins = (mins_start + step_i * 15) % 1440
+                    t_str = f"{cur_mins // 60:02d}:{cur_mins % 60:02d}"
+                    s_kw, l_kw = interpolate_power_at_time(t_str, active_sim.input)
+                    effective_forecast.append(
+                        SequentialForecastPoint(
+                            time=t_str,
+                            solarKw=s_kw,
+                            loadKw=l_kw,
+                        )
                     )
-                    for pt in fc_res.dataPoints
-                ]
-            except Exception as e:
-                raise ValidationException(
-                    f"Failed to retrieve day-ahead forecast for grid '{grid.id}': {e}"
-                )
+            else:
+                # Reuse real day-ahead forecast from ForecastService without fabricating data
+                try:
+                    fc_res = await self.forecast_service.get_timeseries_forecast(
+                        grid_id=grid.id,
+                        horizon_hours=24,
+                    )
+                    effective_forecast = [
+                        SequentialForecastPoint(
+                            time=pt.time,
+                            solarKw=float(getattr(pt, "solarGenerationKw", getattr(pt, "predictedSolarKw", 0.0))),
+                            loadKw=float(getattr(pt, "loadDemandKw", getattr(pt, "predictedLoadKw", 0.0))),
+                        )
+                        for pt in fc_res.dataPoints
+                    ]
+                except Exception as e:
+                    raise ValidationException(
+                        f"Failed to retrieve day-ahead forecast for grid '{grid.id}': {e}"
+                    )
 
         # Validate numeric and chronological properties
         self.validate_forecast_points(
@@ -169,6 +187,7 @@ class SequentialControlService:
             grid=grid,
             step_duration_hours=request.stepDurationHours,
             use_surrogate_screening=request.allowSurrogateScreening,
+            installed_solar_capacity_kw=request.installedSolarCapacityKw,
         )
 
         # Validate forecast series windowing and 15-minute spacing

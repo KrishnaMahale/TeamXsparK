@@ -25,6 +25,7 @@ export interface SequentialControlRequest {
   batterySocs?: Record<string, number>
   initialTopology?: string
   forecastData?: SequentialForecastPoint[]
+  installedSolarCapacityKw?: number
   recedingHorizonMode?: boolean
   allowSurrogateScreening?: boolean
 }
