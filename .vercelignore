@@ -1,0 +1,15 @@
+# Ignore backend and python artifacts
+backend/
+.venv/
+evaluation/
+scratch/
+
+# Ignore massive training datasets
+*.csv
+PecanStreet_10_Homes_1Min_Data.csv
+solar_rediation_tel_hr_cwprs_mh_2021_2025.csv
+temprature_tel_hr_cwprs_mh_2021_2025.csv
+
+# Ignore local config & logs
+.env.local
+*.log
